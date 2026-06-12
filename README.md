@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Doggo 🌭
 
-## Getting Started
+PWA de pedidos, reservas y fidelización para Doggo · Plaza Guayarte, Guayaquil.
 
-First, run the development server:
+## Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+| Capa | Tecnología |
+|------|-----------|
+| Frontend / PWA | Next.js 16 (App Router) + TypeScript |
+| Estilos | Tailwind CSS 3 |
+| Base de datos | Supabase (PostgreSQL) |
+| Auth | Supabase Auth |
+| Storage | Supabase Storage |
+| Estado del carrito | Zustand (persist) |
+| Deploy | Vercel |
+
+## Estructura
+
+```
+src/
+├── app/                  # Rutas (App Router)
+│   ├── page.tsx          # Home
+│   ├── menu/             # Menú con filtros por categoría
+│   ├── carrito/          # Carrito de compras
+│   ├── checkout/         # Formulario de pedido
+│   ├── pedido/[id]/      # Confirmación de pedido
+│   ├── reservas/         # Reservar mesa
+│   ├── puntos/           # Fidelización
+│   └── perfil/           # Perfil del cliente
+├── components/
+│   └── ui/               # BottomNav, CartIcon, etc.
+├── hooks/                # useHydration
+├── lib/
+│   ├── supabase/         # client.ts + server.ts
+│   └── utils.ts          # helpers, formatPrice, WhatsApp
+├── store/
+│   └── cart.ts           # Zustand store
+└── types/
+    └── index.ts          # Tipos TypeScript de toda la app
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Variables de entorno
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Crea `.env.local` con:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=   # ⚠️ nunca al repo
+```
 
-## Learn More
+## Desarrollo
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm install
+npm run dev       # http://localhost:3000
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Base de datos
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+El archivo `supabase-setup.sql` contiene todas las tablas, datos de prueba y políticas RLS.
+Pégalo en Supabase → SQL Editor → Run.
 
-## Deploy on Vercel
+## Pendiente (próximas semanas)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [ ] Página de reservas funcional
+- [ ] Login / perfil del cliente
+- [ ] Programa de puntos
+- [ ] Panel admin
+- [ ] Integración de pagos (PayPhone / Datafast)
+- [ ] Deploy en Vercel

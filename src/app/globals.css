@@ -1,14 +1,6 @@
-@import "tailwindcss";
-
-@theme {
-  --color-doggo-yellow: #F5C400;
-  --color-doggo-red: #8B1A1A;
-  --color-doggo-dark: #1A1A1A;
-  --color-doggo-dark2: #262626;
-  --color-doggo-dark3: #2E2E2E;
-  --color-doggo-gray: #6B6B6B;
-  --color-doggo-light: #F5F5F5;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   --background: #1A1A1A;
@@ -22,7 +14,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: 'Montserrat', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   max-width: 430px;
   margin: 0 auto;
@@ -31,7 +23,6 @@ body {
 }
 
 /* Admin and tablet override — no max-width */
-.admin-layout body,
 body.no-max {
   max-width: none;
 }
@@ -39,4 +30,16 @@ body.no-max {
 /* Safe area bottom padding for PWA */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Hide scrollbar but keep scrollable */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }

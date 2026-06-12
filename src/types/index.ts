@@ -1,4 +1,22 @@
-// ── Database types ──────────────────────────────────────────────
+// ── Shared enums / literals ──────────────────────────────────────
+
+export type OrderStatus =
+  | 'new'
+  | 'accepted'
+  | 'preparing'
+  | 'ready'
+  | 'delivered'
+  | 'cancelled'
+
+export type PaymentStatus = 'pending' | 'paid' | 'failed'
+
+export type DeliveryType = 'pickup' | 'delivery' | 'dine_in'
+
+export type ReservationStatus = 'pending' | 'confirmed' | 'cancelled'
+
+export type LoyaltyType = 'earned' | 'redeemed'
+
+// ── Database row types ───────────────────────────────────────────
 
 export interface Category {
   id: string
@@ -26,7 +44,7 @@ export interface Order {
   customer_name: string
   customer_phone: string
   customer_email: string | null
-  delivery_type: 'pickup' | 'delivery' | 'dine_in'
+  delivery_type: DeliveryType
   address: string | null
   lat: number | null
   lng: number | null
@@ -40,9 +58,6 @@ export interface Order {
   // joined
   items?: OrderItem[]
 }
-
-export type OrderStatus = 'new' | 'accepted' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
-export type PaymentStatus = 'pending' | 'paid' | 'failed'
 
 export interface OrderItem {
   id: string
@@ -60,11 +75,11 @@ export interface Reservation {
   customer_name: string
   customer_phone: string
   customer_email: string | null
-  reservation_date: string
-  reservation_time: string
+  reservation_date: string   // 'YYYY-MM-DD'
+  reservation_time: string   // 'HH:MM:SS'
   party_size: number
   notes: string | null
-  status: 'pending' | 'confirmed' | 'cancelled'
+  status: ReservationStatus
   created_at: string
 }
 
@@ -92,7 +107,7 @@ export interface LoyaltyTransaction {
   customer_id: string
   order_id: string | null
   points: number
-  type: 'earned' | 'redeemed'
+  type: LoyaltyType
   description: string | null
   created_at: string
 }
@@ -103,12 +118,12 @@ export interface Payment {
   provider: string | null
   provider_reference: string | null
   amount: number
-  status: 'pending' | 'paid' | 'failed'
+  status: PaymentStatus
   payment_url: string | null
   created_at: string
 }
 
-// ── Cart types ──────────────────────────────────────────────────
+// ── Cart / UI types ──────────────────────────────────────────────
 
 export interface CartItem {
   product: Product
@@ -116,15 +131,11 @@ export interface CartItem {
   notes?: string
 }
 
-export type DeliveryType = 'pickup' | 'delivery' | 'dine_in'
-
 export interface CheckoutForm {
   name: string
   phone: string
   email?: string
   delivery_type: DeliveryType
   address?: string
-  lat?: number
-  lng?: number
   notes?: string
 }

@@ -1,7 +1,6 @@
-export default function Page() {
-  return (
-    <div className="min-h-screen bg-doggo-dark flex items-center justify-center">
-      <p className="text-doggo-yellow text-lg font-bold">/pago — próximamente 🌭</p>
-    </div>
-  )
+import { redirect } from 'next/navigation'
+
+// /pago no se usa directamente — el flujo de pago vive en /checkout
+export default function PagoPage() {
+  redirect('/checkout')
 }

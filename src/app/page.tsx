@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import CartIcon from '@/components/ui/CartIcon'
 
 export default function Home() {
   return (
@@ -15,9 +16,7 @@ export default function Home() {
           <h1 className="text-doggo-yellow text-2xl font-black tracking-tight">DOGGO</h1>
           <p className="text-gray-400 text-xs">Plaza Guayarte · Guayaquil</p>
         </div>
-        <Link href="/carrito" className="relative">
-          <span className="text-2xl">🛒</span>
-        </Link>
+        <CartIcon />
       </div>
 
       {/* Hero banner */}

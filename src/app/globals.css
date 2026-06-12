@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme {
+  --color-doggo-yellow: #F5C400;
+  --color-doggo-red: #8B1A1A;
+  --color-doggo-dark: #1A1A1A;
+  --color-doggo-dark2: #262626;
+  --color-doggo-dark3: #2E2E2E;
+  --color-doggo-gray: #6B6B6B;
+  --color-doggo-light: #F5F5F5;
+}
+
+:root {
+  --background: #1A1A1A;
+  --foreground: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Montserrat', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Admin and tablet override — no max-width */
+.admin-layout body,
+body.no-max {
+  max-width: none;
+}
+
+/* Safe area bottom padding for PWA */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}

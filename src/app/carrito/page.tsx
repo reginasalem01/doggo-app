@@ -27,7 +27,7 @@ export default function CarritoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-doggo-dark flex flex-col">
+    <div className="min-h-screen bg-doggo-dark">
       {/* Header */}
       <div className="bg-doggo-dark2 px-4 py-4 flex items-center gap-3">
         <Link href="/menu" className="text-gray-400 text-2xl leading-none">‹</Link>
@@ -35,7 +35,7 @@ export default function CarritoPage() {
       </div>
 
       {/* Items */}
-      <div className="flex-1 px-4 py-4 space-y-3">
+      <div className="px-4 py-4 space-y-3">
         {items.map((item) => (
           <div key={item.product.id} className="bg-doggo-dark2 rounded-xl p-4">
             <div className="flex items-start justify-between gap-3">
@@ -93,12 +93,12 @@ export default function CarritoPage() {
           <span className="text-white font-bold">{formatPrice(sub)}</span>
         </div>
         <div className="flex justify-between items-center mb-2">
-          <span className="text-gray-400 text-sm">Envío</span>
-          <span className="text-gray-400 text-sm italic">Se calcula al pedir</span>
+          <span className="text-gray-400 text-sm">Envío (domicilio)</span>
+          <span className="text-gray-400 text-sm">$1.50</span>
         </div>
         <div className="border-t border-doggo-dark3 mt-3 pt-3 flex justify-between items-center">
-          <span className="text-white font-black">Total</span>
-          <span className="text-doggo-yellow font-black text-lg">{formatPrice(sub)}</span>
+          <span className="text-white font-black">Total estimado</span>
+          <span className="text-doggo-yellow font-black text-lg">{formatPrice(sub + 1.5)}</span>
         </div>
 
         <Link

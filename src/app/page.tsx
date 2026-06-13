@@ -1,101 +1,169 @@
 import Link from 'next/link'
 import CartIcon from '@/components/ui/CartIcon'
+import AddToCartButton from '@/components/ui/AddToCartButton'
+import ActiveOrderBanner from '@/components/ui/ActiveOrderBanner'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 
-export default function Home() {
+export default async function Home() {
+  const admin = createAdminClient()
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const today = new Date().toISOString().split('T')[0]
+
+  const [{ data: featured }, { data: promos }, { data: customer }] = await Promise.all([
+    admin.from('products').select('*').eq('available', true).order('sort_order').limit(6),
+    admin.from('promotions').select('*').eq('active', true).or(`ends_at.is.null,ends_at.gte.${today}`).order('created_at', { ascending: false }).limit(3),
+    user
+      ? admin.from('customers').select('id, name, points').eq('auth_user_id', user.id).single()
+      : Promise.resolve({ data: null }),
+  ])
+
+  function getLevel(pts: number) {
+    if (pts >= 500) return { label: 'Oro', emoji: '🥇' }
+    if (pts >= 200) return { label: 'Plata', emoji: '🥈' }
+    return { label: 'Bronce', emoji: '🥉' }
+  }
+
+  const level = customer ? getLevel(customer.points) : null
+
   return (
-    <div className="min-h-screen bg-doggo-dark flex flex-col">
-      {/* Status bar */}
-      <div className="bg-doggo-dark px-4 py-3 flex justify-between items-center">
-        <span className="text-white text-xs font-medium">9:41</span>
-        <span className="text-white text-xs">● ● ▲ 🔋</span>
-      </div>
+    <div className="min-h-screen bg-doggo-dark">
 
-      {/* Header */}
-      <div className="bg-doggo-dark2 px-4 py-4 flex items-center justify-between">
+      {/* ── HEADER ────────────────────────────────────────── */}
+      <div className="px-4 pt-5 pb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-doggo-yellow text-2xl font-black tracking-tight">DOGGO</h1>
-          <p className="text-gray-400 text-xs">Plaza Guayarte · Guayaquil</p>
+          <h1 className="text-white text-2xl font-black tracking-tight">DOGGO <span className="text-doggo-yellow">🌭</span></h1>
+          <p className="text-gray-500 text-xs">Plaza Guayarte · Guayaquil</p>
         </div>
         <CartIcon />
       </div>
 
-      {/* Hero banner */}
-      <div className="mx-4 mt-4 bg-doggo-red rounded-2xl p-5 flex items-center justify-between">
-        <div>
-          <p className="text-doggo-yellow text-xs font-bold uppercase tracking-wider">Oferta del día</p>
-          <h2 className="text-white text-xl font-black mt-1 leading-tight">
-            2×1 en<br />Hot Dogs 🌭
-          </h2>
-          <Link
-            href="/menu"
-            className="mt-3 inline-block bg-doggo-yellow text-doggo-dark text-sm font-bold px-4 py-2 rounded-full"
-          >
-            Ordenar ahora →
-          </Link>
-        </div>
-        <span className="text-6xl">🌭</span>
-      </div>
+      {/* ── ACTIVE ORDER BANNER ───────────────────────────── */}
+      <ActiveOrderBanner />
 
-      {/* Quick actions */}
-      <div className="grid grid-cols-3 gap-3 mx-4 mt-4">
-        {[
-          { emoji: '🍔', label: 'Menú', href: '/menu' },
-          { emoji: '📅', label: 'Reservar', href: '/reservas' },
-          { emoji: '⭐', label: 'Mis puntos', href: '/puntos' },
-        ].map((action) => (
-          <Link
-            key={action.href}
-            href={action.href}
-            className="bg-doggo-dark2 rounded-2xl p-4 flex flex-col items-center gap-2 hover:bg-doggo-dark3 transition-colors"
-          >
-            <span className="text-3xl">{action.emoji}</span>
-            <span className="text-white text-xs font-semibold">{action.label}</span>
-          </Link>
-        ))}
-      </div>
-
-      {/* Featured section */}
-      <div className="mx-4 mt-6">
-        <h2 className="text-white text-lg font-black mb-3">Lo más pedido</h2>
-        <div className="space-y-3">
-          {[
-            { name: 'Hot Dog Clásico', price: '$3.50', emoji: '🌭', desc: 'Salchicha, mostaza, ketchup' },
-            { name: 'Hot Dog Hawaiano', price: '$4.25', emoji: '🍍', desc: 'Salchicha, piña, salsa especial' },
-            { name: 'Combo Doggo', price: '$5.99', emoji: '🎉', desc: 'HD Clásico + bebida + papas' },
-          ].map((item) => (
-            <div key={item.name} className="bg-doggo-dark2 rounded-xl p-3 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="text-3xl">{item.emoji}</span>
+      {/* ── LOYALTY STRIP (if logged in) ──────────────────── */}
+      {customer && level && (
+        <div className="px-4 mb-5">
+          <Link href="/perfil">
+            <div className="flex items-center justify-between bg-doggo-dark2 rounded-2xl px-4 py-3 border border-doggo-yellow/20">
+              <div className="flex items-center gap-2.5">
+                <span className="text-xl">{level.emoji}</span>
                 <div>
-                  <p className="text-white text-sm font-semibold">{item.name}</p>
-                  <p className="text-gray-400 text-xs">{item.desc}</p>
+                  <p className="text-white font-black text-sm leading-none">{customer.name.split(' ')[0]}</p>
+                  <p className="text-gray-400 text-xs mt-0.5">Nivel {level.label}</p>
                 </div>
               </div>
-              <div className="flex flex-col items-end gap-1">
-                <span className="text-doggo-yellow font-bold text-sm">{item.price}</span>
-                <Link
-                  href="/menu"
-                  className="bg-doggo-yellow text-doggo-dark text-xs font-bold px-3 py-1 rounded-full"
-                >
-                  + Añadir
-                </Link>
+              <div className="flex items-center gap-2">
+                <div className="text-right">
+                  <p className="text-doggo-yellow font-black text-lg leading-none">{customer.points}</p>
+                  <p className="text-gray-500 text-[10px]">puntos</p>
+                </div>
+                <span className="text-gray-500 text-sm">›</span>
               </div>
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Loyalty teaser */}
-      <div className="mx-4 mt-4 mb-4 bg-doggo-dark2 rounded-2xl p-4 flex items-center gap-4">
-        <span className="text-4xl">⭐</span>
-        <div>
-          <p className="text-doggo-yellow text-sm font-bold">Programa de puntos</p>
-          <p className="text-gray-400 text-xs mt-0.5">Gana 1 punto por cada $1. Canjea recompensas exclusivas.</p>
-          <Link href="/puntos" className="text-doggo-yellow text-xs font-bold mt-1 inline-block">
-            Ver mis puntos →
           </Link>
         </div>
+      )}
+
+      {/* ── PROMOS (if any) ───────────────────────────────── */}
+      {promos && promos.length > 0 && (
+        <div className="mb-6">
+          <div className="flex gap-3 overflow-x-auto px-4 pb-1 scrollbar-hide">
+            {promos.map((promo) => (
+              <div
+                key={promo.id}
+                className="shrink-0 rounded-2xl overflow-hidden flex items-stretch"
+                style={{ width: promos.length === 1 ? '100%' : '80vw', maxWidth: '340px', background: 'linear-gradient(135deg, #8B1A1A, #5a0f0f)' }}
+              >
+                <div className="flex-1 p-4 flex flex-col justify-between">
+                  <div>
+                    <span className="inline-block bg-doggo-yellow text-doggo-dark text-[10px] font-black px-2 py-0.5 rounded-full mb-2 uppercase tracking-wide">
+                      {promo.ends_at ? `Hasta ${new Date(promo.ends_at + 'T12:00:00').toLocaleDateString('es-EC', { day: 'numeric', month: 'short' })}` : 'Promo'}
+                    </span>
+                    <p className="text-white font-black text-lg leading-tight">{promo.title}</p>
+                    {promo.description && <p className="text-red-200 text-xs mt-1 line-clamp-2">{promo.description}</p>}
+                  </div>
+                  <Link href="/menu" className="mt-3 self-start bg-white/10 text-white text-xs font-bold px-3 py-1.5 rounded-full">
+                    Ordenar →
+                  </Link>
+                </div>
+                {promo.image_url && (
+                  <img src={promo.image_url} alt={promo.title} className="w-28 object-cover shrink-0" />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── LO MÁS PEDIDO ────────────────────────────────── */}
+      {featured && featured.length > 0 && (
+        <div className="mb-6">
+          <div className="px-4 flex items-center justify-between mb-3">
+            <h2 className="text-white font-black text-base">Lo más pedido</h2>
+            <Link href="/menu" className="text-doggo-yellow text-xs font-bold">Ver todo →</Link>
+          </div>
+
+          {/* Horizontal scroll of cards */}
+          <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide">
+            {featured.map((product) => (
+              <div key={product.id} className="shrink-0 w-36 bg-doggo-dark2 rounded-2xl overflow-hidden">
+                {product.image_url ? (
+                  <img src={product.image_url} alt={product.name} className="w-full h-28 object-cover" />
+                ) : (
+                  <div className="w-full h-28 bg-doggo-dark3 flex items-center justify-center">
+                    <span className="text-4xl">🌭</span>
+                  </div>
+                )}
+                <div className="p-2.5">
+                  <p className="text-white font-bold text-xs leading-tight line-clamp-2 mb-1">{product.name}</p>
+                  <p className="text-doggo-yellow font-black text-sm mb-2">${Number(product.price).toFixed(2)}</p>
+                  <AddToCartButton product={product} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── RESERVE CTA ──────────────────────────────────── */}
+      <div className="px-4 mb-6">
+        <Link href="/reservas">
+          <div className="bg-doggo-dark2 rounded-2xl p-4 flex items-center justify-between border border-doggo-dark3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-doggo-yellow/10 rounded-xl flex items-center justify-center">
+                <span className="text-xl">📅</span>
+              </div>
+              <div>
+                <p className="text-white font-black text-sm">Reserva tu mesa</p>
+                <p className="text-gray-400 text-xs">Elige fecha, hora y personas</p>
+              </div>
+            </div>
+            <span className="text-doggo-yellow font-black text-lg">›</span>
+          </div>
+        </Link>
       </div>
+
+      {/* ── LOYALTY TEASER (if not logged in) ────────────── */}
+      {!customer && (
+        <div className="px-4 mb-6">
+          <div className="bg-doggo-dark2 rounded-2xl p-4 flex items-center gap-4 border border-doggo-dark3">
+            <div className="w-12 h-12 bg-doggo-yellow/10 rounded-xl flex items-center justify-center shrink-0">
+              <span className="text-2xl">⭐</span>
+            </div>
+            <div className="flex-1">
+              <p className="text-white font-black text-sm">Gana puntos con cada pedido</p>
+              <p className="text-gray-400 text-xs mt-0.5">$1 = 1 punto. Canjea premios exclusivos.</p>
+            </div>
+            <Link href="/login" className="bg-doggo-yellow text-doggo-dark font-black text-xs px-3 py-2 rounded-xl shrink-0">
+              Entrar
+            </Link>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

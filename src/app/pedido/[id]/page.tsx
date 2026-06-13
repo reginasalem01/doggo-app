@@ -1,23 +1,41 @@
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
-import { formatPrice, ORDER_STATUS_LABELS, DELIVERY_LABELS } from '@/lib/utils'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { formatPrice, DELIVERY_LABELS } from '@/lib/utils'
 import type { Order, OrderItem } from '@/types'
+import StatusPoller from './StatusPoller'
 
 interface Props {
   params: Promise<{ id: string }>
 }
 
+const STEPS = [
+  { key: 'new',       label: 'Recibido',   icon: '📋' },
+  { key: 'preparing', label: 'Preparando', icon: '🍳' },
+  { key: 'ready',     label: 'Listo',      icon: '🔔' },
+  { key: 'delivered', label: 'Entregado',  icon: '✅' },
+]
+
+// Map actual DB statuses to step index
+function stepIndex(status: string) {
+  if (status === 'new')                       return 0
+  if (status === 'accepted')                  return 1
+  if (status === 'preparing')                 return 1
+  if (status === 'ready')                     return 2
+  if (status === 'delivered')                 return 3
+  return 0
+}
+
 export default async function PedidoPage({ params }: Props) {
   const { id } = await params
-  const supabase = await createClient()
+  const admin = createAdminClient()
 
-  const { data: order } = await supabase
+  const { data: order } = await admin
     .from('orders')
     .select('*')
     .eq('id', id)
     .single()
 
-  const { data: items } = await supabase
+  const { data: items } = await admin
     .from('order_items')
     .select('*')
     .eq('order_id', id)
@@ -34,41 +52,86 @@ export default async function PedidoPage({ params }: Props) {
     )
   }
 
-  const o = order as Order
+  const o       = order as Order
   const shortId = o.id.slice(0, 8).toUpperCase()
+  const current = stepIndex(o.status)
+  const isDelivery  = o.delivery_type === 'delivery'
+  const isCancelled = o.status === 'cancelled'
+  const isDelivered = o.status === 'delivered'
+
+  // Etiqueta del paso "Listo" cambia según tipo de entrega
+  const steps = STEPS.map((s, i) =>
+    i === 2 && isDelivery ? { ...s, label: 'En camino', icon: '🛵' } : s
+  )
 
   return (
-    <div className="min-h-screen bg-doggo-dark px-4 py-6">
-      {/* Success header */}
-      <div className="text-center mb-6">
-        <div className="text-5xl mb-3">🎉</div>
-        <h1 className="text-white text-2xl font-black">¡Pedido enviado!</h1>
-        <p className="text-gray-400 text-sm mt-1">#{shortId}</p>
+    <div className="min-h-screen bg-doggo-dark px-4 py-6 pb-24">
+      {/* Auto-refresco cada 5 s mientras no esté terminal */}
+      <StatusPoller status={o.status} />
+
+      {/* Header */}
+      <div className="text-center mb-8">
+        <div className="text-5xl mb-3">
+          {isCancelled ? '❌' : isDelivered ? '🎉' : '🌭'}
+        </div>
+        <h1 className="text-white text-2xl font-black">
+          {isCancelled ? 'Pedido cancelado' : isDelivered ? '¡Entregado!' : '¡Pedido en camino!'}
+        </h1>
+        <p className="text-gray-500 text-sm mt-1">#{shortId}</p>
       </div>
 
-      {/* Status */}
-      <div className="bg-doggo-dark2 rounded-2xl p-4 mb-4">
-        <div className="flex items-center justify-between">
-          <span className="text-gray-400 text-sm">Estado</span>
-          <span className="bg-doggo-yellow text-doggo-dark text-xs font-black px-3 py-1 rounded-full">
-            {ORDER_STATUS_LABELS[o.status] ?? o.status}
-          </span>
-        </div>
-        <div className="flex items-center justify-between mt-2">
-          <span className="text-gray-400 text-sm">Tipo</span>
-          <span className="text-white text-sm font-semibold">
-            {DELIVERY_LABELS[o.delivery_type] ?? o.delivery_type}
-          </span>
-        </div>
-        {o.address && (
-          <div className="mt-2">
-            <span className="text-gray-400 text-sm block">Dirección</span>
-            <span className="text-white text-sm">{o.address}</span>
+      {/* Pasos de estado */}
+      {!isCancelled && (
+        <div className="bg-doggo-dark2 rounded-2xl p-5 mb-4">
+          <div className="flex items-start justify-between relative">
+            {/* Línea de progreso */}
+            <div className="absolute top-5 left-0 right-0 h-0.5 bg-doggo-dark3 mx-8" />
+            <div
+              className="absolute top-5 left-0 h-0.5 bg-doggo-yellow mx-8 transition-all duration-700"
+              style={{ right: `${((3 - current) / 3) * 100}%` }}
+            />
+
+            {steps.map((step, i) => {
+              const done   = i < current
+              const active = i === current
+              return (
+                <div key={step.key} className="flex flex-col items-center gap-2 relative z-10 flex-1">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg transition-all duration-500 ${
+                    done   ? 'bg-doggo-yellow'         :
+                    active ? 'bg-doggo-yellow ring-4 ring-doggo-yellow/30' :
+                             'bg-doggo-dark3'
+                  }`}>
+                    {step.icon}
+                  </div>
+                  <p className={`text-xs font-bold text-center leading-tight ${
+                    active ? 'text-doggo-yellow' : done ? 'text-white' : 'text-gray-600'
+                  }`}>
+                    {step.label}
+                  </p>
+                </div>
+              )
+            })}
           </div>
-        )}
-      </div>
 
-      {/* Items */}
+          {/* Mensaje contextual */}
+          <p className="text-center text-gray-400 text-xs mt-5">
+            {o.status === 'new'       && 'Tu pedido fue recibido, esperando confirmación…'}
+            {(o.status === 'accepted' || o.status === 'preparing') && '¡Manos a la obra! Estamos preparando tu pedido 🍳'}
+            {o.status === 'ready' && !isDelivery && '¡Tu pedido está listo para retirar! 🔔'}
+            {o.status === 'ready' &&  isDelivery && '¡Tu pedido está en camino! 🛵'}
+            {o.status === 'delivered' && '¡Gracias por tu pedido! Buen provecho 😋'}
+          </p>
+        </div>
+      )}
+
+      {/* Cancelado */}
+      {isCancelled && (
+        <div className="bg-red-900/20 border border-red-700/30 rounded-2xl p-4 mb-4 text-center">
+          <p className="text-red-400 text-sm">Este pedido fue cancelado. Contáctanos si tienes dudas.</p>
+        </div>
+      )}
+
+      {/* Detalle del pedido */}
       <div className="bg-doggo-dark2 rounded-2xl p-4 mb-4">
         <p className="text-white font-bold text-sm mb-3">Tu pedido</p>
         {(items as OrderItem[])?.map((item) => (
@@ -88,15 +151,23 @@ export default async function PedidoPage({ params }: Props) {
         </div>
       </div>
 
-      {/* WhatsApp info */}
-      <div className="bg-doggo-dark2 rounded-2xl p-4 mb-6">
-        <p className="text-white text-sm font-bold mb-1">📱 Confirmación por WhatsApp</p>
-        <p className="text-gray-400 text-xs">
-          Ya avisamos al local por WhatsApp. Te contactarán si tienen alguna pregunta.
-        </p>
-      </div>
+      {/* Info de entrega */}
+      {(o.address || o.delivery_type) && (
+        <div className="bg-doggo-dark2 rounded-2xl p-4 mb-6">
+          <div className="flex justify-between text-sm mb-1">
+            <span className="text-gray-400">Tipo</span>
+            <span className="text-white font-semibold">{DELIVERY_LABELS[o.delivery_type] ?? o.delivery_type}</span>
+          </div>
+          {o.address && (
+            <div className="flex justify-between text-sm gap-4">
+              <span className="text-gray-400 shrink-0">Dirección</span>
+              <span className="text-white text-right">{o.address}</span>
+            </div>
+          )}
+        </div>
+      )}
 
-      {/* Actions */}
+      {/* Acciones */}
       <div className="space-y-3">
         <Link
           href="/menu"
@@ -104,10 +175,7 @@ export default async function PedidoPage({ params }: Props) {
         >
           Seguir ordenando
         </Link>
-        <Link
-          href="/"
-          className="block w-full text-center text-gray-400 text-sm py-2"
-        >
+        <Link href="/" className="block w-full text-center text-gray-400 text-sm py-2">
           Ir al inicio
         </Link>
       </div>

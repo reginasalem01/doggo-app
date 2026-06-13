@@ -22,9 +22,10 @@ body {
   position: relative;
 }
 
-/* Admin and tablet override — no max-width */
+/* Owner/admin desktop override — full width, no centering */
 body.no-max {
   max-width: none;
+  margin: 0;
 }
 
 /* Safe area bottom padding for PWA */

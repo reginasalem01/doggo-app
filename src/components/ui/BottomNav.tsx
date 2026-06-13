@@ -10,8 +10,7 @@ const tabs = [
   { href: '/',         emoji: '🏠', label: 'Inicio'   },
   { href: '/menu',     emoji: '🌭', label: 'Ordenar'  },
   { href: '/reservas', emoji: '📅', label: 'Reservar' },
-  { href: '/puntos',   emoji: '⭐', label: 'Puntos'   },
-  { href: '/perfil',   emoji: '👤', label: 'Perfil'   },
+  { href: '/perfil',   emoji: '⭐', label: 'Puntos'   },
 ]
 
 // Rutas del carrito → activan el tab "Ordenar"
@@ -22,6 +21,9 @@ export default function BottomNav() {
   const hydrated = useHydration()
   const totalItems = useCartStore((s) => s.totalItems())
 
+  // No mostrar en paneles de admin/owner
+  if (pathname.startsWith('/admin') || pathname.startsWith('/owner')) return null
+
   function isActive(href: string) {
     if (href === '/') return pathname === '/'
     // Rutas de carrito/checkout activan el tab Ordenar
@@ -30,7 +32,7 @@ export default function BottomNav() {
   }
 
   return (
-    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white border-t border-gray-200 pb-safe z-50">
+    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-doggo-dark2 border-t border-doggo-dark3 pb-safe z-50">
       <div className="flex">
         {tabs.map((tab) => {
           const active = isActive(tab.href)

@@ -46,8 +46,6 @@ export interface Order {
   customer_email: string | null
   delivery_type: DeliveryType
   address: string | null
-  lat: number | null
-  lng: number | null
   notes: string | null
   subtotal: number
   delivery_fee: number
@@ -99,6 +97,7 @@ export interface Reward {
   description: string | null
   points_required: number
   active: boolean
+  expires_at: string | null
   created_at: string
 }
 

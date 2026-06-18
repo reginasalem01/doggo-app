@@ -178,6 +178,27 @@ export default function CheckoutPage() {
       clearCart()
       localStorage.setItem('lastOrderId', data.id)
 
+      // Email de confirmación (si el cliente ingresó su email)
+      if (email.trim()) {
+        fetch('/api/email/confirmation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: email.trim(),
+            customerName: name.trim(),
+            orderId: data.id,
+            items: items.map((i) => ({
+              product_name: i.product.name,
+              quantity: i.quantity,
+              total: i.product.price * i.quantity,
+            })),
+            total,
+            deliveryType,
+            address: address.trim() || null,
+          }),
+        }).catch(() => {}) // fire-and-forget, no bloquear el flujo
+      }
+
       const itemsList = items
         .map((i) => `• ${i.quantity}x ${i.product.name} — ${formatPrice(i.product.price * i.quantity)}`)
         .join('\n')

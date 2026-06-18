@@ -1,8 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
-import PedidosRefresher from './pedidos/PedidosRefresher'
-import KanbanBoard from './pedidos/KanbanBoard'
+import RealtimeKanban from './pedidos/RealtimeKanban'
 
-export const revalidate = 0   // siempre fresh desde el servidor
+export const revalidate = 0
 
 export default async function AdminPage() {
   const admin = createAdminClient()
@@ -15,9 +14,7 @@ export default async function AdminPage() {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Auto-refresh cada 30 s */}
-      <PedidosRefresher />
-      <KanbanBoard orders={orders ?? []} />
+      <RealtimeKanban initialOrders={orders ?? []} />
     </div>
   )
 }

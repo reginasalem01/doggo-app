@@ -22,7 +22,7 @@ export default function SplashScreen() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center transition-opacity duration-500"
+      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center transition-opacity duration-500"
       style={{ opacity: fading ? 0 : 1, backgroundColor: '#FEC523' }}
     >
       <Image

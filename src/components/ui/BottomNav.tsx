@@ -32,7 +32,7 @@ export default function BottomNav() {
   }
 
   return (
-    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white border-t border-gray-200 pb-safe z-50">
+    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-yellow-50 border-t border-yellow-200 pb-safe z-50">
       <div className="flex">
         {tabs.map((tab) => {
           const active = isActive(tab.href)
@@ -42,7 +42,7 @@ export default function BottomNav() {
               key={tab.href}
               href={tab.href}
               className={cn(
-                'flex-1 flex flex-col items-center justify-center py-2 gap-0.5 transition-colors',
+                'flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-colors',
                 active ? 'text-doggo-red' : 'text-gray-400'
               )}
             >

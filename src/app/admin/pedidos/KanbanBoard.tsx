@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 type OrderItem = { product_name: string; quantity: number }
@@ -38,8 +37,7 @@ const ACTION: Record<string, { label: string; next: string; cls: string }> = {
 
 // ── Order card ─────────────────────────────────────────────────────────────────
 
-function OrderCard({ order }: { order: Order }) {
-  const router = useRouter()
+function OrderCard({ order, onRefresh }: { order: Order; onRefresh: () => void }) {
   const [busy, setBusy] = useState(false)
 
   const action = ACTION[order.status]
@@ -49,7 +47,7 @@ function OrderCard({ order }: { order: Order }) {
   const items = order.order_items.map((i) => `${i.product_name} x${i.quantity}`).join(', ')
 
   async function advance(e: React.MouseEvent) {
-    e.preventDefault()           // evita que el Link navegue
+    e.preventDefault()
     if (!action || busy) return
     setBusy(true)
     await fetch(`/api/admin/orders/${order.id}`, {
@@ -57,7 +55,7 @@ function OrderCard({ order }: { order: Order }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: action.next }),
     })
-    router.refresh()
+    onRefresh()
     setBusy(false)
   }
 
@@ -91,7 +89,7 @@ function OrderCard({ order }: { order: Order }) {
       {/* Botón de acción rápida */}
       {action && (
         <button
-          onClick={advance}
+          onClick={(e) => advance(e)}
           disabled={busy}
           className={`w-full py-2.5 text-xs font-black tracking-wider transition-all ${action.cls} disabled:opacity-40`}
         >
@@ -111,23 +109,20 @@ type ColDef = {
   orders: Order[]
 }
 
-function KanbanColumn({ col }: { col: ColDef }) {
+function KanbanColumn({ col, onRefresh }: { col: ColDef; onRefresh: () => void }) {
   return (
     <div className="flex flex-col flex-1 min-w-0 min-h-0 bg-gray-100 rounded-xl overflow-hidden">
-      {/* Header */}
       <div className={`flex items-center justify-between px-4 py-2.5 shrink-0 ${col.headerCls}`}>
         <p className="font-black text-sm tracking-widest text-white">{col.title}</p>
         <span className="bg-black/40 text-white text-xs font-black w-6 h-6 rounded-full flex items-center justify-center">
           {col.orders.length}
         </span>
       </div>
-
-      {/* Lista scrollable */}
       <div className="flex-1 overflow-y-auto p-2">
         {col.orders.length === 0 ? (
           <p className="text-center text-gray-500 text-sm py-10">Vacío</p>
         ) : (
-          col.orders.map((o) => <OrderCard key={o.id} order={o} />)
+          col.orders.map((o) => <OrderCard key={o.id} order={o} onRefresh={onRefresh} />)
         )}
       </div>
     </div>
@@ -136,7 +131,7 @@ function KanbanColumn({ col }: { col: ColDef }) {
 
 // ── Board principal ─────────────────────────────────────────────────────────────
 
-export default function KanbanBoard({ orders }: { orders: Order[] }) {
+export default function KanbanBoard({ orders, onRefresh }: { orders: Order[]; onRefresh: () => void }) {
   const cols: ColDef[] = [
     {
       id: 'new',
@@ -161,7 +156,7 @@ export default function KanbanBoard({ orders }: { orders: Order[] }) {
   return (
     <div className="flex gap-2.5 h-full p-3 bg-gray-50">
       {cols.map((col) => (
-        <KanbanColumn key={col.id} col={col} />
+        <KanbanColumn key={col.id} col={col} onRefresh={onRefresh} />
       ))}
     </div>
   )

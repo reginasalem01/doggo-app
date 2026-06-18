@@ -215,8 +215,9 @@ export default function CheckoutPage() {
         `\n*Productos:*\n${itemsList}\n\n` +
         `*Total: ${formatPrice(total)}*`
 
+      // Guardar WhatsApp para que la página de confirmación lo abra
+      localStorage.setItem('pendingWhatsApp', buildWhatsAppLink(whatsappMsg))
       router.push(`/pedido/${data.id}`)
-      window.open(buildWhatsAppLink(whatsappMsg), '_blank')
     } catch (err) {
       setError('Hubo un error al crear tu pedido. Intenta de nuevo.')
     } finally {

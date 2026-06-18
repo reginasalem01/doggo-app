@@ -68,7 +68,7 @@ export default function RealtimeKanban({ initialOrders }: { initialOrders: Order
           🌭 ¡Nuevo pedido!
         </div>
       )}
-      <KanbanBoard orders={orders} />
+      <KanbanBoard orders={orders} onRefresh={fetchOrders} />
     </div>
   )
 }

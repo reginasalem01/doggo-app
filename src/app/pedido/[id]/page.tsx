@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { formatPrice, DELIVERY_LABELS } from '@/lib/utils'
 import type { Order, OrderItem } from '@/types'
 import StatusPoller from './StatusPoller'
+import WhatsAppAutoOpen from './WhatsAppAutoOpen'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -68,6 +69,8 @@ export default async function PedidoPage({ params }: Props) {
     <div className="min-h-screen bg-white px-4 py-6 pb-24">
       {/* Auto-refresco cada 5 s mientras no esté terminal */}
       <StatusPoller status={o.status} />
+      {/* Abre WhatsApp automáticamente al llegar desde checkout */}
+      <WhatsAppAutoOpen />
 
       {/* Header */}
       <div className="text-center mb-8">

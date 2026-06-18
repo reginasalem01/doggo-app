@@ -68,7 +68,7 @@ export default function OrderStatusButtons({
         <div className="grid grid-cols-2 gap-2 mb-1">
           <a
             href={`tel:${customerPhone}`}
-            className="flex items-center justify-center gap-2 bg-[#1e1e1e] text-white font-bold py-3 rounded-xl text-sm hover:bg-[#252525] transition-colors"
+            className="flex items-center justify-center gap-2 bg-gray-100 text-gray-900 font-bold py-3 rounded-xl text-sm hover:bg-gray-200 transition-colors"
           >
             📞 Llamar
           </a>
@@ -76,7 +76,7 @@ export default function OrderStatusButtons({
             href={`https://wa.me/${customerPhone?.replace(/\D/g, '')}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 bg-green-900/40 text-green-400 font-bold py-3 rounded-xl text-sm hover:bg-green-900/60 transition-colors"
+            className="flex items-center justify-center gap-2 bg-green-50 text-green-400 font-bold py-3 rounded-xl text-sm hover:bg-green-100 transition-colors"
           >
             💬 WhatsApp
           </a>
@@ -100,7 +100,7 @@ export default function OrderStatusButtons({
           })()}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 w-full bg-green-800/40 border border-green-600/40 text-green-400 font-black py-3 rounded-xl text-sm hover:bg-green-800/60 transition-colors"
+          className="flex items-center justify-center gap-2 w-full bg-green-50 border border-green-200 text-green-600 font-black py-3 rounded-xl text-sm hover:bg-green-100 transition-colors"
         >
           🛵 Enviar al motorizado por WhatsApp
         </a>

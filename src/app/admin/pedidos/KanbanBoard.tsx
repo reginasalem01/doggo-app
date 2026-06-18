@@ -62,18 +62,18 @@ function OrderCard({ order }: { order: Order }) {
   }
 
   return (
-    <div className="bg-[#1e1e1e] rounded-xl overflow-hidden border border-[#2a2a2a] mb-2 last:mb-0">
+    <div className="bg-white rounded-xl overflow-hidden border border-gray-200 mb-2 last:mb-0">
       {/* Card body — toca para ir al detalle */}
-      <Link href={`/admin/pedidos/${order.id}`} className="block p-3 active:bg-[#252525] transition-colors">
+      <Link href={`/admin/pedidos/${order.id}`} className="block p-3 active:bg-gray-100 transition-colors">
         <div className="flex items-center justify-between mb-1.5">
           <span className="text-gray-500 text-xs font-medium">{timeAgo(order.created_at)}</span>
-          <span className="text-doggo-yellow font-mono text-xs font-black">{shortId}</span>
+          <span className="text-doggo-red font-mono text-xs font-black">{shortId}</span>
         </div>
 
-        <p className="text-white font-bold text-sm mb-0.5">{displayName}</p>
+        <p className="text-gray-900 font-bold text-sm mb-0.5">{displayName}</p>
 
         {items && (
-          <p className="text-gray-400 text-xs leading-relaxed line-clamp-2 mb-1">{items}</p>
+          <p className="text-gray-500 text-xs leading-relaxed line-clamp-2 mb-1">{items}</p>
         )}
 
         {order.notes && (
@@ -84,7 +84,7 @@ function OrderCard({ order }: { order: Order }) {
           <span className="text-gray-500 text-xs">
             {order.delivery_type === 'delivery' ? '🛵 Domicilio' : order.delivery_type === 'pickup' ? '🏃 Retiro' : '🪑 Local'}
           </span>
-          <span className="text-doggo-yellow font-black text-base">${Number(order.total).toFixed(2)}</span>
+          <span className="text-gray-900 font-black text-base">${Number(order.total).toFixed(2)}</span>
         </div>
       </Link>
 
@@ -113,7 +113,7 @@ type ColDef = {
 
 function KanbanColumn({ col }: { col: ColDef }) {
   return (
-    <div className="flex flex-col flex-1 min-w-0 min-h-0 bg-[#161616] rounded-xl overflow-hidden">
+    <div className="flex flex-col flex-1 min-w-0 min-h-0 bg-gray-100 rounded-xl overflow-hidden">
       {/* Header */}
       <div className={`flex items-center justify-between px-4 py-2.5 shrink-0 ${col.headerCls}`}>
         <p className="font-black text-sm tracking-widest text-white">{col.title}</p>
@@ -125,7 +125,7 @@ function KanbanColumn({ col }: { col: ColDef }) {
       {/* Lista scrollable */}
       <div className="flex-1 overflow-y-auto p-2">
         {col.orders.length === 0 ? (
-          <p className="text-center text-gray-600 text-sm py-10">Vacío</p>
+          <p className="text-center text-gray-500 text-sm py-10">Vacío</p>
         ) : (
           col.orders.map((o) => <OrderCard key={o.id} order={o} />)
         )}
@@ -141,25 +141,25 @@ export default function KanbanBoard({ orders }: { orders: Order[] }) {
     {
       id: 'new',
       title: 'NUEVOS',
-      headerCls: 'bg-red-900/60',
+      headerCls: 'bg-red-500',
       orders: orders.filter((o) => o.status === 'new'),
     },
     {
       id: 'preparing',
       title: 'PREPARANDO',
-      headerCls: 'bg-orange-900/60',
+      headerCls: 'bg-orange-500',
       orders: orders.filter((o) => ['accepted', 'preparing'].includes(o.status)),
     },
     {
       id: 'ready',
       title: 'LISTOS',
-      headerCls: 'bg-green-900/60',
+      headerCls: 'bg-green-500',
       orders: orders.filter((o) => o.status === 'ready'),
     },
   ]
 
   return (
-    <div className="flex gap-2.5 h-full p-3">
+    <div className="flex gap-2.5 h-full p-3 bg-gray-50">
       {cols.map((col) => (
         <KanbanColumn key={col.id} col={col} />
       ))}

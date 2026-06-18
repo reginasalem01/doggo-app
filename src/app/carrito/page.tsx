@@ -10,10 +10,10 @@ export default function CarritoPage() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-doggo-dark flex flex-col items-center justify-center gap-4 px-4">
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-4 px-4">
         <span className="text-6xl">🛒</span>
-        <h2 className="text-white text-xl font-black">Tu carrito está vacío</h2>
-        <p className="text-gray-400 text-sm text-center">
+        <h2 className="text-gray-900 text-xl font-black">Tu carrito está vacío</h2>
+        <p className="text-gray-500 text-sm text-center">
           Agrega algo del menú y aparecerá aquí
         </p>
         <Link
@@ -27,32 +27,32 @@ export default function CarritoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-doggo-dark">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="bg-doggo-dark2 px-4 py-4 flex items-center gap-3">
-        <Link href="/menu" className="text-gray-400 text-2xl leading-none">‹</Link>
-        <h1 className="text-white text-xl font-black">Tu pedido</h1>
+      <div className="bg-gray-50 px-4 py-4 flex items-center gap-3 border-b border-gray-200">
+        <Link href="/menu" className="text-gray-500 text-2xl leading-none">‹</Link>
+        <h1 className="text-gray-900 text-xl font-black">Tu pedido</h1>
       </div>
 
       {/* Items */}
       <div className="px-4 py-4 space-y-3">
         {items.map((item) => (
-          <div key={item.product.id} className="bg-doggo-dark2 rounded-xl p-4">
+          <div key={item.product.id} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
-                <p className="text-white font-bold text-sm">{item.product.name}</p>
-                <p className="text-doggo-yellow text-sm font-bold mt-1">
+                <p className="text-gray-900 font-bold text-sm">{item.product.name}</p>
+                <p className="text-doggo-red text-sm font-bold mt-1">
                   {formatPrice(item.product.price * item.quantity)}
                 </p>
                 {item.quantity > 1 && (
-                  <p className="text-gray-500 text-xs">
+                  <p className="text-gray-400 text-xs">
                     {formatPrice(item.product.price)} c/u
                   </p>
                 )}
               </div>
               <button
                 onClick={() => removeItem(item.product.id)}
-                className="text-gray-500 text-lg leading-none p-1"
+                className="text-gray-400 text-lg leading-none p-1"
               >
                 ✕
               </button>
@@ -62,11 +62,11 @@ export default function CarritoPage() {
             <div className="flex items-center gap-3 mt-3">
               <button
                 onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                className="w-8 h-8 rounded-full bg-doggo-dark3 text-white font-bold flex items-center justify-center text-lg"
+                className="w-8 h-8 rounded-full bg-gray-100 text-gray-900 font-bold flex items-center justify-center text-lg"
               >
                 −
               </button>
-              <span className="text-white font-bold w-6 text-center">{item.quantity}</span>
+              <span className="text-gray-900 font-bold w-6 text-center">{item.quantity}</span>
               <button
                 onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
                 className="w-8 h-8 rounded-full bg-doggo-yellow text-doggo-dark font-bold flex items-center justify-center text-lg"
@@ -80,25 +80,25 @@ export default function CarritoPage() {
         {/* Add more */}
         <Link
           href="/menu"
-          className="block text-center text-doggo-yellow text-sm font-bold py-3 border border-doggo-dark3 rounded-xl"
+          className="block text-center text-doggo-red text-sm font-bold py-3 border border-gray-200 rounded-xl"
         >
           + Agregar más productos
         </Link>
       </div>
 
       {/* Order summary */}
-      <div className="bg-doggo-dark2 px-4 py-5 mx-4 mb-4 rounded-2xl">
+      <div className="bg-gray-50 px-4 py-5 mx-4 mb-4 rounded-2xl border border-gray-200">
         <div className="flex justify-between items-center mb-2">
-          <span className="text-gray-400 text-sm">Subtotal</span>
-          <span className="text-white font-bold">{formatPrice(sub)}</span>
+          <span className="text-gray-500 text-sm">Subtotal</span>
+          <span className="text-gray-900 font-bold">{formatPrice(sub)}</span>
         </div>
         <div className="flex justify-between items-center mb-2">
-          <span className="text-gray-400 text-sm">Envío (domicilio)</span>
-          <span className="text-gray-400 text-sm">$1.50</span>
+          <span className="text-gray-500 text-sm">Envío (domicilio)</span>
+          <span className="text-gray-500 text-sm">$1.50</span>
         </div>
-        <div className="border-t border-doggo-dark3 mt-3 pt-3 flex justify-between items-center">
-          <span className="text-white font-black">Total estimado</span>
-          <span className="text-doggo-yellow font-black text-lg">{formatPrice(sub + 1.5)}</span>
+        <div className="border-t border-gray-200 mt-3 pt-3 flex justify-between items-center">
+          <span className="text-gray-900 font-black">Total estimado</span>
+          <span className="text-doggo-red font-black text-lg">{formatPrice(sub + 1.5)}</span>
         </div>
 
         <Link

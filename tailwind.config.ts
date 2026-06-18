@@ -9,13 +9,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        'doggo-yellow': '#F5C400',
-        'doggo-red':    '#8B1A1A',
-        'doggo-dark':   '#1A1A1A',
-        'doggo-dark2':  '#262626',
-        'doggo-dark3':  '#2E2E2E',
-        'doggo-gray':   '#6B6B6B',
-        'doggo-light':  '#F5F5F5',
+        'doggo-yellow':     '#FEC523',
+        'doggo-red':        '#AA1126',
+        'doggo-red-bright': '#ED0126',
+        'doggo-dark':       '#1A1A1A',
+        'doggo-dark2':      '#262626',
+        'doggo-dark3':      '#2E2E2E',
+        'doggo-gray':       '#6B6B6B',
+        'doggo-light':      '#F5F5F5',
       },
     },
   },

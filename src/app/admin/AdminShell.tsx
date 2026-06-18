@@ -6,8 +6,9 @@ import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 
 const NAV = [
-  { href: '/admin',          label: 'Cola de Pedidos', icon: '📋', exact: true },
-  { href: '/admin/reservas', label: 'Reservas',        icon: '📅' },
+  { href: '/admin',           label: 'Cola de Pedidos', icon: '📋', exact: true },
+  { href: '/admin/reservas',  label: 'Reservas',        icon: '📅' },
+  { href: '/admin/escanear',  label: 'Escanear',        icon: '📲' },
 ]
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
@@ -29,10 +30,13 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <div className="flex flex-col h-screen bg-[#111] overflow-hidden">
+    <div className="flex flex-col h-screen bg-white overflow-hidden">
       {/* Header */}
-      <header className="flex items-center justify-between px-5 py-2.5 bg-[#1a1a1a] border-b border-[#2a2a2a] shrink-0">
-        <p className="text-doggo-yellow font-black text-xl tracking-tight">🌭 DOGGO</p>
+      <header className="flex items-center justify-between px-5 py-2.5 bg-white border-b border-gray-200 shrink-0">
+        <div className="flex items-center gap-2.5">
+          <img src="/logo-round.png" alt="Doggo" className="w-14 h-14" />
+          <p className="text-gray-400 text-[10px] font-semibold tracking-wide uppercase">Panel de Restaurante</p>
+        </div>
 
         <nav className="flex items-center gap-2">
           {NAV.map((item) => {
@@ -44,7 +48,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
                 className={`flex items-center gap-1.5 text-sm font-bold px-4 py-1.5 rounded-full transition-colors ${
                   active
                     ? 'bg-doggo-yellow text-doggo-dark'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
                 }`}
               >
                 {item.icon} {item.label}

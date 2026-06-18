@@ -77,11 +77,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-doggo-dark flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
-      <div className="bg-doggo-dark2 px-4 py-4 flex items-center gap-3">
-        <Link href="/" className="text-gray-400 text-2xl leading-none">‹</Link>
-        <h1 className="text-white text-xl font-black">
+      <div className="bg-gray-50 px-4 py-4 flex items-center gap-3 border-b border-gray-200">
+        <Link href="/" className="text-gray-500 text-2xl leading-none">‹</Link>
+        <h1 className="text-gray-900 text-xl font-black">
           {mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
         </h1>
       </div>
@@ -90,8 +90,8 @@ export default function LoginPage() {
         {/* Logo / branding */}
         <div className="text-center mb-8">
           <span className="text-5xl">🌭</span>
-          <p className="text-doggo-yellow font-black text-lg mt-2">Doggo</p>
-          <p className="text-gray-400 text-sm mt-1">
+          <p className="text-doggo-red font-black text-lg mt-2">Doggo</p>
+          <p className="text-gray-500 text-sm mt-1">
             {mode === 'login'
               ? 'Accede para ver tus puntos y pedidos'
               : 'Únete y empieza a acumular puntos'}
@@ -99,11 +99,11 @@ export default function LoginPage() {
         </div>
 
         {/* Mode toggle */}
-        <div className="flex bg-doggo-dark2 rounded-full p-1 mb-6">
+        <div className="flex bg-gray-100 rounded-full p-1 mb-6">
           <button
             onClick={() => { setMode('login'); setError(null) }}
             className={`flex-1 py-2 rounded-full text-sm font-bold transition-colors ${
-              mode === 'login' ? 'bg-doggo-yellow text-doggo-dark' : 'text-gray-400'
+              mode === 'login' ? 'bg-doggo-yellow text-doggo-dark' : 'text-gray-500'
             }`}
           >
             Iniciar sesión
@@ -111,7 +111,7 @@ export default function LoginPage() {
           <button
             onClick={() => { setMode('register'); setError(null) }}
             className={`flex-1 py-2 rounded-full text-sm font-bold transition-colors ${
-              mode === 'register' ? 'bg-doggo-yellow text-doggo-dark' : 'text-gray-400'
+              mode === 'register' ? 'bg-doggo-yellow text-doggo-dark' : 'text-gray-500'
             }`}
           >
             Registrarse
@@ -122,7 +122,7 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === 'register' && (
             <div>
-              <label className="block text-gray-400 text-xs font-semibold mb-1 uppercase tracking-wide">
+              <label className="block text-gray-500 text-xs font-semibold mb-1 uppercase tracking-wide">
                 Nombre completo *
               </label>
               <input
@@ -131,13 +131,13 @@ export default function LoginPage() {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Tu nombre"
                 required
-                className="w-full bg-doggo-dark2 text-white rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow placeholder-gray-600"
+                className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 placeholder-gray-400"
               />
             </div>
           )}
 
           <div>
-            <label className="block text-gray-400 text-xs font-semibold mb-1 uppercase tracking-wide">
+            <label className="block text-gray-500 text-xs font-semibold mb-1 uppercase tracking-wide">
               Email *
             </label>
             <input
@@ -147,13 +147,13 @@ export default function LoginPage() {
               placeholder="tu@email.com"
               required
               autoComplete="email"
-              className="w-full bg-doggo-dark2 text-white rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow placeholder-gray-600"
+              className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 placeholder-gray-400"
             />
           </div>
 
           {mode === 'register' && (
             <div>
-              <label className="block text-gray-400 text-xs font-semibold mb-1 uppercase tracking-wide">
+              <label className="block text-gray-500 text-xs font-semibold mb-1 uppercase tracking-wide">
                 Teléfono (opcional)
               </label>
               <input
@@ -161,13 +161,13 @@ export default function LoginPage() {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="0999 000 000"
-                className="w-full bg-doggo-dark2 text-white rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow placeholder-gray-600"
+                className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 placeholder-gray-400"
               />
             </div>
           )}
 
           <div>
-            <label className="block text-gray-400 text-xs font-semibold mb-1 uppercase tracking-wide">
+            <label className="block text-gray-500 text-xs font-semibold mb-1 uppercase tracking-wide">
               Contraseña *
             </label>
             <input
@@ -178,13 +178,13 @@ export default function LoginPage() {
               required
               minLength={6}
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-              className="w-full bg-doggo-dark2 text-white rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow placeholder-gray-600"
+              className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 placeholder-gray-400"
             />
           </div>
 
           {error && (
-            <div className="bg-red-900/40 border border-red-700 rounded-xl px-4 py-3">
-              <p className="text-red-300 text-sm">{error}</p>
+            <div className="bg-doggo-red/10 border border-doggo-red/30 rounded-xl px-4 py-3">
+              <p className="text-doggo-red text-sm">{error}</p>
             </div>
           )}
 

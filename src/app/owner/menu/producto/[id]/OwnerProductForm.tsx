@@ -76,17 +76,17 @@ export default function OwnerProductForm({
     <div className="p-6 max-w-2xl">
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center gap-3 mb-6">
-          <Link href="/owner/menu" className="text-gray-400 text-2xl leading-none">‹</Link>
-          <h1 className="text-white text-2xl font-black">{isEdit ? 'Editar producto' : 'Nuevo producto'}</h1>
+          <Link href="/owner/menu" className="text-gray-500 text-2xl leading-none">‹</Link>
+          <h1 className="text-gray-900 text-2xl font-black">{isEdit ? 'Editar producto' : 'Nuevo producto'}</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-gray-400 text-xs uppercase tracking-wide block mb-1">Categoría</label>
+            <label className="text-gray-500 text-xs uppercase tracking-wide block mb-1">Categoría</label>
             <select
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
-              className="w-full bg-doggo-dark2 text-white rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-doggo-yellow"
+              className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-doggo-yellow"
             >
               <option value="">Sin categoría</option>
               {categories.map((c) => (
@@ -96,37 +96,37 @@ export default function OwnerProductForm({
           </div>
 
           <div>
-            <label className="text-gray-400 text-xs uppercase tracking-wide block mb-1">Nombre *</label>
+            <label className="text-gray-500 text-xs uppercase tracking-wide block mb-1">Nombre *</label>
             <input type="text" value={name} onChange={(e) => setName(e.target.value)} required
-              className="w-full bg-doggo-dark2 text-white rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-doggo-yellow" />
+              className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-doggo-yellow" />
           </div>
 
           <div>
-            <label className="text-gray-400 text-xs uppercase tracking-wide block mb-1">Descripción</label>
+            <label className="text-gray-500 text-xs uppercase tracking-wide block mb-1">Descripción</label>
             <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2}
-              className="w-full bg-doggo-dark2 text-white rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-doggo-yellow resize-none" />
+              className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-doggo-yellow resize-none" />
           </div>
 
           <div>
-            <label className="text-gray-400 text-xs uppercase tracking-wide block mb-1">Precio *</label>
+            <label className="text-gray-500 text-xs uppercase tracking-wide block mb-1">Precio *</label>
             <input type="number" step="0.01" min="0" value={price} onChange={(e) => setPrice(e.target.value)} required
-              className="w-full bg-doggo-dark2 text-white rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-doggo-yellow" />
+              className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-doggo-yellow" />
           </div>
 
           <div>
-            <label className="text-gray-400 text-xs uppercase tracking-wide block mb-1">URL de imagen</label>
+            <label className="text-gray-500 text-xs uppercase tracking-wide block mb-1">URL de imagen</label>
             <input type="url" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)}
               placeholder="https://..."
-              className="w-full bg-doggo-dark2 text-white rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-doggo-yellow placeholder-gray-600" />
+              className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-doggo-yellow placeholder-gray-400" />
             {imageUrl && (
               <img src={imageUrl} alt="preview" className="mt-2 w-full h-40 object-cover rounded-xl" />
             )}
           </div>
 
-          <div className="flex items-center justify-between bg-doggo-dark2 rounded-xl px-4 py-3">
-            <span className="text-white font-bold">Producto activo</span>
+          <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+            <span className="text-gray-900 font-bold">Producto activo</span>
             <button type="button" onClick={() => setAvailable(!available)}
-              className={`w-12 h-6 rounded-full transition-colors relative ${available ? 'bg-doggo-yellow' : 'bg-doggo-dark3'}`}>
+              className={`w-12 h-6 rounded-full transition-colors relative ${available ? 'bg-doggo-yellow' : 'bg-gray-300'}`}>
               <div className={`w-5 h-5 bg-white rounded-full transition-transform absolute top-0.5 ${available ? 'translate-x-6' : 'translate-x-0.5'}`} />
             </button>
           </div>

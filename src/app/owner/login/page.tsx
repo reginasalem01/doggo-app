@@ -29,9 +29,9 @@ export default function OwnerLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-doggo-dark flex items-center justify-center px-4">
+    <div className="min-h-screen bg-white flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        <h1 className="text-white text-2xl font-black text-center mb-2">🌭 Doggo</h1>
+        <h1 className="text-doggo-red text-2xl font-black text-center mb-2">🌭 Doggo</h1>
         <p className="text-gray-400 text-sm text-center mb-8">Panel de gestión</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -41,7 +41,7 @@ export default function OwnerLoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full bg-doggo-dark2 text-white placeholder-gray-500 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-doggo-yellow"
+            className="w-full bg-white border border-gray-200 text-gray-900 placeholder-gray-400 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-doggo-yellow"
           />
           <input
             type="password"
@@ -49,10 +49,10 @@ export default function OwnerLoginPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="w-full bg-doggo-dark2 text-white placeholder-gray-500 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-doggo-yellow"
+            className="w-full bg-white border border-gray-200 text-gray-900 placeholder-gray-400 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-doggo-yellow"
           />
 
-          {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+          {error && <p className="text-doggo-red text-sm text-center">{error}</p>}
 
           <button
             type="submit"

@@ -118,7 +118,7 @@ export default function MapPicker({ lat, lng, onChange }: Props) {
   }
 
   if (!mounted) {
-    return <div className="w-full h-52 bg-doggo-dark2 rounded-xl animate-pulse" />
+    return <div className="w-full h-52 bg-gray-100 rounded-xl animate-pulse" />
   }
 
   return (
@@ -127,14 +127,14 @@ export default function MapPicker({ lat, lng, onChange }: Props) {
         type="button"
         onClick={useMyLocation}
         disabled={locating}
-        className="w-full bg-doggo-dark2 text-doggo-yellow font-bold py-2.5 rounded-xl text-sm flex items-center justify-center gap-2 hover:bg-doggo-dark3 transition-colors disabled:opacity-50"
+        className="w-full bg-gray-100 text-doggo-red font-bold py-2.5 rounded-xl text-sm flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors disabled:opacity-50"
       >
         {locating ? '📍 Obteniendo ubicación…' : '📍 Usar mi ubicación actual'}
       </button>
 
       <div
         ref={containerRef}
-        className="w-full rounded-xl overflow-hidden border border-doggo-dark3"
+        className="w-full rounded-xl overflow-hidden border border-gray-200"
         style={{ height: '210px', zIndex: 0 }}
       />
 

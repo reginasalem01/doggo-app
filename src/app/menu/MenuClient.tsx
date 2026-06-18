@@ -21,10 +21,10 @@ export default function MenuClient({ categories, products }: Props) {
     : products
 
   return (
-    <div className="min-h-screen bg-doggo-dark">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="bg-doggo-dark2 px-4 py-4 flex items-center justify-between sticky top-0 z-10">
-        <h1 className="text-white text-xl font-black">Menú</h1>
+      <div className="bg-gray-50 px-4 py-4 flex items-center justify-between sticky top-0 z-10 border-b border-gray-200">
+        <h1 className="text-gray-900 text-xl font-black">Menú</h1>
         <CartIcon />
       </div>
 
@@ -35,7 +35,7 @@ export default function MenuClient({ categories, products }: Props) {
           className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-bold transition-colors ${
             activeCategory === null
               ? 'bg-doggo-yellow text-doggo-dark'
-              : 'bg-doggo-dark2 text-gray-400'
+              : 'bg-gray-100 text-gray-500'
           }`}
         >
           Todo
@@ -47,7 +47,7 @@ export default function MenuClient({ categories, products }: Props) {
             className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-bold transition-colors ${
               activeCategory === cat.id
                 ? 'bg-doggo-yellow text-doggo-dark'
-                : 'bg-doggo-dark2 text-gray-400'
+                : 'bg-gray-100 text-gray-500'
             }`}
           >
             {cat.name}
@@ -91,9 +91,9 @@ function ProductCard({
   }
 
   return (
-    <div className="bg-doggo-dark2 rounded-xl p-4 flex items-center gap-4">
+    <div className="bg-gray-50 rounded-xl p-4 flex items-center gap-4 border border-gray-100">
       {/* Image or emoji placeholder */}
-      <div className="w-20 h-20 rounded-xl bg-doggo-dark3 flex items-center justify-center flex-shrink-0 overflow-hidden">
+      <div className="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
         {product.image_url ? (
           <Image
             src={product.image_url}
@@ -109,13 +109,13 @@ function ProductCard({
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <p className="text-white font-bold text-sm leading-tight">{product.name}</p>
+        <p className="text-gray-900 font-bold text-sm leading-tight">{product.name}</p>
         {product.description && (
-          <p className="text-gray-400 text-xs mt-0.5 leading-snug line-clamp-2">
+          <p className="text-gray-500 text-xs mt-0.5 leading-snug line-clamp-2">
             {product.description}
           </p>
         )}
-        <p className="text-doggo-yellow font-black text-base mt-1">
+        <p className="text-doggo-red font-black text-base mt-1">
           {formatPrice(product.price)}
         </p>
       </div>

@@ -2,6 +2,8 @@ import Link from 'next/link'
 import CartIcon from '@/components/ui/CartIcon'
 import AddToCartButton from '@/components/ui/AddToCartButton'
 import ActiveOrderBanner from '@/components/ui/ActiveOrderBanner'
+import SplashScreen from '@/components/ui/SplashScreen'
+import DoggoLogo from '@/components/ui/DoggoLogo'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 
@@ -29,13 +31,19 @@ export default async function Home() {
   const level = customer ? getLevel(customer.points) : null
 
   return (
-    <div className="min-h-screen bg-doggo-dark">
+    <div className="min-h-screen bg-white">
+      <SplashScreen />
 
       {/* ── HEADER ────────────────────────────────────────── */}
       <div className="px-4 pt-5 pb-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-white text-2xl font-black tracking-tight">DOGGO <span className="text-doggo-yellow">🌭</span></h1>
-          <p className="text-gray-500 text-xs">Plaza Guayarte · Guayaquil</p>
+        <div className="flex items-center gap-3">
+          <DoggoLogo size={48} />
+          <div>
+            <p className="text-gray-900 font-bold text-base leading-tight">
+              {customer ? `Hola, ${customer.name.split(' ')[0]} 👋` : 'Hola 👋'}
+            </p>
+            <p className="text-gray-400 text-xs mt-0.5">📍 Plaza Guayarte · Guayaquil</p>
+          </div>
         </div>
         <CartIcon />
       </div>
@@ -47,17 +55,17 @@ export default async function Home() {
       {customer && level && (
         <div className="px-4 mb-5">
           <Link href="/perfil">
-            <div className="flex items-center justify-between bg-doggo-dark2 rounded-2xl px-4 py-3 border border-doggo-yellow/20">
+            <div className="flex items-center justify-between bg-gray-50 rounded-2xl px-4 py-3 border border-doggo-yellow/20">
               <div className="flex items-center gap-2.5">
                 <span className="text-xl">{level.emoji}</span>
                 <div>
-                  <p className="text-white font-black text-sm leading-none">{customer.name.split(' ')[0]}</p>
-                  <p className="text-gray-400 text-xs mt-0.5">Nivel {level.label}</p>
+                  <p className="text-gray-900 font-black text-sm leading-none">{customer.name.split(' ')[0]}</p>
+                  <p className="text-gray-500 text-xs mt-0.5">Nivel {level.label}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <div className="text-right">
-                  <p className="text-doggo-yellow font-black text-lg leading-none">{customer.points}</p>
+                  <p className="text-doggo-red font-black text-lg leading-none">{customer.points}</p>
                   <p className="text-gray-500 text-[10px]">puntos</p>
                 </div>
                 <span className="text-gray-500 text-sm">›</span>
@@ -102,24 +110,24 @@ export default async function Home() {
       {featured && featured.length > 0 && (
         <div className="mb-6">
           <div className="px-4 flex items-center justify-between mb-3">
-            <h2 className="text-white font-black text-base">Lo más pedido</h2>
-            <Link href="/menu" className="text-doggo-yellow text-xs font-bold">Ver todo →</Link>
+            <h2 className="text-gray-900 font-black text-base">Lo más pedido</h2>
+            <Link href="/menu" className="text-doggo-red text-xs font-bold">Ver todo →</Link>
           </div>
 
           {/* Horizontal scroll of cards */}
           <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide">
             {featured.map((product) => (
-              <div key={product.id} className="shrink-0 w-36 bg-doggo-dark2 rounded-2xl overflow-hidden">
+              <div key={product.id} className="shrink-0 w-36 bg-gray-50 rounded-2xl overflow-hidden">
                 {product.image_url ? (
                   <img src={product.image_url} alt={product.name} className="w-full h-28 object-cover" />
                 ) : (
-                  <div className="w-full h-28 bg-doggo-dark3 flex items-center justify-center">
+                  <div className="w-full h-28 bg-gray-100 flex items-center justify-center">
                     <span className="text-4xl">🌭</span>
                   </div>
                 )}
                 <div className="p-2.5">
-                  <p className="text-white font-bold text-xs leading-tight line-clamp-2 mb-1">{product.name}</p>
-                  <p className="text-doggo-yellow font-black text-sm mb-2">${Number(product.price).toFixed(2)}</p>
+                  <p className="text-gray-900 font-bold text-xs leading-tight line-clamp-2 mb-1">{product.name}</p>
+                  <p className="text-doggo-red font-black text-sm mb-2">${Number(product.price).toFixed(2)}</p>
                   <AddToCartButton product={product} />
                 </div>
               </div>
@@ -131,17 +139,17 @@ export default async function Home() {
       {/* ── RESERVE CTA ──────────────────────────────────── */}
       <div className="px-4 mb-6">
         <Link href="/reservas">
-          <div className="bg-doggo-dark2 rounded-2xl p-4 flex items-center justify-between border border-doggo-dark3">
+          <div className="bg-gray-50 rounded-2xl p-4 flex items-center justify-between border border-gray-200">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-doggo-yellow/10 rounded-xl flex items-center justify-center">
                 <span className="text-xl">📅</span>
               </div>
               <div>
-                <p className="text-white font-black text-sm">Reserva tu mesa</p>
-                <p className="text-gray-400 text-xs">Elige fecha, hora y personas</p>
+                <p className="text-gray-900 font-black text-sm">Reserva tu mesa</p>
+                <p className="text-gray-500 text-xs">Elige fecha, hora y personas</p>
               </div>
             </div>
-            <span className="text-doggo-yellow font-black text-lg">›</span>
+            <span className="text-doggo-red font-black text-lg">›</span>
           </div>
         </Link>
       </div>
@@ -149,13 +157,13 @@ export default async function Home() {
       {/* ── LOYALTY TEASER (if not logged in) ────────────── */}
       {!customer && (
         <div className="px-4 mb-6">
-          <div className="bg-doggo-dark2 rounded-2xl p-4 flex items-center gap-4 border border-doggo-dark3">
+          <div className="bg-gray-50 rounded-2xl p-4 flex items-center gap-4 border border-gray-200">
             <div className="w-12 h-12 bg-doggo-yellow/10 rounded-xl flex items-center justify-center shrink-0">
               <span className="text-2xl">⭐</span>
             </div>
             <div className="flex-1">
-              <p className="text-white font-black text-sm">Gana puntos con cada pedido</p>
-              <p className="text-gray-400 text-xs mt-0.5">$1 = 1 punto. Canjea premios exclusivos.</p>
+              <p className="text-gray-900 font-black text-sm">Gana puntos con cada pedido</p>
+              <p className="text-gray-500 text-xs mt-0.5">$1 = 1 punto. Canjea premios exclusivos.</p>
             </div>
             <Link href="/login" className="bg-doggo-yellow text-doggo-dark font-black text-xs px-3 py-2 rounded-xl shrink-0">
               Entrar

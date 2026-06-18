@@ -13,12 +13,12 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 const STATUS_COLOR: Record<string, string> = {
-  new: 'bg-doggo-yellow text-doggo-dark',
-  accepted: 'bg-blue-500/20 text-blue-400',
-  preparing: 'bg-orange-500/20 text-orange-400',
-  ready: 'bg-green-500/20 text-green-400',
-  delivered: 'bg-gray-500/20 text-gray-400',
-  cancelled: 'bg-red-500/20 text-red-400',
+  new:       'bg-yellow-100 text-yellow-700 border border-yellow-200',
+  accepted:  'bg-blue-100 text-blue-700 border border-blue-200',
+  preparing: 'bg-orange-100 text-orange-700 border border-orange-200',
+  ready:     'bg-green-100 text-green-700 border border-green-200',
+  delivered: 'bg-gray-100 text-gray-600 border border-gray-200',
+  cancelled: 'bg-red-100 text-red-600 border border-red-200',
 }
 
 const ACTIVE_STATUSES = ['new', 'accepted', 'preparing', 'ready']
@@ -109,7 +109,7 @@ function OrderCard({ order, highlight = false }: { order: Record<string, unknown
           </p>
         </div>
         <div className="text-right flex-shrink-0">
-          <p className="text-doggo-yellow font-black">${total.toFixed(2)}</p>
+          <p className="text-gray-900 font-black">${total.toFixed(2)}</p>
           <span className={`text-xs px-2 py-0.5 rounded-full mt-1 inline-block font-semibold ${STATUS_COLOR[status] ?? 'bg-gray-500/20 text-gray-400'}`}>
             {STATUS_LABEL[status] ?? status}
           </span>

@@ -36,9 +36,9 @@ export default async function AdminProductosPage() {
             <div className="flex-1 min-w-0">
               <p className="text-white font-bold text-sm">{product.name}</p>
               <p className="text-gray-500 text-xs">{(product.categories as { name: string } | null)?.name}</p>
-              <p className="text-doggo-yellow font-bold text-sm mt-0.5">${product.price.toFixed(2)}</p>
+              <p className="text-gray-500 font-bold text-sm mt-0.5">${product.price.toFixed(2)}</p>
             </div>
-            <span className={`text-xs px-2 py-1 rounded-full ${product.available ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+            <span className={`text-xs px-2 py-1 rounded-full border font-semibold ${product.available ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-600 border-red-200'}`}>
               {product.available ? 'Activo' : 'Inactivo'}
             </span>
           </Link>

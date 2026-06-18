@@ -2,9 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Impact';
+  src: url('/fonts/Impact.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
-  --background: #1A1A1A;
-  --foreground: #ffffff;
+  --background: #ffffff;
+  --foreground: #1A1A1A;
 }
 
 * {

@@ -50,11 +50,11 @@ export default function AdminLoginPage() {
   const KEYS = ['1','2','3','4','5','6','7','8','9','','0','⌫']
 
   return (
-    <div className="min-h-screen bg-[#0f0f0f] flex flex-col items-center justify-center p-8">
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-8">
       {/* Logo */}
       <div className="mb-12 text-center">
-        <p className="text-doggo-yellow font-black text-5xl tracking-tight mb-1">🌭 DOGGO</p>
-        <p className="text-gray-500 text-xs tracking-[0.3em] uppercase">Panel de Cocina</p>
+        <p className="text-doggo-red font-black text-5xl tracking-tight mb-1">🌭 DOGGO</p>
+        <p className="text-gray-400 text-xs tracking-[0.3em] uppercase">Panel de Cocina</p>
       </div>
 
       <p className="text-gray-400 text-xs tracking-[0.2em] uppercase mb-7">
@@ -69,14 +69,14 @@ export default function AdminLoginPage() {
             className={`w-4 h-4 rounded-full transition-all duration-150 ${
               i < pin.length
                 ? 'bg-doggo-yellow scale-110'
-                : 'border-2 border-gray-600'
+                : 'border-2 border-gray-200'
             }`}
           />
         ))}
       </div>
 
       {error && (
-        <p className="text-red-400 text-sm mb-5 animate-pulse font-semibold">{error}</p>
+        <p className="text-doggo-red text-sm mb-5 animate-pulse font-semibold">{error}</p>
       )}
 
       {/* Teclado numérico */}
@@ -88,7 +88,7 @@ export default function AdminLoginPage() {
               key={i}
               onClick={del}
               disabled={loading || pin.length === 0}
-              className="w-20 h-16 rounded-2xl bg-[#1e1e1e] text-gray-400 text-xl hover:bg-[#252525] active:scale-95 transition-all disabled:opacity-30"
+              className="w-20 h-16 rounded-2xl bg-gray-100 text-gray-500 text-xl hover:bg-gray-200 active:scale-95 transition-all disabled:opacity-30"
             >
               ⌫
             </button>
@@ -98,7 +98,7 @@ export default function AdminLoginPage() {
               key={i}
               onClick={() => press(k)}
               disabled={loading}
-              className="w-20 h-16 rounded-2xl bg-[#1e1e1e] text-white text-2xl font-bold hover:bg-[#252525] active:scale-95 transition-all disabled:opacity-40"
+              className="w-20 h-16 rounded-2xl bg-gray-100 text-gray-900 text-2xl font-bold hover:bg-gray-200 active:scale-95 transition-all disabled:opacity-40"
             >
               {k}
             </button>
@@ -107,7 +107,7 @@ export default function AdminLoginPage() {
       </div>
 
       {loading && (
-        <p className="text-doggo-yellow text-sm mt-7 animate-pulse">Verificando…</p>
+        <p className="text-doggo-red text-sm mt-7 animate-pulse">Verificando…</p>
       )}
     </div>
   )

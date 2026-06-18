@@ -81,7 +81,7 @@ export default function ActiveOrderBanner() {
   return (
     <div className="px-4 mb-4">
       <Link href={`/pedido/${order.id}`}>
-        <div className="bg-doggo-dark2 border border-doggo-yellow/25 rounded-2xl p-4 overflow-hidden relative">
+        <div className="bg-gray-50 border border-doggo-yellow/30 rounded-2xl p-4 overflow-hidden relative">
 
           {/* Subtle glow top edge */}
           <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-doggo-yellow/60 to-transparent" />
@@ -95,24 +95,24 @@ export default function ActiveOrderBanner() {
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-doggo-yellow" />
                 </span>
               )}
-              <p className="text-white font-black text-sm">
+              <p className="text-gray-900 font-black text-sm">
                 {isDelivered ? '¡Pedido entregado!' : 'Pedido en curso'}
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-gray-400 text-xs">#{shortId}</span>
-              <span className="text-doggo-yellow font-black text-sm">${Number(order.total).toFixed(2)}</span>
-              <span className="text-doggo-yellow font-black text-base ml-1">›</span>
+              <span className="text-gray-500 text-xs">#{shortId}</span>
+              <span className="text-doggo-red font-black text-sm">${Number(order.total).toFixed(2)}</span>
+              <span className="text-doggo-red font-black text-base ml-1">›</span>
             </div>
           </div>
 
           {/* Step progress */}
           <div className="flex items-start justify-between relative">
             {/* Track background */}
-            <div className="absolute top-[18px] left-0 right-0 h-0.5 bg-doggo-dark3 mx-5" />
+            <div className="absolute top-[18px] left-0 right-0 h-0.5 bg-gray-200 mx-5" />
             {/* Track fill */}
             <div
-              className="absolute top-[18px] left-0 h-0.5 bg-doggo-yellow mx-5 transition-all duration-700"
+              className="absolute top-[18px] left-0 h-0.5 bg-doggo-red mx-5 transition-all duration-700"
               style={{ right: `${((3 - current) / 3) * 100}%` }}
             />
 
@@ -122,14 +122,14 @@ export default function ActiveOrderBanner() {
               return (
                 <div key={step.key} className="flex flex-col items-center gap-1.5 relative z-10 flex-1">
                   <div className={`w-9 h-9 rounded-full flex items-center justify-center text-base transition-all duration-500 ${
-                    done   ? 'bg-doggo-yellow'                          :
-                    active ? 'bg-doggo-yellow ring-4 ring-doggo-yellow/25' :
-                             'bg-doggo-dark3'
+                    done   ? 'bg-doggo-red'                             :
+                    active ? 'bg-doggo-yellow ring-4 ring-doggo-yellow/40' :
+                             'bg-gray-100'
                   }`}>
                     {step.icon}
                   </div>
                   <p className={`text-[10px] font-bold text-center leading-tight ${
-                    active ? 'text-doggo-yellow' : done ? 'text-white' : 'text-gray-600'
+                    active ? 'text-doggo-red' : done ? 'text-gray-900' : 'text-gray-400'
                   }`}>
                     {step.label}
                   </p>

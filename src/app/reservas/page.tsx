@@ -114,23 +114,23 @@ export default function ReservasPage() {
   }
 
   return (
-    <div className="min-h-screen bg-doggo-dark">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="bg-doggo-dark2 px-4 py-4 sticky top-0 z-10">
-        <h1 className="text-white text-xl font-black">Reservar</h1>
+      <div className="bg-gray-50 px-4 py-4 sticky top-0 z-10 border-b border-gray-200">
+        <h1 className="text-gray-900 text-xl font-black">Reservar</h1>
       </div>
 
       <div className="px-4 py-5 pb-10 space-y-5">
 
         {/* Type toggle */}
         <div>
-          <p className="text-gray-400 text-xs font-semibold uppercase tracking-wide mb-2">Tipo de reserva</p>
-          <div className="flex bg-doggo-dark2 rounded-full p-1">
+          <p className="text-gray-500 text-xs font-semibold uppercase tracking-wide mb-2">Tipo de reserva</p>
+          <div className="flex bg-gray-100 rounded-full p-1">
             <button
               type="button"
               onClick={() => setType('mesa')}
               className={`flex-1 py-2.5 rounded-full text-sm font-bold transition-colors ${
-                type === 'mesa' ? 'bg-doggo-yellow text-doggo-dark' : 'text-gray-400'
+                type === 'mesa' ? 'bg-doggo-yellow text-doggo-dark' : 'text-gray-500'
               }`}
             >
               🪑 Mesa
@@ -139,7 +139,7 @@ export default function ReservasPage() {
               type="button"
               onClick={() => setType('evento')}
               className={`flex-1 py-2.5 rounded-full text-sm font-bold transition-colors ${
-                type === 'evento' ? 'bg-doggo-yellow text-doggo-dark' : 'text-gray-400'
+                type === 'evento' ? 'bg-doggo-yellow text-doggo-dark' : 'text-gray-500'
               }`}
             >
               🎉 Evento
@@ -152,7 +152,7 @@ export default function ReservasPage() {
           {/* Event name (only for eventos) */}
           {type === 'evento' && (
             <div>
-              <label className="block text-gray-400 text-xs font-semibold mb-1 uppercase tracking-wide">
+              <label className="block text-gray-500 text-xs font-semibold mb-1 uppercase tracking-wide">
                 Nombre del evento *
               </label>
               <input
@@ -161,14 +161,14 @@ export default function ReservasPage() {
                 onChange={(e) => setEventName(e.target.value)}
                 placeholder="Ej: Cumpleaños de Ana, Reunión de empresa..."
                 required
-                className="w-full bg-doggo-dark2 text-white rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow placeholder-gray-600"
+                className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 placeholder-gray-400"
               />
             </div>
           )}
 
           {/* Contact info */}
           <div>
-            <label className="block text-gray-400 text-xs font-semibold mb-1 uppercase tracking-wide">
+            <label className="block text-gray-500 text-xs font-semibold mb-1 uppercase tracking-wide">
               Tu nombre *
             </label>
             <input
@@ -177,12 +177,12 @@ export default function ReservasPage() {
               onChange={(e) => setName(e.target.value)}
               placeholder="Nombre completo"
               required
-              className="w-full bg-doggo-dark2 text-white rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow placeholder-gray-600"
+              className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 placeholder-gray-400"
             />
           </div>
 
           <div>
-            <label className="block text-gray-400 text-xs font-semibold mb-1 uppercase tracking-wide">
+            <label className="block text-gray-500 text-xs font-semibold mb-1 uppercase tracking-wide">
               Teléfono *
             </label>
             <input
@@ -191,12 +191,12 @@ export default function ReservasPage() {
               onChange={(e) => setPhone(e.target.value)}
               placeholder="0999 000 000"
               required
-              className="w-full bg-doggo-dark2 text-white rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow placeholder-gray-600"
+              className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 placeholder-gray-400"
             />
           </div>
 
           <div>
-            <label className="block text-gray-400 text-xs font-semibold mb-1 uppercase tracking-wide">
+            <label className="block text-gray-500 text-xs font-semibold mb-1 uppercase tracking-wide">
               Email (opcional)
             </label>
             <input
@@ -204,14 +204,14 @@ export default function ReservasPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="tu@email.com"
-              className="w-full bg-doggo-dark2 text-white rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow placeholder-gray-600"
+              className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 placeholder-gray-400"
             />
           </div>
 
           {/* Date & time */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-gray-400 text-xs font-semibold mb-1 uppercase tracking-wide">
+              <label className="block text-gray-500 text-xs font-semibold mb-1 uppercase tracking-wide">
                 Fecha *
               </label>
               <input
@@ -220,11 +220,11 @@ export default function ReservasPage() {
                 min={todayStr()}
                 onChange={(e) => setDate(e.target.value)}
                 required
-                className="w-full bg-doggo-dark2 text-white rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow"
+                className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40"
               />
             </div>
             <div>
-              <label className="block text-gray-400 text-xs font-semibold mb-1 uppercase tracking-wide">
+              <label className="block text-gray-500 text-xs font-semibold mb-1 uppercase tracking-wide">
                 Hora *
               </label>
               <div className="relative">
@@ -232,7 +232,7 @@ export default function ReservasPage() {
                   value={time}
                   onChange={(e) => setTime(e.target.value)}
                   required
-                  className="w-full bg-doggo-dark2 text-white rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow appearance-none pr-10"
+                  className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 appearance-none pr-10"
                 >
                   <option value="">Seleccionar</option>
                   {HOURS.map((h) => (
@@ -247,29 +247,29 @@ export default function ReservasPage() {
           {/* Party size */}
           {type === 'mesa' && (
             <div>
-              <label className="block text-gray-400 text-xs font-semibold mb-2 uppercase tracking-wide">
+              <label className="block text-gray-500 text-xs font-semibold mb-2 uppercase tracking-wide">
                 Número de personas *
               </label>
               <div className="flex items-center gap-4">
                 <button
                   type="button"
                   onClick={() => setPartySize(Math.max(1, partySize - 1))}
-                  className="w-10 h-10 rounded-full bg-doggo-dark2 text-white text-xl font-bold flex items-center justify-center"
+                  className="w-10 h-10 rounded-full bg-gray-100 text-gray-900 text-xl font-bold flex items-center justify-center"
                 >
                   −
                 </button>
-                <span className="text-white text-2xl font-black w-8 text-center">{partySize}</span>
+                <span className="text-gray-900 text-2xl font-black w-8 text-center">{partySize}</span>
                 <button
                   type="button"
                   onClick={() => setPartySize(Math.min(10, partySize + 1))}
-                  className="w-10 h-10 rounded-full bg-doggo-dark2 text-white text-xl font-bold flex items-center justify-center"
+                  className="w-10 h-10 rounded-full bg-gray-100 text-gray-900 text-xl font-bold flex items-center justify-center"
                 >
                   +
                 </button>
                 <span className="text-gray-500 text-sm">personas</span>
               </div>
               {partySize === 10 && (
-                <p className="text-doggo-yellow text-xs mt-2">
+                <p className="text-gray-500 text-xs mt-2">
                   ¿Más de 10? Cambia a <button type="button" onClick={() => setType('evento')} className="underline font-semibold">Evento</button>
                 </p>
               )}
@@ -278,22 +278,22 @@ export default function ReservasPage() {
 
           {type === 'evento' && (
             <div>
-              <label className="block text-gray-400 text-xs font-semibold mb-2 uppercase tracking-wide">
+              <label className="block text-gray-500 text-xs font-semibold mb-2 uppercase tracking-wide">
                 Número de invitados *
               </label>
               <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => setGuestCount(Math.max(11, guestCount - 5))}
-                  className="w-10 h-10 rounded-full bg-doggo-dark2 text-white text-xl font-bold flex items-center justify-center"
+                  className="w-10 h-10 rounded-full bg-gray-100 text-gray-900 text-xl font-bold flex items-center justify-center"
                 >
                   −
                 </button>
-                <span className="text-white text-2xl font-black w-10 text-center">{guestCount}</span>
+                <span className="text-gray-900 text-2xl font-black w-10 text-center">{guestCount}</span>
                 <button
                   type="button"
                   onClick={() => setGuestCount(guestCount + 5)}
-                  className="w-10 h-10 rounded-full bg-doggo-dark2 text-white text-xl font-bold flex items-center justify-center"
+                  className="w-10 h-10 rounded-full bg-gray-100 text-gray-900 text-xl font-bold flex items-center justify-center"
                 >
                   +
                 </button>
@@ -305,7 +305,7 @@ export default function ReservasPage() {
           {/* Event description */}
           {type === 'evento' && (
             <div>
-              <label className="block text-gray-400 text-xs font-semibold mb-1 uppercase tracking-wide">
+              <label className="block text-gray-500 text-xs font-semibold mb-1 uppercase tracking-wide">
                 Descripción del evento (opcional)
               </label>
               <textarea
@@ -313,14 +313,14 @@ export default function ReservasPage() {
                 onChange={(e) => setEventDescription(e.target.value)}
                 placeholder="Cuéntanos qué tienes en mente: decoración, menú especial, actividades..."
                 rows={3}
-                className="w-full bg-doggo-dark2 text-white rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow placeholder-gray-600 resize-none"
+                className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 placeholder-gray-400 resize-none"
               />
             </div>
           )}
 
           {/* Notes */}
           <div>
-            <label className="block text-gray-400 text-xs font-semibold mb-1 uppercase tracking-wide">
+            <label className="block text-gray-500 text-xs font-semibold mb-1 uppercase tracking-wide">
               Notas adicionales (opcional)
             </label>
             <textarea
@@ -328,14 +328,14 @@ export default function ReservasPage() {
               onChange={(e) => setNotes(e.target.value)}
               placeholder={type === 'mesa' ? 'Alergias, preferencias de mesa, ocasión especial...' : 'Cualquier detalle adicional...'}
               rows={2}
-              className="w-full bg-doggo-dark2 text-white rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow placeholder-gray-600 resize-none"
+              className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 placeholder-gray-400 resize-none"
             />
           </div>
 
           {/* WhatsApp notice */}
-          <div className="bg-doggo-dark2 rounded-xl p-3 flex items-start gap-3">
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 flex items-start gap-3">
             <span className="text-xl flex-shrink-0">💬</span>
-            <p className="text-gray-400 text-xs leading-relaxed">
+            <p className="text-gray-500 text-xs leading-relaxed">
               Al confirmar, abriremos WhatsApp con los datos de tu reserva para que el equipo de Doggo la confirme.
             </p>
           </div>

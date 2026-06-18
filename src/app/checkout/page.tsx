@@ -102,9 +102,9 @@ export default function CheckoutPage() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-doggo-dark flex flex-col items-center justify-center gap-4 px-4">
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-4 px-4">
         <span className="text-6xl">🛒</span>
-        <p className="text-white font-bold">Tu carrito está vacío</p>
+        <p className="text-gray-900 font-bold">Tu carrito está vacío</p>
         <Link href="/menu" className="bg-doggo-yellow text-doggo-dark font-bold px-6 py-3 rounded-full">
           Ver menú
         </Link>
@@ -197,7 +197,6 @@ export default function CheckoutPage() {
       router.push(`/pedido/${data.id}`)
       window.open(buildWhatsAppLink(whatsappMsg), '_blank')
     } catch (err) {
-      console.error(err)
       setError('Hubo un error al crear tu pedido. Intenta de nuevo.')
     } finally {
       setLoading(false)
@@ -205,17 +204,17 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-doggo-dark">
-      <div className="bg-doggo-dark2 px-4 py-4 flex items-center gap-3">
-        <Link href="/carrito" className="text-gray-400 text-2xl leading-none">‹</Link>
-        <h1 className="text-white text-xl font-black">Confirmar pedido</h1>
+    <div className="min-h-screen bg-white">
+      <div className="bg-gray-50 px-4 py-4 flex items-center gap-3 border-b border-gray-200">
+        <Link href="/carrito" className="text-gray-500 text-2xl leading-none">‹</Link>
+        <h1 className="text-gray-900 text-xl font-black">Confirmar pedido</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="px-4 py-4 space-y-5">
 
         {/* Tipo de entrega */}
         <div>
-          <label className="text-white text-sm font-bold mb-2 block">¿Cómo quieres recibir tu pedido?</label>
+          <label className="text-gray-900 text-sm font-bold mb-2 block">¿Cómo quieres recibir tu pedido?</label>
           <div className="grid grid-cols-2 gap-2">
             {(['delivery', 'pickup'] as DeliveryType[]).map((type) => (
               <button
@@ -223,7 +222,7 @@ export default function CheckoutPage() {
                 type="button"
                 onClick={() => setDeliveryType(type)}
                 className={`py-3 px-2 rounded-xl text-xs font-bold text-center transition-colors ${
-                  deliveryType === type ? 'bg-doggo-yellow text-doggo-dark' : 'bg-doggo-dark2 text-gray-400'
+                  deliveryType === type ? 'bg-doggo-yellow text-doggo-dark' : 'bg-gray-100 text-gray-500'
                 }`}
               >
                 {DELIVERY_LABELS[type]}
@@ -234,33 +233,33 @@ export default function CheckoutPage() {
 
         {/* Datos de contacto */}
         <div className="space-y-3">
-          <label className="text-white text-sm font-bold block">Tus datos</label>
+          <label className="text-gray-900 text-sm font-bold block">Tus datos</label>
           <input
             type="text" placeholder="Nombre completo *" value={name}
             onChange={(e) => setName(e.target.value)} required
-            className="w-full bg-doggo-dark2 text-white placeholder-gray-500 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow"
+            className="w-full bg-white border border-gray-200 text-gray-900 placeholder-gray-400 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40"
           />
           <input
             type="tel" placeholder="Teléfono *" value={phone}
             onChange={(e) => setPhone(e.target.value)} required
-            className="w-full bg-doggo-dark2 text-white placeholder-gray-500 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow"
+            className="w-full bg-white border border-gray-200 text-gray-900 placeholder-gray-400 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40"
           />
           <input
             type="email" placeholder="Email (opcional)" value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full bg-doggo-dark2 text-white placeholder-gray-500 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow"
+            className="w-full bg-white border border-gray-200 text-gray-900 placeholder-gray-400 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40"
           />
         </div>
 
         {/* Sección de domicilio */}
         {deliveryType === 'delivery' && (
           <div className="space-y-3">
-            <label className="text-white text-sm font-bold block">📍 Dirección de entrega</label>
+            <label className="text-gray-900 text-sm font-bold block">📍 Dirección de entrega</label>
 
             {/* Direcciones guardadas */}
             {savedAddresses.length > 0 && (
               <div className="space-y-1.5">
-                <p className="text-gray-400 text-xs">Tus direcciones guardadas:</p>
+                <p className="text-gray-500 text-xs">Tus direcciones guardadas:</p>
                 {savedAddresses.map((addr) => (
                   <button
                     key={addr.id}
@@ -268,11 +267,11 @@ export default function CheckoutPage() {
                     onClick={() => selectSavedAddress(addr)}
                     className={`w-full text-left rounded-xl px-4 py-2.5 text-sm transition-colors border ${
                       address === addr.address
-                        ? 'border-doggo-yellow bg-doggo-yellow/10 text-white'
-                        : 'border-transparent bg-doggo-dark2 text-gray-300 hover:bg-doggo-dark3'
+                        ? 'border-doggo-yellow bg-doggo-yellow/10 text-gray-900'
+                        : 'border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100'
                     }`}
                   >
-                    <span className="font-semibold text-doggo-yellow text-xs">{addr.label}</span>
+                    <span className="font-semibold text-doggo-red text-xs">{addr.label}</span>
                     <span className="text-gray-400 text-xs"> · </span>
                     <span className="text-xs">{addr.address}</span>
                   </button>
@@ -290,7 +289,7 @@ export default function CheckoutPage() {
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               required
-              className="w-full bg-doggo-dark2 text-white placeholder-gray-500 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow"
+              className="w-full bg-white border border-gray-200 text-gray-900 placeholder-gray-400 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40"
             />
 
             {/* Guardar dirección (solo si está logueado) */}
@@ -303,7 +302,7 @@ export default function CheckoutPage() {
                     onChange={(e) => setSaveThisAddress(e.target.checked)}
                     className="accent-doggo-yellow w-4 h-4"
                   />
-                  <span className="text-gray-400 text-sm">Guardar esta dirección para próximas veces</span>
+                  <span className="text-gray-500 text-sm">Guardar esta dirección para próximas veces</span>
                 </label>
                 {saveThisAddress && (
                   <div className="grid grid-cols-3 gap-2">
@@ -313,7 +312,7 @@ export default function CheckoutPage() {
                         type="button"
                         onClick={() => setAddressLabel(label)}
                         className={`py-2 rounded-xl text-xs font-bold transition-colors ${
-                          addressLabel === label ? 'bg-doggo-yellow text-doggo-dark' : 'bg-doggo-dark2 text-gray-400'
+                          addressLabel === label ? 'bg-doggo-yellow text-doggo-dark' : 'bg-gray-100 text-gray-500'
                         }`}
                       >
                         {label}
@@ -328,20 +327,20 @@ export default function CheckoutPage() {
 
         {/* Notas */}
         <div>
-          <label className="text-white text-sm font-bold block mb-2">Notas (opcional)</label>
+          <label className="text-gray-900 text-sm font-bold block mb-2">Notas (opcional)</label>
           <textarea
             placeholder="Sin cebolla, picante extra, sin mostaza..."
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={2}
-            className="w-full bg-doggo-dark2 text-white placeholder-gray-500 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow resize-none"
+            className="w-full bg-white border border-gray-200 text-gray-900 placeholder-gray-400 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 resize-none"
           />
         </div>
 
         {/* Premios de fidelización */}
         {customerData && customerData.rewards.length > 0 && (
           <div>
-            <label className="text-white text-sm font-bold block mb-2">
+            <label className="text-gray-900 text-sm font-bold block mb-2">
               🎁 Tienes {customerData.customer.points} pts — canjea un premio
             </label>
             <div className="space-y-2">
@@ -353,15 +352,15 @@ export default function CheckoutPage() {
                     type="button"
                     onClick={() => setSelectedRewardId(selected ? null : r.id)}
                     className={`w-full text-left rounded-xl px-4 py-3 border transition-colors ${
-                      selected ? 'border-doggo-yellow bg-doggo-yellow/10' : 'border-transparent bg-doggo-dark2'
+                      selected ? 'border-doggo-yellow bg-doggo-yellow/10' : 'border-gray-200 bg-gray-50'
                     }`}
                   >
                     <div className="flex justify-between items-start">
                       <div>
-                        <p className="text-white font-semibold text-sm">{r.name}</p>
-                        {r.description && <p className="text-gray-400 text-xs mt-0.5">{r.description}</p>}
+                        <p className="text-gray-900 font-semibold text-sm">{r.name}</p>
+                        {r.description && <p className="text-gray-500 text-xs mt-0.5">{r.description}</p>}
                       </div>
-                      <span className={`text-xs font-black px-2 py-1 rounded-full shrink-0 ml-2 ${selected ? 'bg-doggo-yellow text-doggo-dark' : 'bg-gray-700 text-gray-300'}`}>
+                      <span className={`text-xs font-black px-2 py-1 rounded-full shrink-0 ml-2 ${selected ? 'bg-doggo-yellow text-doggo-dark' : 'bg-gray-200 text-gray-500'}`}>
                         {r.points_required} pts
                       </span>
                     </div>
@@ -370,47 +369,47 @@ export default function CheckoutPage() {
               })}
             </div>
             {selectedRewardId && (
-              <p className="text-doggo-yellow text-xs mt-2 text-center">✅ Premio aplicado</p>
+              <p className="text-doggo-red text-xs mt-2 text-center">✅ Premio aplicado</p>
             )}
           </div>
         )}
 
         {customerData && customerData.rewards.length === 0 && (
-          <div className="bg-doggo-dark2 rounded-xl px-4 py-3 flex justify-between items-center">
-            <p className="text-gray-400 text-sm">Tus puntos</p>
-            <p className="text-doggo-yellow font-black">{customerData.customer.points} pts</p>
+          <div className="bg-gray-50 rounded-xl px-4 py-3 flex justify-between items-center border border-gray-200">
+            <p className="text-gray-500 text-sm">Tus puntos</p>
+            <p className="text-doggo-red font-black">{customerData.customer.points} pts</p>
           </div>
         )}
 
         {/* Resumen del pedido */}
-        <div className="bg-doggo-dark2 rounded-2xl p-4">
-          <p className="text-white font-bold text-sm mb-3">Resumen</p>
+        <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
+          <p className="text-gray-900 font-bold text-sm mb-3">Resumen</p>
           {items.map((item) => (
             <div key={item.product.id} className="flex justify-between text-sm mb-1">
-              <span className="text-gray-400">{item.quantity}× {item.product.name}</span>
-              <span className="text-white">{formatPrice(item.product.price * item.quantity)}</span>
+              <span className="text-gray-500">{item.quantity}× {item.product.name}</span>
+              <span className="text-gray-900">{formatPrice(item.product.price * item.quantity)}</span>
             </div>
           ))}
-          <div className="border-t border-doggo-dark3 mt-3 pt-3 space-y-1">
+          <div className="border-t border-gray-200 mt-3 pt-3 space-y-1">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-400">Subtotal</span>
-              <span className="text-white">{formatPrice(sub)}</span>
+              <span className="text-gray-500">Subtotal</span>
+              <span className="text-gray-900">{formatPrice(sub)}</span>
             </div>
             {deliveryType === 'delivery' && (
               <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Envío</span>
-                <span className="text-white">{formatPrice(deliveryFee)}</span>
+                <span className="text-gray-500">Envío</span>
+                <span className="text-gray-900">{formatPrice(deliveryFee)}</span>
               </div>
             )}
             {discountAmount > 0 && (
               <div className="flex justify-between text-sm">
-                <span className="text-green-400">🎁 Descuento</span>
-                <span className="text-green-400">-{formatPrice(discountAmount)}</span>
+                <span className="text-green-600">🎁 Descuento</span>
+                <span className="text-green-600">-{formatPrice(discountAmount)}</span>
               </div>
             )}
             <div className="flex justify-between font-black">
-              <span className="text-white">Total</span>
-              <span className="text-doggo-yellow">{formatPrice(total)}</span>
+              <span className="text-gray-900">Total</span>
+              <span className="text-doggo-red">{formatPrice(total)}</span>
             </div>
           </div>
         </div>
@@ -425,7 +424,7 @@ export default function CheckoutPage() {
           {loading ? 'Enviando pedido…' : `Hacer pedido · ${formatPrice(total)}`}
         </button>
 
-        <p className="text-gray-500 text-xs text-center pb-2">
+        <p className="text-gray-400 text-xs text-center pb-2">
           Al confirmar, se abrirá WhatsApp para notificar al local.
         </p>
       </form>

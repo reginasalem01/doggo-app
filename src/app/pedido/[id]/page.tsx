@@ -42,9 +42,9 @@ export default async function PedidoPage({ params }: Props) {
 
   if (!order) {
     return (
-      <div className="min-h-screen bg-doggo-dark flex flex-col items-center justify-center gap-4 px-4">
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-4 px-4">
         <span className="text-5xl">😕</span>
-        <p className="text-white font-bold text-lg">Pedido no encontrado</p>
+        <p className="text-gray-900 font-bold text-lg">Pedido no encontrado</p>
         <Link href="/" className="bg-doggo-yellow text-doggo-dark font-bold px-6 py-3 rounded-full">
           Ir al inicio
         </Link>
@@ -65,7 +65,7 @@ export default async function PedidoPage({ params }: Props) {
   )
 
   return (
-    <div className="min-h-screen bg-doggo-dark px-4 py-6 pb-24">
+    <div className="min-h-screen bg-white px-4 py-6 pb-24">
       {/* Auto-refresco cada 5 s mientras no esté terminal */}
       <StatusPoller status={o.status} />
 
@@ -74,7 +74,7 @@ export default async function PedidoPage({ params }: Props) {
         <div className="text-5xl mb-3">
           {isCancelled ? '❌' : isDelivered ? '🎉' : '🌭'}
         </div>
-        <h1 className="text-white text-2xl font-black">
+        <h1 className="text-gray-900 text-2xl font-black">
           {isCancelled ? 'Pedido cancelado' : isDelivered ? '¡Entregado!' : '¡Pedido en camino!'}
         </h1>
         <p className="text-gray-500 text-sm mt-1">#{shortId}</p>
@@ -82,12 +82,12 @@ export default async function PedidoPage({ params }: Props) {
 
       {/* Pasos de estado */}
       {!isCancelled && (
-        <div className="bg-doggo-dark2 rounded-2xl p-5 mb-4">
+        <div className="bg-gray-50 rounded-2xl p-5 mb-4 border border-gray-200">
           <div className="flex items-start justify-between relative">
             {/* Línea de progreso */}
-            <div className="absolute top-5 left-0 right-0 h-0.5 bg-doggo-dark3 mx-8" />
+            <div className="absolute top-5 left-0 right-0 h-0.5 bg-gray-200 mx-8" />
             <div
-              className="absolute top-5 left-0 h-0.5 bg-doggo-yellow mx-8 transition-all duration-700"
+              className="absolute top-5 left-0 h-0.5 bg-doggo-red mx-8 transition-all duration-700"
               style={{ right: `${((3 - current) / 3) * 100}%` }}
             />
 
@@ -97,14 +97,14 @@ export default async function PedidoPage({ params }: Props) {
               return (
                 <div key={step.key} className="flex flex-col items-center gap-2 relative z-10 flex-1">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg transition-all duration-500 ${
-                    done   ? 'bg-doggo-yellow'         :
-                    active ? 'bg-doggo-yellow ring-4 ring-doggo-yellow/30' :
-                             'bg-doggo-dark3'
+                    done   ? 'bg-doggo-red'         :
+                    active ? 'bg-doggo-yellow ring-4 ring-doggo-yellow/40' :
+                             'bg-gray-100'
                   }`}>
                     {step.icon}
                   </div>
                   <p className={`text-xs font-bold text-center leading-tight ${
-                    active ? 'text-doggo-yellow' : done ? 'text-white' : 'text-gray-600'
+                    active ? 'text-doggo-red' : done ? 'text-gray-900' : 'text-gray-400'
                   }`}>
                     {step.label}
                   </p>
@@ -114,7 +114,7 @@ export default async function PedidoPage({ params }: Props) {
           </div>
 
           {/* Mensaje contextual */}
-          <p className="text-center text-gray-400 text-xs mt-5">
+          <p className="text-center text-gray-500 text-xs mt-5">
             {o.status === 'new'       && 'Tu pedido fue recibido, esperando confirmación…'}
             {(o.status === 'accepted' || o.status === 'preparing') && '¡Manos a la obra! Estamos preparando tu pedido 🍳'}
             {o.status === 'ready' && !isDelivery && '¡Tu pedido está listo para retirar! 🔔'}
@@ -132,36 +132,36 @@ export default async function PedidoPage({ params }: Props) {
       )}
 
       {/* Detalle del pedido */}
-      <div className="bg-doggo-dark2 rounded-2xl p-4 mb-4">
-        <p className="text-white font-bold text-sm mb-3">Tu pedido</p>
+      <div className="bg-gray-50 rounded-2xl p-4 mb-4 border border-gray-200">
+        <p className="text-gray-900 font-bold text-sm mb-3">Tu pedido</p>
         {(items as OrderItem[])?.map((item) => (
           <div key={item.id} className="flex justify-between text-sm mb-2">
-            <span className="text-gray-400">{item.quantity}× {item.product_name}</span>
-            <span className="text-white">{formatPrice(item.total)}</span>
+            <span className="text-gray-500">{item.quantity}× {item.product_name}</span>
+            <span className="text-gray-900">{formatPrice(item.total)}</span>
           </div>
         ))}
         {o.notes && (
-          <p className="text-gray-500 text-xs mt-2 pt-2 border-t border-doggo-dark3">
+          <p className="text-gray-400 text-xs mt-2 pt-2 border-t border-gray-200">
             📝 {o.notes}
           </p>
         )}
-        <div className="border-t border-doggo-dark3 mt-3 pt-3 flex justify-between font-black">
-          <span className="text-white">Total</span>
-          <span className="text-doggo-yellow">{formatPrice(o.total)}</span>
+        <div className="border-t border-gray-200 mt-3 pt-3 flex justify-between font-black">
+          <span className="text-gray-900">Total</span>
+          <span className="text-doggo-red">{formatPrice(o.total)}</span>
         </div>
       </div>
 
       {/* Info de entrega */}
       {(o.address || o.delivery_type) && (
-        <div className="bg-doggo-dark2 rounded-2xl p-4 mb-6">
+        <div className="bg-gray-50 rounded-2xl p-4 mb-6 border border-gray-200">
           <div className="flex justify-between text-sm mb-1">
-            <span className="text-gray-400">Tipo</span>
-            <span className="text-white font-semibold">{DELIVERY_LABELS[o.delivery_type] ?? o.delivery_type}</span>
+            <span className="text-gray-500">Tipo</span>
+            <span className="text-gray-900 font-semibold">{DELIVERY_LABELS[o.delivery_type] ?? o.delivery_type}</span>
           </div>
           {o.address && (
             <div className="flex justify-between text-sm gap-4">
-              <span className="text-gray-400 shrink-0">Dirección</span>
-              <span className="text-white text-right">{o.address}</span>
+              <span className="text-gray-500 shrink-0">Dirección</span>
+              <span className="text-gray-900 text-right">{o.address}</span>
             </div>
           )}
         </div>
@@ -175,7 +175,7 @@ export default async function PedidoPage({ params }: Props) {
         >
           Seguir ordenando
         </Link>
-        <Link href="/" className="block w-full text-center text-gray-400 text-sm py-2">
+        <Link href="/" className="block w-full text-center text-gray-500 text-sm py-2">
           Ir al inicio
         </Link>
       </div>

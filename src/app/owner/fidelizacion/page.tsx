@@ -17,7 +17,7 @@ export default async function OwnerFidelizacionPage() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-white text-2xl font-black">Fidelización</h1>
+          <h1 className="text-gray-900 text-2xl font-black">Fidelización</h1>
         </div>
         <Link
           href="/owner/fidelizacion/nuevo"
@@ -28,9 +28,9 @@ export default async function OwnerFidelizacionPage() {
       </div>
 
       {/* Rewards list */}
-      <p className="text-gray-400 text-xs uppercase tracking-wide mb-3">Premios ({rewards?.length ?? 0})</p>
+      <p className="text-gray-500 text-xs uppercase tracking-wide mb-3">Premios ({rewards?.length ?? 0})</p>
       {!rewards?.length ? (
-        <div className="bg-doggo-dark2 rounded-2xl p-6 text-center mb-6">
+        <div className="bg-gray-50 rounded-2xl p-6 text-center mb-6">
           <p className="text-gray-500 text-sm">No hay premios creados</p>
         </div>
       ) : (
@@ -45,21 +45,21 @@ export default async function OwnerFidelizacionPage() {
               <Link
                 key={r.id}
                 href={`/owner/fidelizacion/${r.id}`}
-                className="flex items-center justify-between bg-doggo-dark2 rounded-2xl px-4 py-3 hover:bg-doggo-dark3 transition-colors"
+                className="flex items-center justify-between bg-gray-50 rounded-2xl px-4 py-3 hover:bg-gray-100 transition-colors border border-gray-100"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
-                    <p className="text-white font-semibold truncate">{r.name}</p>
+                    <p className="text-gray-900 font-semibold truncate">{r.name}</p>
                     {isExpired && (
-                      <span className="text-xs bg-red-900/40 text-red-400 px-2 py-0.5 rounded-full shrink-0">Vencido</span>
+                      <span className="text-xs bg-red-50 text-red-500 px-2 py-0.5 rounded-full shrink-0">Vencido</span>
                     )}
                   </div>
-                  {r.description && <p className="text-gray-400 text-xs truncate">{r.description}</p>}
+                  {r.description && <p className="text-gray-500 text-xs truncate">{r.description}</p>}
                   {expires && <p className="text-gray-500 text-xs mt-0.5">Vence: {expires}</p>}
                 </div>
                 <div className="text-right ml-3 shrink-0">
-                  <p className="text-doggo-yellow font-black text-sm">{r.points_required} pts</p>
-                  <span className={`text-xs ${r.active && !isExpired ? 'text-green-400' : 'text-gray-500'}`}>
+                  <p className="text-doggo-red font-black text-sm">{r.points_required} pts</p>
+                  <span className={`text-xs ${r.active && !isExpired ? 'text-green-700' : 'text-gray-400'}`}>
                     {r.active && !isExpired ? 'Activo' : 'Inactivo'}
                   </span>
                 </div>
@@ -70,9 +70,9 @@ export default async function OwnerFidelizacionPage() {
       )}
 
       {/* Redemptions history */}
-      <p className="text-gray-400 text-xs uppercase tracking-wide mb-3">Canjes recientes ({redemptions?.length ?? 0})</p>
+      <p className="text-gray-500 text-xs uppercase tracking-wide mb-3">Canjes recientes ({redemptions?.length ?? 0})</p>
       {!redemptions?.length ? (
-        <div className="bg-doggo-dark2 rounded-2xl p-6 text-center">
+        <div className="bg-gray-50 rounded-2xl p-6 text-center">
           <p className="text-gray-500 text-sm">Aún no hay canjes</p>
         </div>
       ) : (
@@ -83,10 +83,10 @@ export default async function OwnerFidelizacionPage() {
             })
             const customer = rd.customers as { name: string; email: string } | null
             return (
-              <div key={rd.id} className="flex justify-between items-center bg-doggo-dark2 rounded-xl px-4 py-3">
+              <div key={rd.id} className="flex justify-between items-center bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
                 <div>
-                  <p className="text-white text-sm font-semibold">{customer?.name ?? 'Cliente'}</p>
-                  <p className="text-gray-400 text-xs">{date}</p>
+                  <p className="text-gray-900 text-sm font-semibold">{customer?.name ?? 'Cliente'}</p>
+                  <p className="text-gray-500 text-xs">{date}</p>
                 </div>
                 <p className="text-red-400 font-black text-sm">-{rd.points_used} pts</p>
               </div>

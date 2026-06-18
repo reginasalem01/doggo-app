@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import BottomNav from '@/components/ui/BottomNav'
+import InstallPrompt from '@/components/ui/InstallPrompt'
 
 export const metadata: Metadata = {
   title: 'Doggo · Hotdog sin dramas',
@@ -37,6 +38,7 @@ export default function RootLayout({
           {children}
         </main>
         <BottomNav />
+        <InstallPrompt />
       </body>
     </html>
   )

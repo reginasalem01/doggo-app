@@ -12,13 +12,13 @@ export const metadata: Metadata = {
     title: 'Doggo',
   },
   icons: {
-    icon: '/icons/icon-192.png',
-    apple: '/icons/apple-touch-icon.png',
+    icon: '/icon-192.png',
+    apple: '/apple-touch-icon.png',
   },
 }
 
 export const viewport: Viewport = {
-  themeColor: '#ffffff',
+  themeColor: '#FEC523',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,

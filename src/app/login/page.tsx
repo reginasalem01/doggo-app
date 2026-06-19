@@ -113,7 +113,7 @@ export default function LoginPage() {
           <div className="bg-green-50 border border-green-200 rounded-2xl px-5 py-5 text-center mb-6">
             <p className="text-2xl mb-2">📧</p>
             <p className="text-gray-900 font-black text-base">Revisa tu email</p>
-            <p className="text-gray-500 text-sm mt-1">Te enviamos un link para restablecer tu contraseña.</p>
+            <p className="text-gray-500 text-sm mt-1">Si ese email tiene una cuenta, recibirás un link para restablecer tu contraseña.</p>
             <button onClick={() => { setMode('login'); setError(null) }}
               className="mt-4 text-doggo-red font-bold text-sm">
               ← Volver al login
@@ -192,21 +192,23 @@ export default function LoginPage() {
             </div>
           )}
 
-          <div>
-            <label className="block text-gray-500 text-xs font-semibold mb-1 uppercase tracking-wide">
-              Contraseña *
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Mínimo 6 caracteres"
-              required
-              minLength={6}
-              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-              className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 placeholder-gray-400"
-            />
-          </div>
+          {mode !== 'forgot' && (
+            <div>
+              <label className="block text-gray-500 text-xs font-semibold mb-1 uppercase tracking-wide">
+                Contraseña *
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Mínimo 6 caracteres"
+                required
+                minLength={6}
+                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 placeholder-gray-400"
+              />
+            </div>
+          )}
 
           {error && error !== '__success__' && (
             <div className="bg-doggo-red/10 border border-doggo-red/30 rounded-xl px-4 py-3">

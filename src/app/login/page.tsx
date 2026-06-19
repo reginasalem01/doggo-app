@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
-type Mode = 'login' | 'register'
+type Mode = 'login' | 'register' | 'forgot'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -29,6 +29,16 @@ export default function LoginPage() {
     const supabase = createClient()
 
     try {
+      if (mode === 'forgot') {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/login/reset`,
+        })
+        if (error) throw error
+        setError('__success__')
+        setLoading(false)
+        return
+      }
+
       if (mode === 'login') {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
@@ -92,33 +102,49 @@ export default function LoginPage() {
           <span className="text-5xl">🌭</span>
           <p className="text-doggo-red font-black text-lg mt-2">Doggo</p>
           <p className="text-gray-500 text-sm mt-1">
-            {mode === 'login'
-              ? 'Accede para ver tus puntos y pedidos'
-              : 'Únete y empieza a acumular puntos'}
+            {mode === 'login' ? 'Accede para ver tus puntos y pedidos'
+              : mode === 'register' ? 'Únete y empieza a acumular puntos'
+              : 'Te enviamos un link para restablecer tu contraseña'}
           </p>
         </div>
 
-        {/* Mode toggle */}
-        <div className="flex bg-gray-100 rounded-full p-1 mb-6">
-          <button
-            onClick={() => { setMode('login'); setError(null) }}
-            className={`flex-1 py-2 rounded-full text-sm font-bold transition-colors ${
-              mode === 'login' ? 'bg-doggo-yellow text-doggo-dark' : 'text-gray-500'
-            }`}
-          >
-            Iniciar sesión
-          </button>
-          <button
-            onClick={() => { setMode('register'); setError(null) }}
-            className={`flex-1 py-2 rounded-full text-sm font-bold transition-colors ${
-              mode === 'register' ? 'bg-doggo-yellow text-doggo-dark' : 'text-gray-500'
-            }`}
-          >
-            Registrarse
-          </button>
-        </div>
+        {/* Forgot password — success state */}
+        {mode === 'forgot' && error === '__success__' && (
+          <div className="bg-green-50 border border-green-200 rounded-2xl px-5 py-5 text-center mb-6">
+            <p className="text-2xl mb-2">📧</p>
+            <p className="text-gray-900 font-black text-base">Revisa tu email</p>
+            <p className="text-gray-500 text-sm mt-1">Te enviamos un link para restablecer tu contraseña.</p>
+            <button onClick={() => { setMode('login'); setError(null) }}
+              className="mt-4 text-doggo-red font-bold text-sm">
+              ← Volver al login
+            </button>
+          </div>
+        )}
+
+        {/* Mode toggle — solo en login/register */}
+        {mode !== 'forgot' && (
+          <div className="flex bg-gray-100 rounded-full p-1 mb-6">
+            <button
+              onClick={() => { setMode('login'); setError(null) }}
+              className={`flex-1 py-2 rounded-full text-sm font-bold transition-colors ${
+                mode === 'login' ? 'bg-doggo-yellow text-doggo-dark' : 'text-gray-500'
+              }`}
+            >
+              Iniciar sesión
+            </button>
+            <button
+              onClick={() => { setMode('register'); setError(null) }}
+              className={`flex-1 py-2 rounded-full text-sm font-bold transition-colors ${
+                mode === 'register' ? 'bg-doggo-yellow text-doggo-dark' : 'text-gray-500'
+              }`}
+            >
+              Registrarse
+            </button>
+          </div>
+        )}
 
         {/* Form */}
+        {!(mode === 'forgot' && error === '__success__') && (
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === 'register' && (
             <div>
@@ -182,7 +208,7 @@ export default function LoginPage() {
             />
           </div>
 
-          {error && (
+          {error && error !== '__success__' && (
             <div className="bg-doggo-red/10 border border-doggo-red/30 rounded-xl px-4 py-3">
               <p className="text-doggo-red text-sm">{error}</p>
             </div>
@@ -193,13 +219,34 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full bg-doggo-yellow text-doggo-dark font-black py-4 rounded-full text-base mt-2 disabled:opacity-60 transition-opacity"
           >
-            {loading
-              ? 'Cargando...'
-              : mode === 'login'
-              ? 'Entrar'
+            {loading ? 'Cargando...'
+              : mode === 'login' ? 'Entrar'
+              : mode === 'forgot' ? 'Enviar link'
               : 'Crear cuenta'}
           </button>
+
+          {/* Forgot password link */}
+          {mode === 'login' && (
+            <button
+              type="button"
+              onClick={() => { setMode('forgot'); setError(null) }}
+              className="w-full text-center text-gray-400 text-sm py-1"
+            >
+              ¿Olvidaste tu contraseña?
+            </button>
+          )}
+
+          {mode === 'forgot' && (
+            <button
+              type="button"
+              onClick={() => { setMode('login'); setError(null) }}
+              className="w-full text-center text-gray-400 text-sm py-1"
+            >
+              ← Volver al login
+            </button>
+          )}
         </form>
+        )}
       </div>
     </div>
   )

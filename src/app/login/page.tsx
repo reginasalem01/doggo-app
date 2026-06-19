@@ -42,8 +42,8 @@ export default function LoginPage() {
       if (mode === 'login') {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
-        router.push('/perfil')
-        router.refresh()
+        // Full reload to clear Next.js router cache (avoids stale redirect to /login)
+        window.location.href = '/perfil'
       } else {
         // Register: create auth user
         const { data, error: signUpError } = await supabase.auth.signUp({
@@ -62,8 +62,7 @@ export default function LoginPage() {
           })
         }
 
-        router.push('/perfil')
-        router.refresh()
+        window.location.href = '/perfil'
       }
     } catch (err: unknown) {
       // Supabase errors are PostgrestError objects, not native Error instances

@@ -51,6 +51,19 @@ export default function ReservasPage() {
     notes: string | null
   }
   const [myReservations, setMyReservations] = useState<MyReservation[]>([])
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editDate, setEditDate] = useState('')
+  const [editTime, setEditTime] = useState('')
+  const [editPartySize, setEditPartySize] = useState(2)
+  const [editLoading, setEditLoading] = useState(false)
+  const [lookupPhone, setLookupPhone] = useState('')
+  const [lookupLoading, setLookupLoading] = useState(false)
+  const [lookupDone, setLookupDone] = useState(false)
+
+  const sortReservations = (data: MyReservation[]) => {
+    const order: Record<string, number> = { pending: 0, confirmed: 1, cancelled: 2 }
+    return data.sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9))
+  }
 
   useEffect(() => {
     try {
@@ -58,14 +71,85 @@ export default function ReservasPage() {
       if (ids.length === 0) return
       fetch(`/api/reservations?ids=${ids.join(',')}`)
         .then((r) => r.json())
-        .then((data: MyReservation[]) => {
-          // Sort: pending first, then confirmed, then cancelled
-          const order: Record<string, number> = { pending: 0, confirmed: 1, cancelled: 2 }
-          setMyReservations(data.sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9)))
-        })
+        .then((data: MyReservation[]) => setMyReservations(sortReservations(data)))
         .catch(() => {})
     } catch {}
   }, [])
+
+  async function lookupByPhone() {
+    if (!lookupPhone.trim()) return
+    setLookupLoading(true)
+    try {
+      const res = await fetch(`/api/reservations?phone=${encodeURIComponent(lookupPhone.trim())}`)
+      const data: MyReservation[] = await res.json()
+      setMyReservations(sortReservations(data))
+      setLookupDone(true)
+      // Save found IDs to localStorage
+      if (data.length > 0) {
+        try {
+          const existing = JSON.parse(localStorage.getItem('doggo_reservation_ids') ?? '[]') as string[]
+          const merged = [...new Set([...data.map((r) => r.id), ...existing])].slice(0, 10)
+          localStorage.setItem('doggo_reservation_ids', JSON.stringify(merged))
+        } catch {}
+      }
+    } finally {
+      setLookupLoading(false)
+    }
+  }
+
+  function startEdit(r: MyReservation) {
+    setEditingId(r.id)
+    setEditDate(r.reservation_date)
+    setEditTime(r.reservation_time.slice(0, 5))
+    setEditPartySize(r.party_size)
+  }
+
+  async function handleSaveEdit(id: string) {
+    setEditLoading(true)
+    try {
+      const res = await fetch(`/api/reservations/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reservation_date: editDate,
+          reservation_time: editTime + ':00',
+          party_size: editPartySize,
+        }),
+      })
+      if (res.ok) {
+        setMyReservations((prev) =>
+          prev.map((r) =>
+            r.id === id
+              ? { ...r, reservation_date: editDate, reservation_time: editTime + ':00', party_size: editPartySize, status: 'pending' }
+              : r
+          )
+        )
+        setEditingId(null)
+      }
+    } finally {
+      setEditLoading(false)
+    }
+  }
+
+  async function handleCancelReservation(id: string) {
+    if (!confirm('¿Cancelar esta reserva?')) return
+    setEditLoading(true)
+    try {
+      const res = await fetch(`/api/reservations/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'cancelled' }),
+      })
+      if (res.ok) {
+        setMyReservations((prev) =>
+          prev.map((r) => r.id === id ? { ...r, status: 'cancelled' } : r)
+        )
+        setEditingId(null)
+      }
+    } finally {
+      setEditLoading(false)
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -132,6 +216,37 @@ export default function ReservasPage() {
 
       <div className="px-4 py-5 pb-28 space-y-5">
 
+        {/* Buscar reservas por teléfono si no hay en localStorage */}
+        {myReservations.length === 0 && !lookupDone && (
+          <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
+            <p className="text-gray-700 font-bold text-sm mb-1">¿Tienes una reserva?</p>
+            <p className="text-gray-400 text-xs mb-3">Ingresa tu teléfono para ver el estado.</p>
+            <div className="flex gap-2">
+              <input
+                type="tel"
+                value={lookupPhone}
+                onChange={(e) => setLookupPhone(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && lookupByPhone()}
+                placeholder="0999 000 000"
+                className="flex-1 bg-white border border-gray-200 text-gray-900 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 placeholder-gray-400"
+              />
+              <button
+                onClick={lookupByPhone}
+                disabled={lookupLoading || !lookupPhone.trim()}
+                className="bg-doggo-yellow text-doggo-dark font-black px-4 py-2.5 rounded-xl text-sm disabled:opacity-50"
+              >
+                {lookupLoading ? '...' : 'Buscar'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {lookupDone && myReservations.length === 0 && (
+          <div className="bg-gray-50 rounded-2xl p-4 text-center">
+            <p className="text-gray-500 text-sm">No encontramos reservas con ese teléfono.</p>
+          </div>
+        )}
+
         {/* Mis reservas */}
         {myReservations.length > 0 && (
           <div>
@@ -142,28 +257,110 @@ export default function ReservasPage() {
                   weekday: 'short', day: 'numeric', month: 'short',
                 })
                 const statusConfig: Record<string, { label: string; color: string; icon: string }> = {
-                  pending:   { label: 'Pendiente',  color: 'bg-yellow-100 text-yellow-700',  icon: '🕐' },
-                  confirmed: { label: 'Confirmada', color: 'bg-green-100 text-green-700',    icon: '✅' },
-                  cancelled: { label: 'Cancelada',  color: 'bg-red-100 text-red-500',        icon: '❌' },
+                  pending:   { label: 'Pendiente',  color: 'bg-yellow-100 text-yellow-700', icon: '🕐' },
+                  confirmed: { label: 'Confirmada', color: 'bg-green-100 text-green-700',   icon: '✅' },
+                  cancelled: { label: 'Cancelada',  color: 'bg-red-100 text-red-500',       icon: '❌' },
                 }
                 const s = statusConfig[r.status] ?? { label: r.status, color: 'bg-gray-100 text-gray-600', icon: '📋' }
+                const isEditing = editingId === r.id
+                const canEdit = r.status !== 'cancelled'
+
                 return (
                   <div key={r.id} className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
+                    {/* Header siempre visible */}
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="text-gray-900 font-bold text-sm">
-                          {dateStr} · {r.reservation_time.slice(0, 5)}
-                        </p>
-                        <p className="text-gray-500 text-xs mt-0.5">
-                          👥 {r.party_size} {r.party_size === 1 ? 'persona' : 'personas'}
-                        </p>
+                        {!isEditing && (
+                          <>
+                            <p className="text-gray-900 font-bold text-sm">
+                              {dateStr} · {r.reservation_time.slice(0, 5)}
+                            </p>
+                            <p className="text-gray-500 text-xs mt-0.5">
+                              👥 {r.party_size} {r.party_size === 1 ? 'persona' : 'personas'}
+                            </p>
+                          </>
+                        )}
+                        {isEditing && (
+                          <p className="text-gray-900 font-bold text-sm">Editar reserva</p>
+                        )}
                       </div>
                       <span className={`text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0 ${s.color}`}>
                         {s.icon} {s.label}
                       </span>
                     </div>
-                    {r.status === 'pending' && (
-                      <p className="text-gray-400 text-xs mt-2">Pronto recibirás confirmación por WhatsApp.</p>
+
+                    {/* Formulario de edición inline */}
+                    {isEditing && (
+                      <div className="mt-3 space-y-3">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="block text-gray-500 text-xs font-semibold mb-1 uppercase tracking-wide">Fecha</label>
+                            <input
+                              type="date"
+                              value={editDate}
+                              min={todayStr()}
+                              onChange={(e) => setEditDate(e.target.value)}
+                              className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-gray-500 text-xs font-semibold mb-1 uppercase tracking-wide">Hora</label>
+                            <select
+                              value={editTime}
+                              onChange={(e) => setEditTime(e.target.value)}
+                              className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40"
+                            >
+                              {HOURS.map((h) => <option key={h} value={h}>{h}</option>)}
+                            </select>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-gray-500 text-xs font-semibold mb-1 uppercase tracking-wide">Personas</label>
+                          <div className="flex items-center gap-3">
+                            <button type="button" onClick={() => setEditPartySize(Math.max(1, editPartySize - 1))}
+                              className="w-9 h-9 rounded-full bg-gray-200 text-gray-900 text-lg font-bold flex items-center justify-center">−</button>
+                            <span className="text-gray-900 text-xl font-black w-6 text-center">{editPartySize}</span>
+                            <button type="button" onClick={() => setEditPartySize(Math.min(20, editPartySize + 1))}
+                              className="w-9 h-9 rounded-full bg-gray-200 text-gray-900 text-lg font-bold flex items-center justify-center">+</button>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 pt-1">
+                          <button
+                            onClick={() => handleSaveEdit(r.id)}
+                            disabled={editLoading}
+                            className="flex-1 bg-doggo-yellow text-doggo-dark font-black py-2.5 rounded-xl text-sm disabled:opacity-60"
+                          >
+                            {editLoading ? 'Guardando...' : 'Guardar cambios'}
+                          </button>
+                          <button
+                            onClick={() => setEditingId(null)}
+                            disabled={editLoading}
+                            className="px-4 bg-gray-200 text-gray-700 font-bold py-2.5 rounded-xl text-sm"
+                          >
+                            Volver
+                          </button>
+                        </div>
+                        <button
+                          onClick={() => handleCancelReservation(r.id)}
+                          disabled={editLoading}
+                          className="w-full text-red-500 font-bold py-2 text-sm"
+                        >
+                          Cancelar reserva
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Acciones cuando no está editando */}
+                    {!isEditing && canEdit && (
+                      <button
+                        onClick={() => startEdit(r)}
+                        className="mt-2 w-full text-gray-500 font-semibold text-xs py-1.5 border border-gray-200 rounded-xl hover:bg-gray-100"
+                      >
+                        ✏️ Editar
+                      </button>
+                    )}
+                    {!isEditing && r.status === 'pending' && (
+                      <p className="text-gray-400 text-xs mt-1.5 text-center">Pronto recibirás confirmación por WhatsApp.</p>
                     )}
                   </div>
                 )

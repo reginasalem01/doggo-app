@@ -37,7 +37,11 @@ const ACTION: Record<string, { label: string; next: string; cls: string }> = {
 
 // ── Order card ─────────────────────────────────────────────────────────────────
 
-function OrderCard({ order, onRefresh }: { order: Order; onRefresh: () => void }) {
+function OrderCard({ order, onOptimisticUpdate, onRefresh }: {
+  order: Order
+  onOptimisticUpdate: (id: string, newStatus: string) => void
+  onRefresh: () => void
+}) {
   const [busy, setBusy] = useState(false)
 
   const action = ACTION[order.status]
@@ -50,12 +54,15 @@ function OrderCard({ order, onRefresh }: { order: Order; onRefresh: () => void }
     e.preventDefault()
     if (!action || busy) return
     setBusy(true)
+    // Actualizar UI inmediatamente sin esperar la BD
+    onOptimisticUpdate(order.id, action.next)
     await fetch(`/api/admin/orders/${order.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: action.next }),
     })
-    onRefresh()
+    // Confirmar con datos reales después de un momento
+    setTimeout(onRefresh, 500)
     setBusy(false)
   }
 
@@ -109,7 +116,11 @@ type ColDef = {
   orders: Order[]
 }
 
-function KanbanColumn({ col, onRefresh }: { col: ColDef; onRefresh: () => void }) {
+function KanbanColumn({ col, onOptimisticUpdate, onRefresh }: {
+  col: ColDef
+  onOptimisticUpdate: (id: string, newStatus: string) => void
+  onRefresh: () => void
+}) {
   return (
     <div className="flex flex-col flex-1 min-w-0 min-h-0 bg-gray-100 rounded-xl overflow-hidden">
       <div className={`flex items-center justify-between px-4 py-2.5 shrink-0 ${col.headerCls}`}>
@@ -122,7 +133,9 @@ function KanbanColumn({ col, onRefresh }: { col: ColDef; onRefresh: () => void }
         {col.orders.length === 0 ? (
           <p className="text-center text-gray-500 text-sm py-10">Vacío</p>
         ) : (
-          col.orders.map((o) => <OrderCard key={o.id} order={o} onRefresh={onRefresh} />)
+          col.orders.map((o) => (
+            <OrderCard key={o.id} order={o} onOptimisticUpdate={onOptimisticUpdate} onRefresh={onRefresh} />
+          ))
         )}
       </div>
     </div>
@@ -131,7 +144,11 @@ function KanbanColumn({ col, onRefresh }: { col: ColDef; onRefresh: () => void }
 
 // ── Board principal ─────────────────────────────────────────────────────────────
 
-export default function KanbanBoard({ orders, onRefresh }: { orders: Order[]; onRefresh: () => void }) {
+export default function KanbanBoard({ orders, onOptimisticUpdate, onRefresh }: {
+  orders: Order[]
+  onOptimisticUpdate: (id: string, newStatus: string) => void
+  onRefresh: () => void
+}) {
   const cols: ColDef[] = [
     {
       id: 'new',
@@ -156,7 +173,7 @@ export default function KanbanBoard({ orders, onRefresh }: { orders: Order[]; on
   return (
     <div className="flex gap-2.5 h-full p-3 bg-gray-50">
       {cols.map((col) => (
-        <KanbanColumn key={col.id} col={col} onRefresh={onRefresh} />
+        <KanbanColumn key={col.id} col={col} onOptimisticUpdate={onOptimisticUpdate} onRefresh={onRefresh} />
       ))}
     </div>
   )

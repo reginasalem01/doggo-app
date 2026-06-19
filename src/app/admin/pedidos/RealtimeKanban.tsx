@@ -25,6 +25,10 @@ export default function RealtimeKanban({ initialOrders }: { initialOrders: Order
   const [orders, setOrders] = useState<Order[]>(initialOrders)
   const [alert, setAlert] = useState(false)
 
+  function optimisticUpdate(id: string, newStatus: string) {
+    setOrders((prev) => prev.map((o) => o.id === id ? { ...o, status: newStatus } : o))
+  }
+
   const fetchOrders = useCallback(async () => {
     const supabase = createClient()
     const { data } = await supabase
@@ -68,7 +72,7 @@ export default function RealtimeKanban({ initialOrders }: { initialOrders: Order
           🌭 ¡Nuevo pedido!
         </div>
       )}
-      <KanbanBoard orders={orders} onRefresh={fetchOrders} />
+      <KanbanBoard orders={orders} onOptimisticUpdate={optimisticUpdate} onRefresh={fetchOrders} />
     </div>
   )
 }

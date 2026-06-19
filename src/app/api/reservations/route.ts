@@ -1,6 +1,22 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
+// GET /api/reservations?ids=id1,id2,...
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const ids = searchParams.get('ids')?.split(',').filter(Boolean) ?? []
+  if (ids.length === 0) return NextResponse.json([])
+
+  const admin = createAdminClient()
+  const { data, error } = await admin
+    .from('reservations')
+    .select('id, customer_name, reservation_date, reservation_time, party_size, status, notes')
+    .in('id', ids)
+
+  if (error) return NextResponse.json([], { status: 500 })
+  return NextResponse.json(data ?? [])
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()

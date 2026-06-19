@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 
@@ -39,6 +39,33 @@ export default function ReservasPage() {
   const [eventName, setEventName] = useState('')
   const [guestCount, setGuestCount] = useState(15)
   const [eventDescription, setEventDescription] = useState('')
+
+  // Mis reservas
+  type MyReservation = {
+    id: string
+    customer_name: string
+    reservation_date: string
+    reservation_time: string
+    party_size: number
+    status: string
+    notes: string | null
+  }
+  const [myReservations, setMyReservations] = useState<MyReservation[]>([])
+
+  useEffect(() => {
+    try {
+      const ids = JSON.parse(localStorage.getItem('doggo_reservation_ids') ?? '[]') as string[]
+      if (ids.length === 0) return
+      fetch(`/api/reservations?ids=${ids.join(',')}`)
+        .then((r) => r.json())
+        .then((data: MyReservation[]) => {
+          // Sort: pending first, then confirmed, then cancelled
+          const order: Record<string, number> = { pending: 0, confirmed: 1, cancelled: 2 }
+          setMyReservations(data.sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9)))
+        })
+        .catch(() => {})
+    } catch {}
+  }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -104,6 +131,48 @@ export default function ReservasPage() {
       </div>
 
       <div className="px-4 py-5 pb-28 space-y-5">
+
+        {/* Mis reservas */}
+        {myReservations.length > 0 && (
+          <div>
+            <p className="text-gray-500 text-xs font-semibold uppercase tracking-wide mb-2">Mis reservas</p>
+            <div className="space-y-2">
+              {myReservations.map((r) => {
+                const dateStr = new Date(r.reservation_date + 'T12:00:00').toLocaleDateString('es-EC', {
+                  weekday: 'short', day: 'numeric', month: 'short',
+                })
+                const statusConfig: Record<string, { label: string; color: string; icon: string }> = {
+                  pending:   { label: 'Pendiente',  color: 'bg-yellow-100 text-yellow-700',  icon: '🕐' },
+                  confirmed: { label: 'Confirmada', color: 'bg-green-100 text-green-700',    icon: '✅' },
+                  cancelled: { label: 'Cancelada',  color: 'bg-red-100 text-red-500',        icon: '❌' },
+                }
+                const s = statusConfig[r.status] ?? { label: r.status, color: 'bg-gray-100 text-gray-600', icon: '📋' }
+                return (
+                  <div key={r.id} className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="text-gray-900 font-bold text-sm">
+                          {dateStr} · {r.reservation_time.slice(0, 5)}
+                        </p>
+                        <p className="text-gray-500 text-xs mt-0.5">
+                          👥 {r.party_size} {r.party_size === 1 ? 'persona' : 'personas'}
+                        </p>
+                      </div>
+                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0 ${s.color}`}>
+                        {s.icon} {s.label}
+                      </span>
+                    </div>
+                    {r.status === 'pending' && (
+                      <p className="text-gray-400 text-xs mt-2">Pronto recibirás confirmación por WhatsApp.</p>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+            <div className="border-t border-gray-100 my-4" />
+            <p className="text-gray-500 text-xs font-semibold uppercase tracking-wide mb-2">Nueva reserva</p>
+          </div>
+        )}
 
         {/* Type toggle */}
         <div>

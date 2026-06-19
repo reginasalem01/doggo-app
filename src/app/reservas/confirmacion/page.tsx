@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { createAdminClient } from '@/lib/supabase/admin'
+import SaveReservationId from './SaveReservationId'
 
 export default async function ReservaConfirmacionPage({
   searchParams,
@@ -33,6 +34,7 @@ export default async function ReservaConfirmacionPage({
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
+      {id && <SaveReservationId id={id} />}
       {/* Header */}
       <div className="bg-gray-50 px-4 py-4 border-b border-gray-200">
         <h1 className="text-gray-900 text-xl font-black">Reserva enviada</h1>

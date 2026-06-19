@@ -46,16 +46,29 @@ export default function ReservasPage() {
   const [editPartySize, setEditPartySize] = useState(2)
   const [editLoading, setEditLoading] = useState(false)
 
+  const sortRes = (data: MyReservation[]) => {
+    const order: Record<string, number> = { pending: 0, confirmed: 1, cancelled: 2 }
+    return [...data].sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9))
+  }
+
   useEffect(() => {
+    // Prefer phone-based lookup (gets ALL reservations for this user automatically)
+    const savedPhone = localStorage.getItem('doggo_customer_phone')
+    if (savedPhone) {
+      fetch(`/api/reservations?phone=${encodeURIComponent(savedPhone)}`)
+        .then((r) => r.json())
+        .then((data: MyReservation[]) => setReservations(sortRes(data)))
+        .catch(() => {})
+        .finally(() => setLoadingList(false))
+      return
+    }
+    // Fallback: lookup by stored IDs
     try {
       const ids = JSON.parse(localStorage.getItem('doggo_reservation_ids') ?? '[]') as string[]
       if (ids.length === 0) { setLoadingList(false); return }
       fetch(`/api/reservations?ids=${ids.join(',')}`)
         .then((r) => r.json())
-        .then((data: MyReservation[]) => {
-          const order: Record<string, number> = { pending: 0, confirmed: 1, cancelled: 2 }
-          setReservations(data.sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9)))
-        })
+        .then((data: MyReservation[]) => setReservations(sortRes(data)))
         .catch(() => {})
         .finally(() => setLoadingList(false))
     } catch { setLoadingList(false) }
@@ -153,6 +166,8 @@ export default function ReservasPage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Error al guardar la reserva')
+      // Save phone so we can auto-load all reservations next time
+      try { localStorage.setItem('doggo_customer_phone', phone.trim()) } catch {}
       router.push(`/reservas/confirmacion?id=${data.id}`)
     } catch (err: unknown) {
       setError((err as { message?: string })?.message ?? 'Error al guardar la reserva')

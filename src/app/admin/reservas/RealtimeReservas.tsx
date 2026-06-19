@@ -28,6 +28,13 @@ const STATUS_LABEL: Record<string, string> = {
 
 export default function RealtimeReservas({ initial }: { initial: Reservation[] }) {
   const [reservations, setReservations] = useState<Reservation[]>(initial)
+  async function refresh() {
+    const res = await fetch('/api/admin/reservations-list')
+    if (res.ok) {
+      const data = await res.json()
+      setReservations(data)
+    }
+  }
 
   // Realtime subscription
   useEffect(() => {
@@ -66,6 +73,12 @@ export default function RealtimeReservas({ initial }: { initial: Reservation[] }
             {pendientes.length} pendiente{pendientes.length !== 1 ? 's' : ''}
           </span>
         )}
+        <button
+          onClick={refresh}
+          className="ml-auto text-gray-400 hover:text-gray-700 text-xs font-semibold flex items-center gap-1"
+        >
+          ↻ Actualizar
+        </button>
       </div>
 
       <div className="flex gap-3 flex-1 min-h-0">
@@ -182,8 +195,8 @@ function ReservationCard({
         </div>
       )}
 
-      {/* WhatsApp opcional — visible en confirmadas y pendientes */}
-      {r.status !== 'cancelled' && (
+      {/* WhatsApp — solo en confirmadas, nunca en pendientes (evita tap accidental) */}
+      {r.status === 'confirmed' && (
         <button
           onClick={sendWhatsApp}
           className="mt-2 w-full flex items-center justify-center gap-2 bg-green-50 text-green-600 font-semibold text-xs py-2 rounded-xl border border-green-100"

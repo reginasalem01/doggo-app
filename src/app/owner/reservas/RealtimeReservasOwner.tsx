@@ -154,7 +154,7 @@ function ReservaCard({
         </div>
       )}
 
-      {r.status !== 'cancelled' && (
+      {r.status === 'confirmed' && (
         <button onClick={sendWhatsApp}
           className="mt-2 w-full flex items-center justify-center gap-2 bg-green-50 text-green-600 font-semibold text-xs py-2 rounded-xl border border-green-100">
           <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">

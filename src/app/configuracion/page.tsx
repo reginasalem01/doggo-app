@@ -16,6 +16,7 @@ export default function ConfiguracionPage() {
   const [error, setError] = useState<string | null>(null)
 
   // Password change
+  const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [savingPassword, setSavingPassword] = useState(false)
@@ -61,16 +62,25 @@ export default function ConfiguracionPage() {
 
   async function savePassword(e: React.FormEvent) {
     e.preventDefault()
+    if (!currentPassword) { setPasswordError('Ingresa tu contraseña actual'); return }
     if (newPassword !== confirmPassword) { setPasswordError('Las contraseñas no coinciden'); return }
     if (newPassword.length < 6) { setPasswordError('Mínimo 6 caracteres'); return }
     setSavingPassword(true)
     setPasswordError(null)
     const supabase = createClient()
+    // Verificar contraseña actual re-autenticando
+    const { error: authError } = await supabase.auth.signInWithPassword({ email, password: currentPassword })
+    if (authError) {
+      setPasswordError('Contraseña actual incorrecta')
+      setSavingPassword(false)
+      return
+    }
     const { error } = await supabase.auth.updateUser({ password: newPassword })
     if (error) {
       setPasswordError(error.message)
     } else {
       setPasswordSuccess(true)
+      setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
       setTimeout(() => setPasswordSuccess(false), 3000)
@@ -153,6 +163,14 @@ export default function ConfiguracionPage() {
         <div className="bg-gray-50 rounded-2xl p-5 border border-gray-200">
           <p className="text-gray-900 font-black text-base mb-4">Cambiar contraseña</p>
           <form onSubmit={savePassword} className="space-y-3">
+            <input
+              type="password"
+              placeholder="Contraseña actual"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              required
+              className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 placeholder-gray-400"
+            />
             <input
               type="password"
               placeholder="Nueva contraseña"

@@ -66,10 +66,7 @@ export default async function PerfilPage() {
       {/* Header */}
       <div className="px-4 pt-5 pb-4 flex items-center justify-between">
         <h1 className="text-gray-900 text-xl font-black">Mi cuenta</h1>
-        <div className="flex items-center gap-3">
-          <Link href="/configuracion" className="text-gray-400 text-sm">⚙️</Link>
-          <LogoutButton />
-        </div>
+        <Link href="/configuracion" className="text-gray-400 text-sm">⚙️</Link>
       </div>
 
       <div className="px-4 space-y-4">

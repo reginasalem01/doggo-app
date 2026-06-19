@@ -116,11 +116,13 @@ function ReservaCard({
   }
 
   function sendWhatsApp() {
+    if (!r.customer_phone) return
     const dateFormatted = new Date(r.reservation_date + 'T12:00:00').toLocaleDateString('es-EC', {
       weekday: 'long', day: 'numeric', month: 'long',
     })
+    const time = r.reservation_time ? r.reservation_time.slice(0, 5) : ''
     const msg = encodeURIComponent(
-      `Hola ${r.customer_name} 👋, tu reserva en Doggo ha sido *confirmada* ✅\n📆 ${dateFormatted} a las ${r.reservation_time.slice(0, 5)}\n¡Te esperamos! 🌭`
+      `Hola ${r.customer_name} 👋, tu reserva en Doggo ha sido *confirmada* ✅\n📆 ${dateFormatted} a las ${time}\n¡Te esperamos! 🌭`
     )
     window.open(`https://wa.me/593${r.customer_phone.replace(/^0/, '')}?text=${msg}`, '_blank')
   }
@@ -136,7 +138,7 @@ function ReservaCard({
       </div>
       <div className="flex items-center gap-4 text-sm text-gray-600 mb-1">
         <span>📆 {dateStr}</span>
-        <span>⏰ {r.reservation_time.slice(0, 5)}</span>
+        <span>⏰ {r.reservation_time?.slice(0, 5) ?? '—'}</span>
         <span>👥 {r.party_size} pers.</span>
       </div>
       {r.notes && <p className="text-gray-500 text-xs mb-2">📝 {r.notes}</p>}

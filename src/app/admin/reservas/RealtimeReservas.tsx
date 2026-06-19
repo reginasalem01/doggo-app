@@ -150,11 +150,13 @@ function ReservationCard({
   }
 
   function sendWhatsApp() {
+    if (!r.customer_phone) return
     const dateFormatted = new Date(r.reservation_date + 'T12:00:00').toLocaleDateString('es-EC', {
       weekday: 'long', day: 'numeric', month: 'long',
     })
+    const time = r.reservation_time ? r.reservation_time.slice(0, 5) : ''
     const msg = encodeURIComponent(
-      `Hola ${r.customer_name} 👋, tu reserva en Doggo ha sido *confirmada* ✅\n📆 ${dateFormatted} a las ${r.reservation_time.slice(0, 5)}\n¡Te esperamos! 🌭`
+      `Hola ${r.customer_name} 👋, tu reserva en Doggo ha sido *confirmada* ✅\n📆 ${dateFormatted} a las ${time}\n¡Te esperamos! 🌭`
     )
     const phone = r.customer_phone.replace(/^0/, '')
     window.open(`https://wa.me/593${phone}?text=${msg}`, '_blank')
@@ -167,7 +169,7 @@ function ReservationCard({
           <p className="text-gray-900 font-bold">{r.customer_name}</p>
           <p className="text-gray-500 text-xs mt-0.5">{r.customer_phone}</p>
           <p className="text-gray-900 text-sm font-bold mt-1">
-            {dateStr} · {r.reservation_time.slice(0, 5)} · {r.party_size} {r.party_size === 1 ? 'persona' : 'personas'}
+            {dateStr} · {r.reservation_time?.slice(0, 5) ?? '—'} · {r.party_size} {r.party_size === 1 ? 'persona' : 'personas'}
           </p>
           {r.notes && <p className="text-gray-500 text-xs mt-1 line-clamp-2">{r.notes}</p>}
         </div>

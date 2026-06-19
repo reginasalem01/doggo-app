@@ -57,7 +57,7 @@ export default function ReservasPage() {
     if (savedPhone) {
       fetch(`/api/reservations?phone=${encodeURIComponent(savedPhone)}`)
         .then((r) => r.json())
-        .then((data: MyReservation[]) => setReservations(sortRes(data)))
+        .then((data: unknown) => { if (Array.isArray(data)) setReservations(sortRes(data as MyReservation[])) })
         .catch(() => {})
         .finally(() => setLoadingList(false))
       return
@@ -68,7 +68,7 @@ export default function ReservasPage() {
       if (ids.length === 0) { setLoadingList(false); return }
       fetch(`/api/reservations?ids=${ids.join(',')}`)
         .then((r) => r.json())
-        .then((data: MyReservation[]) => setReservations(sortRes(data)))
+        .then((data: unknown) => { if (Array.isArray(data)) setReservations(sortRes(data as MyReservation[])) })
         .catch(() => {})
         .finally(() => setLoadingList(false))
     } catch { setLoadingList(false) }

@@ -124,7 +124,7 @@ export default async function ReservaConfirmacionPage({
             href="/reservas"
             className="w-full bg-gray-100 text-gray-900 font-bold py-3 rounded-full text-sm text-center"
           >
-            Hacer otra reserva
+            Ver mis reservas
           </Link>
           <Link
             href="/"

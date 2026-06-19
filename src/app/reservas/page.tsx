@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { buildWhatsAppLink } from '@/lib/utils'
+
 
 type ReservationType = 'mesa' | 'evento'
 
@@ -77,10 +77,6 @@ export default function ReservasPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Error al guardar la reserva')
 
-      // Open WhatsApp with reservation details
-      const waMsg = buildWhatsAppMessage(data.id)
-      window.open(buildWhatsAppLink(waMsg), '_blank')
-
       router.push(`/reservas/confirmacion?id=${data.id}`)
     } catch (err: unknown) {
       const msg = (err as { message?: string })?.message ?? 'Error al guardar la reserva'
@@ -98,19 +94,6 @@ export default function ReservasPage() {
     }
     if (notes) parts.push(notes)
     return parts.join('\n') || ''
-  }
-
-  function buildWhatsAppMessage(id: string): string {
-    const shortId = id.slice(0, 8).toUpperCase()
-    const dateFormatted = new Date(date + 'T12:00:00').toLocaleDateString('es-EC', {
-      weekday: 'long', day: 'numeric', month: 'long',
-    })
-
-    if (type === 'mesa') {
-      return `Hola Doggo 🌭\n\n📅 *Nueva reserva de mesa* #${shortId}\n\n👤 Nombre: ${name}\n📞 Teléfono: ${phone}\n📆 Fecha: ${dateFormatted}\n⏰ Hora: ${time}\n👥 Personas: ${partySize}${notes ? `\n📝 Notas: ${notes}` : ''}\n\n¡Gracias!`
-    } else {
-      return `Hola Doggo 🌭\n\n🎉 *Solicitud de evento* #${shortId}\n\n👤 Contacto: ${name}\n📞 Teléfono: ${phone}\n🎊 Evento: ${eventName || 'Sin nombre'}\n📆 Fecha: ${dateFormatted}\n⏰ Hora: ${time}\n👥 Invitados: ${guestCount}${eventDescription ? `\n📝 Descripción: ${eventDescription}` : ''}${notes ? `\n📌 Notas: ${notes}` : ''}\n\n¡Gracias!`
-    }
   }
 
   return (
@@ -330,14 +313,6 @@ export default function ReservasPage() {
               rows={2}
               className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 placeholder-gray-400 resize-none"
             />
-          </div>
-
-          {/* WhatsApp notice */}
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 flex items-start gap-3">
-            <span className="text-xl flex-shrink-0">💬</span>
-            <p className="text-gray-500 text-xs leading-relaxed">
-              Al confirmar, abriremos WhatsApp con los datos de tu reserva para que el equipo de Doggo la confirme.
-            </p>
           </div>
 
           {error && (

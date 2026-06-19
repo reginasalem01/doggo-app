@@ -39,9 +39,15 @@ export default function CheckoutPage() {
   const sub = subtotal()
 
   const [deliveryType, setDeliveryType] = useState<DeliveryType>('delivery')
-  const [name, setName]     = useState('')
-  const [phone, setPhone]   = useState('')
-  const [email, setEmail]   = useState('')
+  const [name, setName]     = useState(() => {
+    try { return localStorage.getItem('doggo_checkout_name') ?? '' } catch { return '' }
+  })
+  const [phone, setPhone]   = useState(() => {
+    try { return localStorage.getItem('doggo_customer_phone') ?? '' } catch { return '' }
+  })
+  const [email, setEmail]   = useState(() => {
+    try { return localStorage.getItem('doggo_checkout_email') ?? '' } catch { return '' }
+  })
   const [address, setAddress] = useState('')
   const [notes, setNotes]   = useState('')
   const [loading, setLoading] = useState(false)
@@ -177,6 +183,12 @@ export default function CheckoutPage() {
 
       clearCart()
       localStorage.setItem('lastOrderId', data.id)
+      // Remember for next order
+      try {
+        localStorage.setItem('doggo_checkout_name', name.trim())
+        localStorage.setItem('doggo_customer_phone', phone.trim())
+        if (email.trim()) localStorage.setItem('doggo_checkout_email', email.trim())
+      } catch {}
 
       // Email de confirmación (si el cliente ingresó su email)
       if (email.trim()) {
@@ -201,7 +213,7 @@ export default function CheckoutPage() {
 
       router.push(`/pedido/${data.id}`)
     } catch (err) {
-      setError('Hubo un error al crear tu pedido. Intenta de nuevo.')
+      setError((err as { message?: string })?.message ?? 'Hubo un error al crear tu pedido. Intenta de nuevo.')
     } finally {
       setLoading(false)
     }

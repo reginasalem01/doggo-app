@@ -236,6 +236,9 @@ export default function ReservasPage() {
                     {r.status === 'pending' && !isEditing && (
                       <p className="text-gray-400 text-xs mb-2">Pronto recibirás confirmación por WhatsApp.</p>
                     )}
+                    {r.status === 'modified' && !isEditing && (
+                      <p className="text-blue-500 text-xs mb-2">✏️ Tu cambio fue enviado. Espera confirmación.</p>
+                    )}
 
                     {/* Edición inline */}
                     {isEditing && (
@@ -271,7 +274,7 @@ export default function ReservasPage() {
                           </button>
                           <button onClick={() => setEditingId(null)} disabled={editLoading}
                             className="px-4 bg-gray-200 text-gray-700 font-bold py-2.5 rounded-xl text-sm">
-                            Cancelar
+                            Cerrar
                           </button>
                         </div>
                         <button onClick={() => handleCancelReservation(r.id)} disabled={editLoading}

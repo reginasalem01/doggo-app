@@ -17,26 +17,29 @@ type Reservation = {
 
 const STATUS_COLOR: Record<string, string> = {
   pending:   'bg-yellow-100 text-yellow-700 border border-yellow-200',
+  modified:  'bg-blue-100 text-blue-700 border border-blue-200',
   confirmed: 'bg-green-100 text-green-700 border border-green-200',
   cancelled: 'bg-red-100 text-red-600 border border-red-200',
 }
 const STATUS_LABEL: Record<string, string> = {
-  pending:   '⏳ Pendiente',
+  pending:   '⏳ Nueva',
+  modified:  '✏️ Cambio',
   confirmed: '✅ Confirmada',
   cancelled: '❌ Cancelada',
 }
 
 export default function RealtimeReservas({ initial }: { initial: Reservation[] }) {
   const [reservations, setReservations] = useState<Reservation[]>(initial)
+
   async function refresh() {
     const res = await fetch('/api/admin/reservations-list')
     if (res.ok) {
       const data = await res.json()
-      setReservations(data)
+      if (Array.isArray(data)) setReservations(data)
     }
   }
 
-  // Realtime subscription
+  // Realtime subscription + fallback polling every 30s
   useEffect(() => {
     const supabase = createClient()
     const channel = supabase
@@ -49,15 +52,22 @@ export default function RealtimeReservas({ initial }: { initial: Reservation[] }
         setReservations((prev) => prev.map((r) => r.id === updated.id ? updated : r))
       })
       .subscribe()
-    return () => { supabase.removeChannel(channel) }
+
+    // Fallback poll — catches updates when Supabase Realtime isn't enabled
+    const poll = setInterval(refresh, 30_000)
+
+    return () => {
+      supabase.removeChannel(channel)
+      clearInterval(poll)
+    }
   }, [])
 
   function handleUpdate(id: string, newStatus: string) {
     setReservations((prev) => prev.map((r) => r.id === id ? { ...r, status: newStatus } : r))
   }
 
-  const pendientes = reservations.filter((r) => r.status === 'pending')
-  const resto = reservations.filter((r) => r.status !== 'pending')
+  const pendientes = reservations.filter((r) => r.status === 'pending' || r.status === 'modified')
+  const resto = reservations.filter((r) => r.status !== 'pending' && r.status !== 'modified')
     .sort((a, b) => {
       // Sort historial: confirmed first, then by date desc
       if (a.status !== b.status) return a.status === 'confirmed' ? -1 : 1
@@ -70,7 +80,7 @@ export default function RealtimeReservas({ initial }: { initial: Reservation[] }
         <h1 className="text-gray-900 text-xl font-black">Reservas</h1>
         {pendientes.length > 0 && (
           <span className="bg-doggo-yellow text-doggo-dark text-xs font-black px-2.5 py-1 rounded-full">
-            {pendientes.length} pendiente{pendientes.length !== 1 ? 's' : ''}
+            {pendientes.length} por confirmar
           </span>
         )}
         <button

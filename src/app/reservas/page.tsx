@@ -24,9 +24,10 @@ const HOURS = [
 ]
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
-  pending:   { label: 'Pendiente',  color: 'bg-yellow-100 text-yellow-700', icon: '🕐' },
-  confirmed: { label: 'Confirmada', color: 'bg-green-100 text-green-700',   icon: '✅' },
-  cancelled: { label: 'Cancelada',  color: 'bg-red-100 text-red-500',       icon: '❌' },
+  pending:   { label: 'Pendiente',       color: 'bg-yellow-100 text-yellow-700', icon: '🕐' },
+  modified:  { label: 'Cambio enviado',  color: 'bg-blue-100 text-blue-700',     icon: '✏️' },
+  confirmed: { label: 'Confirmada',      color: 'bg-green-100 text-green-700',   icon: '✅' },
+  cancelled: { label: 'Cancelada',       color: 'bg-red-100 text-red-500',       icon: '❌' },
 }
 
 function todayStr() {
@@ -96,7 +97,7 @@ export default function ReservasPage() {
       if (res.ok) {
         setReservations((prev) => prev.map((r) =>
           r.id === id
-            ? { ...r, reservation_date: editDate, reservation_time: editTime + ':00', party_size: editPartySize, status: 'pending' }
+            ? { ...r, reservation_date: editDate, reservation_time: editTime + ':00', party_size: editPartySize, status: 'modified' }
             : r
         ))
         setEditingId(null)

@@ -16,9 +16,19 @@ type Reservation = {
 }
 
 const STATUS: Record<string, { label: string; color: string }> = {
-  pending:   { label: 'Pendiente',  color: 'bg-yellow-100 text-yellow-700 border border-yellow-200' },
-  confirmed: { label: 'Confirmada', color: 'bg-green-100 text-green-700 border border-green-200' },
-  cancelled: { label: 'Cancelada',  color: 'bg-red-100 text-red-600 border border-red-200' },
+  pending:   { label: 'Nueva',          color: 'bg-yellow-100 text-yellow-700 border border-yellow-200' },
+  modified:  { label: '✏️ Cambio',      color: 'bg-blue-100 text-blue-700 border border-blue-200' },
+  confirmed: { label: 'Confirmada',     color: 'bg-green-100 text-green-700 border border-green-200' },
+  cancelled: { label: 'Cancelada',      color: 'bg-red-100 text-red-600 border border-red-200' },
+}
+
+async function fetchAll() {
+  const res = await fetch('/api/admin/reservations-list')
+  if (res.ok) {
+    const data = await res.json()
+    return Array.isArray(data) ? data : null
+  }
+  return null
 }
 
 export default function RealtimeReservasOwner({ initial }: { initial: Reservation[] }) {
@@ -36,15 +46,25 @@ export default function RealtimeReservasOwner({ initial }: { initial: Reservatio
         setReservations((prev) => prev.map((r) => r.id === updated.id ? updated : r))
       })
       .subscribe()
-    return () => { supabase.removeChannel(channel) }
+
+    // Fallback poll every 30s when Supabase Realtime isn't enabled for reservations
+    const poll = setInterval(async () => {
+      const data = await fetchAll()
+      if (data) setReservations(data)
+    }, 30_000)
+
+    return () => {
+      supabase.removeChannel(channel)
+      clearInterval(poll)
+    }
   }, [])
 
   function handleUpdate(id: string, status: string) {
     setReservations((prev) => prev.map((r) => r.id === id ? { ...r, status } : r))
   }
 
-  const pending = reservations.filter((r) => r.status === 'pending')
-  const rest    = reservations.filter((r) => r.status !== 'pending')
+  const pending = reservations.filter((r) => r.status === 'pending' || r.status === 'modified')
+  const rest    = reservations.filter((r) => r.status !== 'pending' && r.status !== 'modified')
 
   return (
     <div className="p-8">
@@ -56,7 +76,7 @@ export default function RealtimeReservasOwner({ initial }: { initial: Reservatio
       <div className="grid grid-cols-2 gap-6 items-start">
         <div>
           <p className="text-gray-500 text-xs font-bold uppercase tracking-wide mb-3">
-            Pendientes ({pending.length})
+            Requieren confirmación ({pending.length})
           </p>
           {pending.length === 0 ? (
             <div className="bg-gray-50 rounded-2xl p-8 text-center">

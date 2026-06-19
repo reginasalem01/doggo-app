@@ -20,9 +20,9 @@ export async function PATCH(
     return NextResponse.json({ error: 'Nada que actualizar' }, { status: 400 })
   }
 
-  // Editing date/time resets to pending so staff can re-confirm
+  // Editing date/time/party_size → 'modified' so staff can see it's a change request
   if (allowed.reservation_date || allowed.reservation_time || allowed.party_size) {
-    if (allowed.status !== 'cancelled') allowed.status = 'pending'
+    if (allowed.status !== 'cancelled') allowed.status = 'modified'
   }
 
   const admin = createAdminClient()

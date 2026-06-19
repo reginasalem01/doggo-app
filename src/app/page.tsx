@@ -31,7 +31,7 @@ export default async function Home() {
   const level = customer ? getLevel(customer.points) : null
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white pb-24">
       <SplashScreen />
 
       {/* ── HEADER ────────────────────────────────────────── */}

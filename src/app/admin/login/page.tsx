@@ -27,7 +27,7 @@ export default function AdminLoginPage() {
       setError('PIN incorrecto')
       setPin('')
     } else {
-      router.push('/admin')
+      window.location.href = '/admin'
     }
     setLoading(false)
   }

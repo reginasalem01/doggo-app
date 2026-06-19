@@ -16,9 +16,10 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     // Supabase maneja el token del link automáticamente
     const supabase = createClient()
-    supabase.auth.onAuthStateChange((event) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') setReady(true)
     })
+    return () => subscription.unsubscribe()
   }, [])
 
   async function handleSubmit(e: React.FormEvent) {

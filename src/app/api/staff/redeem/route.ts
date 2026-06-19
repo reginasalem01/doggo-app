@@ -52,7 +52,7 @@ export async function POST(req: Request) {
   await admin.from('loyalty_transactions').insert({
     customer_id: customerId,
     points: -reward.points_required,
-    type: 'redeem',
+    type: 'redeemed',
     description: `Canje: ${reward.name}`,
   })
 

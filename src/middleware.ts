@@ -24,8 +24,8 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const pathname = request.nextUrl.pathname
 
-  // Proteger /perfil
-  if (pathname.startsWith('/perfil') && !user) {
+  // Proteger /perfil y /configuracion
+  if ((pathname.startsWith('/perfil') || pathname.startsWith('/configuracion')) && !user) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
@@ -67,5 +67,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/perfil/:path*', '/admin', '/admin/:path*', '/owner', '/owner/:path*'],
+  matcher: ['/perfil/:path*', '/configuracion/:path*', '/configuracion', '/admin', '/admin/:path*', '/owner', '/owner/:path*'],
 }

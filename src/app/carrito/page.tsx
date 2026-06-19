@@ -93,13 +93,14 @@ export default function CarritoPage() {
           <span className="text-gray-900 font-bold">{formatPrice(sub)}</span>
         </div>
         <div className="flex justify-between items-center mb-2">
-          <span className="text-gray-500 text-sm">Envío (domicilio)</span>
-          <span className="text-gray-500 text-sm">$1.50</span>
+          <span className="text-gray-500 text-sm">Envío domicilio</span>
+          <span className="text-gray-400 text-sm">+$1.50</span>
         </div>
         <div className="border-t border-gray-200 mt-3 pt-3 flex justify-between items-center">
-          <span className="text-gray-900 font-black">Total estimado</span>
-          <span className="text-doggo-red font-black text-lg">{formatPrice(sub + 1.5)}</span>
+          <span className="text-gray-900 font-black">Subtotal</span>
+          <span className="text-doggo-red font-black text-lg">{formatPrice(sub)}</span>
         </div>
+        <p className="text-gray-400 text-xs mt-2 text-center">El envío se calcula en el checkout según el tipo de entrega</p>
 
         <Link
           href="/checkout"

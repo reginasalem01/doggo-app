@@ -25,7 +25,7 @@ export default function OwnerLoginPage() {
       return
     }
 
-    router.push('/owner')
+    window.location.href = '/owner'
   }
 
   return (

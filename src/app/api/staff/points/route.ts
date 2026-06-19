@@ -37,7 +37,7 @@ export async function POST(req: Request) {
   await admin.from('loyalty_transactions').insert({
     customer_id: customerId,
     points,
-    type: 'earn',
+    type: 'earned',
     description: description ?? 'Puntos por compra en local',
   })
 

@@ -120,7 +120,7 @@ export default function ReservasPage() {
         <h1 className="text-gray-900 text-xl font-black">Reservar</h1>
       </div>
 
-      <div className="px-4 py-5 pb-10 space-y-5">
+      <div className="px-4 py-5 pb-28 space-y-5">
 
         {/* Type toggle */}
         <div>

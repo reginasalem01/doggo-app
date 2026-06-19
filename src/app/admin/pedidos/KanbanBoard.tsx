@@ -29,10 +29,10 @@ function timeAgo(dateStr: string) {
 }
 
 const ACTION: Record<string, { label: string; next: string; cls: string }> = {
-  new:       { label: '+ ACEPTAR',  next: 'preparing', cls: 'bg-doggo-yellow text-doggo-dark hover:brightness-110' },
-  accepted:  { label: '✓ LISTO',    next: 'ready',     cls: 'bg-green-600 text-white hover:bg-green-500' },
-  preparing: { label: '✓ LISTO',    next: 'ready',     cls: 'bg-green-600 text-white hover:bg-green-500' },
-  ready:     { label: 'ENTREGADO ✓', next: 'delivered', cls: 'bg-gray-600 text-white hover:bg-gray-500' },
+  new:       { label: '+ ACEPTAR',    next: 'preparing', cls: 'bg-doggo-yellow text-doggo-dark hover:brightness-110' },
+  accepted:  { label: '▶ PREPARANDO', next: 'preparing', cls: 'bg-orange-500 text-white hover:bg-orange-400' },
+  preparing: { label: '✓ LISTO',      next: 'ready',     cls: 'bg-green-600 text-white hover:bg-green-500' },
+  ready:     { label: 'ENTREGADO ✓',  next: 'delivered', cls: 'bg-gray-600 text-white hover:bg-gray-500' },
 }
 
 // ── Order card ─────────────────────────────────────────────────────────────────

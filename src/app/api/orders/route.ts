@@ -52,7 +52,7 @@ export async function POST(request: Request) {
         : `🎁 Premio: ${rewardName}`
       if (discountAmount > 0) {
         orderData.discount = discountAmount
-        orderData.total = Math.max(0, order.total - discountAmount)
+        // order.total already has the discount applied by the client
       }
     }
 

@@ -61,7 +61,7 @@ export default async function PerfilPage() {
   const nextReward = (rewards as Reward[] | null)?.find((r) => r.points_required > c.points)
 
   return (
-    <div className="min-h-screen bg-white pb-8">
+    <div className="min-h-screen bg-white pb-28">
 
       {/* Header */}
       <div className="px-4 pt-5 pb-4 flex items-center justify-between">

@@ -5,16 +5,8 @@ import { useState } from 'react'
 
 export default function ReservationActions({
   reservationId,
-  customerPhone,
-  customerName,
-  date,
-  time,
 }: {
   reservationId: string
-  customerPhone: string
-  customerName: string
-  date: string
-  time: string
 }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -26,16 +18,6 @@ export default function ReservationActions({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
     })
-
-    if (status === 'confirmed') {
-      const dateStr = new Date(date + 'T12:00:00').toLocaleDateString('es-EC', {
-        weekday: 'long', day: 'numeric', month: 'long',
-      })
-      const msg = encodeURIComponent(
-        `Hola ${customerName} 👋, tu reserva en Doggo ha sido *confirmada* ✅\n📆 ${dateStr} a las ${time.slice(0, 5)}\n¡Te esperamos! 🌭`
-      )
-      window.open(`https://wa.me/593${customerPhone.replace(/^0/, '')}?text=${msg}`, '_blank')
-    }
 
     router.refresh()
     setLoading(false)

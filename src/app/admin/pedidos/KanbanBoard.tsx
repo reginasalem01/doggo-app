@@ -61,8 +61,7 @@ function OrderCard({ order, onOptimisticUpdate, onRefresh }: {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: action.next }),
     })
-    // Confirmar con datos reales después de un momento
-    setTimeout(onRefresh, 500)
+    // Realtime se encarga de confirmar el cambio via postgres_changes UPDATE
     setBusy(false)
   }
 

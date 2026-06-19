@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { useCartStore } from '@/store/cart'
-import { formatPrice, buildWhatsAppLink, DELIVERY_LABELS } from '@/lib/utils'
+import { formatPrice, DELIVERY_LABELS } from '@/lib/utils'
 import type { DeliveryType } from '@/types'
 
 const MapPicker = dynamic(() => import('@/components/ui/MapPicker'), { ssr: false })
@@ -199,24 +199,6 @@ export default function CheckoutPage() {
         }).catch(() => {}) // fire-and-forget, no bloquear el flujo
       }
 
-      const itemsList = items
-        .map((i) => `• ${i.quantity}x ${i.product.name} — ${formatPrice(i.product.price * i.quantity)}`)
-        .join('\n')
-
-      const shortId = data.id.slice(0, 8).toUpperCase()
-      const whatsappMsg =
-        `🌭 *Nuevo pedido #${shortId}*\n\n` +
-        `*Cliente:* ${name}\n` +
-        `*Tel:* ${phone}\n` +
-        `*Tipo:* ${DELIVERY_LABELS[deliveryType]}\n` +
-        (address ? `*Dirección:* ${address}\n` : '') +
-        (mapsLink ? `*📍 Ubicación:* ${mapsLink}\n` : '') +
-        (notes ? `*Notas:* ${notes}\n` : '') +
-        `\n*Productos:*\n${itemsList}\n\n` +
-        `*Total: ${formatPrice(total)}*`
-
-      // Guardar WhatsApp para que la página de confirmación lo abra
-      localStorage.setItem('pendingWhatsApp', buildWhatsAppLink(whatsappMsg))
       router.push(`/pedido/${data.id}`)
     } catch (err) {
       setError('Hubo un error al crear tu pedido. Intenta de nuevo.')

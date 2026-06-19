@@ -57,7 +57,19 @@ export default function RealtimeKanban({ initialOrders }: { initialOrders: Order
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'orders' },
-        () => { fetchOrders() }
+        (payload) => {
+          const updated = payload.new as { id: string; status: string }
+          const kanbanStatuses = ['new', 'accepted', 'preparing', 'ready']
+          if (kanbanStatuses.includes(updated.status)) {
+            // Update just this order in local state — no fetch needed
+            setOrders((prev) =>
+              prev.map((o) => o.id === updated.id ? { ...o, status: updated.status } : o)
+            )
+          } else {
+            // delivered / cancelled — remove from kanban
+            setOrders((prev) => prev.filter((o) => o.id !== updated.id))
+          }
+        }
       )
       .subscribe()
 

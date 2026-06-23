@@ -16,8 +16,8 @@ export default async function EditRewardPage({
   return (
     <div className="p-6 max-w-2xl">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/owner/fidelizacion" className="text-gray-400 hover:text-white text-sm">← Fidelización</Link>
-        <h1 className="text-white text-2xl font-black">Editar premio</h1>
+        <Link href="/owner/fidelizacion" className="text-gray-400 hover:text-gray-700 text-sm">← Fidelización</Link>
+        <h1 className="text-gray-900 text-2xl font-black">Editar premio</h1>
       </div>
       <RewardForm reward={{
         id: reward.id,

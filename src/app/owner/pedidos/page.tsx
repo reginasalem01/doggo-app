@@ -1,6 +1,9 @@
+export const dynamic = 'force-dynamic'
+
 import { createAdminClient } from '@/lib/supabase/admin'
 import Link from 'next/link'
 import { DELIVERY_LABELS } from '@/lib/utils'
+import AutoRefresher from './AutoRefresher'
 
 const STATUS: Record<string, { label: string; color: string }> = {
   new:       { label: 'Nuevo',      color: 'bg-yellow-100 text-yellow-700 border border-yellow-200' },
@@ -26,6 +29,7 @@ export default async function OwnerPedidosPage() {
           <h1 className="text-gray-900 text-2xl font-black">Pedidos</h1>
           <p className="text-gray-500 text-sm mt-0.5">{orders?.length ?? 0} registros</p>
         </div>
+        <AutoRefresher intervalMs={30000} />
       </div>
 
       {!orders?.length ? (

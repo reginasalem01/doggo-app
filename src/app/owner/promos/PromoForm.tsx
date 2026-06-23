@@ -67,47 +67,47 @@ export default function PromoForm({ promo }: { promo?: Promo }) {
   return (
     <div className="space-y-4">
       {/* Active toggle */}
-      <div className="flex items-center justify-between bg-doggo-dark2 rounded-2xl px-4 py-3">
-        <span className="text-white font-semibold">Activa</span>
+      <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3">
+        <span className="text-gray-900 font-semibold text-sm">Activa</span>
         <button
           onClick={() => set('active', !form.active)}
-          className={`w-12 h-6 rounded-full transition-colors ${form.active ? 'bg-doggo-yellow' : 'bg-gray-600'}`}
+          className={`w-12 h-6 rounded-full transition-colors ${form.active ? 'bg-doggo-yellow' : 'bg-gray-300'}`}
         >
           <span className={`block w-5 h-5 rounded-full bg-white shadow transform transition-transform mx-0.5 ${form.active ? 'translate-x-6' : 'translate-x-0'}`} />
         </button>
       </div>
 
       {/* Title */}
-      <div className="bg-doggo-dark2 rounded-2xl px-4 py-3">
-        <label className="text-gray-400 text-xs uppercase tracking-wide block mb-1">Título *</label>
+      <div className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3">
+        <label className="text-gray-500 text-xs uppercase tracking-wide block mb-1">Título *</label>
         <input
           value={form.title}
           onChange={(e) => set('title', e.target.value)}
           placeholder="Ej: 2x1 en hot dogs clásicos"
-          className="w-full bg-transparent text-white placeholder-gray-600 outline-none text-sm"
+          className="w-full bg-transparent text-gray-900 placeholder-gray-400 outline-none text-sm"
         />
       </div>
 
       {/* Description */}
-      <div className="bg-doggo-dark2 rounded-2xl px-4 py-3">
-        <label className="text-gray-400 text-xs uppercase tracking-wide block mb-1">Descripción</label>
+      <div className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3">
+        <label className="text-gray-500 text-xs uppercase tracking-wide block mb-1">Descripción</label>
         <textarea
           value={form.description}
           onChange={(e) => set('description', e.target.value)}
           placeholder="Detalle de la promoción..."
           rows={3}
-          className="w-full bg-transparent text-white placeholder-gray-600 outline-none text-sm resize-none"
+          className="w-full bg-transparent text-gray-900 placeholder-gray-400 outline-none text-sm resize-none"
         />
       </div>
 
       {/* Image URL */}
-      <div className="bg-doggo-dark2 rounded-2xl px-4 py-3">
-        <label className="text-gray-400 text-xs uppercase tracking-wide block mb-1">URL de imagen</label>
+      <div className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3">
+        <label className="text-gray-500 text-xs uppercase tracking-wide block mb-1">URL de imagen</label>
         <input
           value={form.image_url}
           onChange={(e) => set('image_url', e.target.value)}
           placeholder="https://..."
-          className="w-full bg-transparent text-white placeholder-gray-600 outline-none text-sm"
+          className="w-full bg-transparent text-gray-900 placeholder-gray-400 outline-none text-sm"
         />
         {form.image_url && (
           <img src={form.image_url} alt="preview" className="mt-3 w-full h-32 object-cover rounded-xl" />
@@ -116,27 +116,27 @@ export default function PromoForm({ promo }: { promo?: Promo }) {
 
       {/* Dates */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-doggo-dark2 rounded-2xl px-4 py-3">
-          <label className="text-gray-400 text-xs uppercase tracking-wide block mb-1">Desde</label>
+        <div className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3">
+          <label className="text-gray-500 text-xs uppercase tracking-wide block mb-1">Desde</label>
           <input
             type="date"
             value={form.starts_at}
             onChange={(e) => set('starts_at', e.target.value)}
-            className="w-full bg-transparent text-white outline-none text-sm"
+            className="w-full bg-transparent text-gray-900 outline-none text-sm"
           />
         </div>
-        <div className="bg-doggo-dark2 rounded-2xl px-4 py-3">
-          <label className="text-gray-400 text-xs uppercase tracking-wide block mb-1">Hasta</label>
+        <div className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3">
+          <label className="text-gray-500 text-xs uppercase tracking-wide block mb-1">Hasta</label>
           <input
             type="date"
             value={form.ends_at}
             onChange={(e) => set('ends_at', e.target.value)}
-            className="w-full bg-transparent text-white outline-none text-sm"
+            className="w-full bg-transparent text-gray-900 outline-none text-sm"
           />
         </div>
       </div>
 
-      {error && <p className="text-red-400 text-sm">{error}</p>}
+      {error && <p className="text-red-500 text-sm">{error}</p>}
 
       <button
         onClick={handleSave}
@@ -150,7 +150,7 @@ export default function PromoForm({ promo }: { promo?: Promo }) {
         <button
           onClick={handleDelete}
           disabled={deleting}
-          className="w-full bg-red-500/20 text-red-400 font-bold py-3 rounded-full text-sm disabled:opacity-60"
+          className="w-full bg-red-50 text-red-500 border border-red-200 font-bold py-3 rounded-full text-sm disabled:opacity-60"
         >
           {deleting ? 'Eliminando...' : 'Eliminar promo'}
         </button>

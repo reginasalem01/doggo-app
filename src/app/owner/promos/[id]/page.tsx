@@ -16,8 +16,8 @@ export default async function EditPromoPage({
   return (
     <div className="p-6 max-w-2xl">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/owner/promos" className="text-gray-400 hover:text-white text-sm">← Promos</Link>
-        <h1 className="text-white text-2xl font-black">Editar promo</h1>
+        <Link href="/owner/promos" className="text-gray-400 hover:text-gray-700 text-sm">← Promos</Link>
+        <h1 className="text-gray-900 text-2xl font-black">Editar promo</h1>
       </div>
       <PromoForm promo={{
         id: promo.id,

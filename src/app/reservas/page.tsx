@@ -47,9 +47,17 @@ export default function ReservasPage() {
   const [editPartySize, setEditPartySize] = useState(2)
   const [editLoading, setEditLoading] = useState(false)
 
+  function isPast(r: MyReservation) {
+    // Build a datetime from date + time and compare to now
+    const dt = new Date(`${r.reservation_date}T${r.reservation_time.slice(0, 5)}`)
+    return dt < new Date()
+  }
+
   const sortRes = (data: MyReservation[]) => {
-    const order: Record<string, number> = { pending: 0, confirmed: 1, cancelled: 2 }
-    return [...data].sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9))
+    const order: Record<string, number> = { pending: 0, modified: 0, confirmed: 1, cancelled: 2 }
+    return [...data]
+      .filter((r) => !isPast(r))
+      .sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9))
   }
 
   useEffect(() => {

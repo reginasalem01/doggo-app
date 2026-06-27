@@ -225,7 +225,7 @@ function ProductModal({
         </div>
 
         {/* Sticky footer — fuera del scroll, encima del BottomNav */}
-        <div className="px-5 pb-8 pt-3 border-t border-gray-100 flex items-center gap-3 bg-white">
+        <div className="px-5 pb-20 pt-3 border-t border-gray-100 flex items-center gap-3 bg-white">
           <div className="flex items-center gap-3 bg-gray-100 rounded-full px-2 py-1">
             <button
               type="button"

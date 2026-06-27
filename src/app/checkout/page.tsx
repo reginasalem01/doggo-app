@@ -182,7 +182,13 @@ export default function CheckoutPage() {
       }
 
       clearCart()
-      localStorage.setItem('lastOrderId', data.id)
+      // Guardar en array de pedidos activos
+      try {
+        const existing = JSON.parse(localStorage.getItem('doggo_active_orders') ?? '[]') as string[]
+        localStorage.setItem('doggo_active_orders', JSON.stringify([...existing, data.id]))
+      } catch {
+        localStorage.setItem('doggo_active_orders', JSON.stringify([data.id]))
+      }
       // Remember for next order
       try {
         localStorage.setItem('doggo_checkout_name', name.trim())

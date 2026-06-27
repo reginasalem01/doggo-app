@@ -35,7 +35,7 @@ export default async function Home() {
       <SplashScreen />
 
       {/* ── HEADER ────────────────────────────────────────── */}
-      <div className="px-4 pt-5 pb-4 flex items-center justify-between">
+      <div className="sticky top-0 z-30 bg-white px-4 pb-4 pt-safe flex items-center justify-between">
         <div className="flex items-center gap-3">
           <DoggoLogo size={48} />
           <div>

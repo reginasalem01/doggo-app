@@ -25,7 +25,7 @@ export default function MenuClient({ categories, products }: Props) {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="bg-gray-50 px-4 py-4 flex items-center justify-between sticky top-0 z-10 border-b border-gray-200">
+      <div className="bg-gray-50 px-4 pb-4 pt-safe flex items-center justify-between sticky top-0 z-10 border-b border-gray-200">
         <h1 className="text-gray-900 text-xl font-black">Menú</h1>
         <CartIcon />
       </div>

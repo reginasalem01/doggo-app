@@ -25,6 +25,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  viewportFit: 'cover',
 }
 
 export default function RootLayout({
@@ -35,7 +36,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body>
-        <main className="pb-20 pt-safe">
+        <main className="pb-20">
           {children}
         </main>
         <CartBar />

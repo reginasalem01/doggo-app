@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useCartStore } from '@/store/cart'
+import { useUIStore } from '@/store/ui'
 import { useHydration } from '@/hooks/useHydration'
 import { cn } from '@/lib/utils'
 
@@ -20,9 +21,12 @@ export default function BottomNav() {
   const pathname = usePathname()
   const hydrated = useHydration()
   const totalItems = useCartStore((s) => s.totalItems())
+  const modalOpen = useUIStore((s) => s.modalOpen)
 
   // No mostrar en paneles de admin/owner
   if (pathname.startsWith('/admin') || pathname.startsWith('/owner')) return null
+  // Ocultar cuando hay un modal abierto (evita que el teclado lo suba)
+  if (modalOpen) return null
 
   function isActive(href: string) {
     if (href === '/') return pathname === '/'

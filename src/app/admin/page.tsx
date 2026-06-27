@@ -8,7 +8,7 @@ export default async function AdminPage() {
 
   const { data: orders } = await admin
     .from('orders')
-    .select('*, order_items(product_name, quantity)')
+    .select('*, order_items(product_name, quantity, notes)')
     .in('status', ['new', 'accepted', 'preparing', 'ready'])
     .order('created_at', { ascending: true })
 

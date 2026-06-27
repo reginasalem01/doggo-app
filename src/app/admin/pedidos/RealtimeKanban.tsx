@@ -33,7 +33,7 @@ export default function RealtimeKanban({ initialOrders }: { initialOrders: Order
     const supabase = createClient()
     const { data } = await supabase
       .from('orders')
-      .select('*, order_items(product_name, quantity)')
+      .select('*, order_items(product_name, quantity, notes)')
       .in('status', ['new', 'accepted', 'preparing', 'ready'])
       .order('created_at', { ascending: true })
     if (data) setOrders(data as Order[])

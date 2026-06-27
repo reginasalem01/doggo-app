@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import type { Category, Product } from '@/types'
 import { useCartStore } from '@/store/cart'
+import { useUIStore } from '@/store/ui'
 import { formatPrice } from '@/lib/utils'
 import CartIcon from '@/components/ui/CartIcon'
 
@@ -165,6 +166,12 @@ function ProductModal({
   const [notes, setNotes] = useState('')
   const [qty, setQty] = useState(1)
   const [added, setAdded] = useState(false)
+  const { openModal, closeModal } = useUIStore()
+
+  useEffect(() => {
+    openModal()
+    return () => closeModal()
+  }, [openModal, closeModal])
 
   function handleAdd() {
     onAdd(notes, qty)
@@ -224,8 +231,8 @@ function ProductModal({
           </div>
         </div>
 
-        {/* Sticky footer — fuera del scroll, encima del BottomNav */}
-        <div className="px-5 pb-20 pt-3 border-t border-gray-100 flex items-center gap-3 bg-white">
+        {/* Sticky footer — fuera del scroll */}
+        <div className="px-5 pb-6 pt-3 border-t border-gray-100 flex items-center gap-3 bg-white">
           <div className="flex items-center gap-3 bg-gray-100 rounded-full px-2 py-1">
             <button
               type="button"

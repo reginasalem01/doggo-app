@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 
-type OrderItem = { product_name: string; quantity: number }
+type OrderItem = { product_name: string; quantity: number; notes?: string | null }
 
 export type Order = {
   id: string
@@ -48,7 +48,6 @@ function OrderCard({ order, onOptimisticUpdate, onRefresh }: {
   const shortId = '#' + order.id.slice(0, 4).toUpperCase()
   const nameParts = order.customer_name.trim().split(' ')
   const displayName = nameParts[0] + (nameParts[1] ? ' ' + nameParts[1][0] + '.' : '')
-  const items = order.order_items.map((i) => `${i.product_name} x${i.quantity}`).join(', ')
 
   async function advance(e: React.MouseEvent) {
     e.preventDefault()
@@ -76,12 +75,23 @@ function OrderCard({ order, onOptimisticUpdate, onRefresh }: {
 
         <p className="text-gray-900 font-bold text-sm mb-0.5">{displayName}</p>
 
-        {items && (
-          <p className="text-gray-500 text-xs leading-relaxed line-clamp-2 mb-1">{items}</p>
+        {order.order_items.length > 0 && (
+          <div className="mb-1 space-y-0.5">
+            {order.order_items.map((item, i) => (
+              <div key={i}>
+                <p className="text-gray-500 text-xs leading-relaxed">
+                  {item.product_name} x{item.quantity}
+                </p>
+                {item.notes && (
+                  <p className="text-orange-400 text-xs italic pl-2">↳ {item.notes}</p>
+                )}
+              </div>
+            ))}
+          </div>
         )}
 
         {order.notes && (
-          <p className="text-orange-300 text-xs truncate mb-1">📝 {order.notes}</p>
+          <p className="text-blue-400 text-xs truncate mb-1">🚪 {order.notes}</p>
         )}
 
         <div className="flex items-center justify-between mt-1">

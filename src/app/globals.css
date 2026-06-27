@@ -36,9 +36,13 @@ body.no-max {
   margin: 0;
 }
 
-/* Safe area bottom padding for PWA */
+/* Safe area padding for PWA */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
 /* Hide scrollbar but keep scrollable */

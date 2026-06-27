@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import BottomNav from '@/components/ui/BottomNav'
+import CartBar from '@/components/ui/CartBar'
 import InstallPrompt from '@/components/ui/InstallPrompt'
 
 export const metadata: Metadata = {
@@ -34,9 +35,10 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body>
-        <main className="pb-20">
+        <main className="pb-20 pt-safe">
           {children}
         </main>
+        <CartBar />
         <BottomNav />
         <InstallPrompt />
       </body>

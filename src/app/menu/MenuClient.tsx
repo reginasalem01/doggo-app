@@ -69,6 +69,7 @@ export default function MenuClient({ categories, products }: Props) {
             key={product.id}
             product={product}
             onOpen={() => setSelectedProduct(product)}
+            onQuickAdd={() => addItem(product, 1)}
           />
         ))}
       </div>
@@ -91,14 +92,25 @@ export default function MenuClient({ categories, products }: Props) {
 function ProductCard({
   product,
   onOpen,
+  onQuickAdd,
 }: {
   product: Product
   onOpen: () => void
+  onQuickAdd: () => void
 }) {
+  const [quickAdded, setQuickAdded] = useState(false)
+
+  function handleQuickAdd(e: React.MouseEvent) {
+    e.stopPropagation()
+    onQuickAdd()
+    setQuickAdded(true)
+    setTimeout(() => setQuickAdded(false), 1200)
+  }
+
   return (
-    <button
+    <div
       onClick={onOpen}
-      className="w-full bg-gray-50 rounded-xl p-4 flex items-center gap-4 border border-gray-100 text-left active:scale-[0.99] transition-transform"
+      className="w-full bg-gray-50 rounded-xl p-4 flex items-center gap-4 border border-gray-100 text-left active:scale-[0.99] transition-transform cursor-pointer"
     >
       {/* Image or emoji placeholder */}
       <div className="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
@@ -128,8 +140,16 @@ function ProductCard({
         </p>
       </div>
 
-      <span className="flex-shrink-0 text-gray-300 text-xl">›</span>
-    </button>
+      {/* Quick add button */}
+      <button
+        onClick={handleQuickAdd}
+        className={`flex-shrink-0 w-9 h-9 rounded-full font-black text-lg flex items-center justify-center transition-all ${
+          quickAdded ? 'bg-green-500 text-white' : 'bg-doggo-yellow text-doggo-dark'
+        }`}
+      >
+        {quickAdded ? '✓' : '+'}
+      </button>
+    </div>
   )
 }
 
@@ -202,36 +222,36 @@ function ProductModal({
               className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 resize-none"
             />
           </div>
+        </div>
 
-          {/* Quantity + Add */}
-          <div className="flex items-center gap-3 pb-2">
-            <div className="flex items-center gap-3 bg-gray-100 rounded-full px-2 py-1">
-              <button
-                type="button"
-                onClick={() => setQty(Math.max(1, qty - 1))}
-                className="w-8 h-8 rounded-full bg-white text-gray-900 font-bold text-lg flex items-center justify-center shadow-sm"
-              >
-                −
-              </button>
-              <span className="text-gray-900 font-black w-5 text-center">{qty}</span>
-              <button
-                type="button"
-                onClick={() => setQty(qty + 1)}
-                className="w-8 h-8 rounded-full bg-white text-gray-900 font-bold text-lg flex items-center justify-center shadow-sm"
-              >
-                +
-              </button>
-            </div>
+        {/* Sticky footer — fuera del scroll, encima del BottomNav */}
+        <div className="px-5 pb-8 pt-3 border-t border-gray-100 flex items-center gap-3 bg-white">
+          <div className="flex items-center gap-3 bg-gray-100 rounded-full px-2 py-1">
             <button
-              onClick={handleAdd}
-              disabled={added}
-              className={`flex-1 py-3 rounded-full font-black text-sm transition-all ${
-                added ? 'bg-green-500 text-white' : 'bg-doggo-yellow text-doggo-dark'
-              }`}
+              type="button"
+              onClick={() => setQty(Math.max(1, qty - 1))}
+              className="w-8 h-8 rounded-full bg-white text-gray-900 font-bold text-lg flex items-center justify-center shadow-sm"
             >
-              {added ? '✓ Agregado' : `Agregar · ${formatPrice(product.price * qty)}`}
+              −
+            </button>
+            <span className="text-gray-900 font-black w-5 text-center">{qty}</span>
+            <button
+              type="button"
+              onClick={() => setQty(qty + 1)}
+              className="w-8 h-8 rounded-full bg-white text-gray-900 font-bold text-lg flex items-center justify-center shadow-sm"
+            >
+              +
             </button>
           </div>
+          <button
+            onClick={handleAdd}
+            disabled={added}
+            className={`flex-1 py-3 rounded-full font-black text-sm transition-all ${
+              added ? 'bg-green-500 text-white' : 'bg-doggo-yellow text-doggo-dark'
+            }`}
+          >
+            {added ? '✓ Agregado' : `Agregar · ${formatPrice(product.price * qty)}`}
+          </button>
         </div>
       </div>
     </>

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import CartIcon from '@/components/ui/CartIcon'
-import AddToCartButton from '@/components/ui/AddToCartButton'
+import FeaturedProducts from '@/components/ui/FeaturedProducts'
 import ActiveOrderBanner from '@/components/ui/ActiveOrderBanner'
 import SplashScreen from '@/components/ui/SplashScreen'
 import DoggoLogo from '@/components/ui/DoggoLogo'
@@ -114,25 +114,7 @@ export default async function Home() {
             <Link href="/menu" className="text-doggo-red text-xs font-bold">Ver todo →</Link>
           </div>
 
-          {/* Horizontal scroll of cards */}
-          <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide">
-            {featured.map((product) => (
-              <div key={product.id} className="shrink-0 w-36 bg-gray-50 rounded-2xl overflow-hidden">
-                {product.image_url ? (
-                  <img src={product.image_url} alt={product.name} className="w-full h-28 object-cover" />
-                ) : (
-                  <div className="w-full h-28 bg-gray-100 flex items-center justify-center">
-                    <span className="text-4xl">🌭</span>
-                  </div>
-                )}
-                <div className="p-2.5">
-                  <p className="text-gray-900 font-bold text-xs leading-tight line-clamp-2 mb-1">{product.name}</p>
-                  <p className="text-doggo-red font-black text-sm mb-2">${Number(product.price).toFixed(2)}</p>
-                  <AddToCartButton product={product} />
-                </div>
-              </div>
-            ))}
-          </div>
+          <FeaturedProducts products={featured} />
         </div>
       )}
 

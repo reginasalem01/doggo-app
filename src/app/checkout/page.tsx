@@ -403,9 +403,14 @@ export default function CheckoutPage() {
         <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
           <p className="text-gray-900 font-bold text-sm mb-3">Resumen</p>
           {items.map((item) => (
-            <div key={item.product.id} className="flex justify-between text-sm mb-1">
-              <span className="text-gray-500">{item.quantity}× {item.product.name}</span>
-              <span className="text-gray-900">{formatPrice(item.product.price * item.quantity)}</span>
+            <div key={item.product.id} className="mb-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">{item.quantity}× {item.product.name}</span>
+                <span className="text-gray-900">{formatPrice(item.product.price * item.quantity)}</span>
+              </div>
+              {item.notes && (
+                <p className="text-gray-400 text-xs italic mt-0.5 pl-3">📝 {item.notes}</p>
+              )}
             </div>
           ))}
           <div className="border-t border-gray-200 mt-3 pt-3 space-y-1">

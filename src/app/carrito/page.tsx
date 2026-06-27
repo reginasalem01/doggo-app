@@ -35,12 +35,15 @@ export default function CarritoPage() {
       </div>
 
       {/* Items */}
-      <div className="px-4 py-4 space-y-3">
+      <div className="px-4 py-4 pb-28 space-y-3">
         {items.map((item) => (
           <div key={item.product.id} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
                 <p className="text-gray-900 font-bold text-sm">{item.product.name}</p>
+                {item.notes && (
+                  <p className="text-gray-400 text-xs mt-0.5 italic">📝 {item.notes}</p>
+                )}
                 <p className="text-doggo-red text-sm font-bold mt-1">
                   {formatPrice(item.product.price * item.quantity)}
                 </p>

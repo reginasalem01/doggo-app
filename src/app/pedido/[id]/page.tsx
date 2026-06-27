@@ -135,9 +135,14 @@ export default async function PedidoPage({ params }: Props) {
       <div className="bg-gray-50 rounded-2xl p-4 mb-4 border border-gray-200">
         <p className="text-gray-900 font-bold text-sm mb-3">Tu pedido</p>
         {(items as OrderItem[])?.map((item) => (
-          <div key={item.id} className="flex justify-between text-sm mb-2">
-            <span className="text-gray-500">{item.quantity}× {item.product_name}</span>
-            <span className="text-gray-900">{formatPrice(item.total)}</span>
+          <div key={item.id} className="mb-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-500">{item.quantity}× {item.product_name}</span>
+              <span className="text-gray-900">{formatPrice(item.total)}</span>
+            </div>
+            {item.notes && (
+              <p className="text-gray-400 text-xs italic mt-0.5 pl-3">📝 {item.notes}</p>
+            )}
           </div>
         ))}
         {o.notes && (

@@ -23,9 +23,9 @@ export default async function Home() {
   ])
 
   function getLevel(pts: number) {
-    if (pts >= 500) return { label: 'Oro', emoji: '🥇' }
-    if (pts >= 200) return { label: 'Plata', emoji: '🥈' }
-    return { label: 'Bronce', emoji: '🥉' }
+    if (pts >= 500) return { label: 'Oro', emoji: '🥇', next: null, nextAt: 500, prevAt: 500 }
+    if (pts >= 200) return { label: 'Plata', emoji: '🥈', next: 'Oro', nextAt: 500, prevAt: 200 }
+    return { label: 'Bronce', emoji: '🥉', next: 'Plata', nextAt: 200, prevAt: 0 }
   }
 
   const level = customer ? getLevel(customer.points) : null
@@ -51,29 +51,71 @@ export default async function Home() {
       {/* ── ACTIVE ORDER BANNER ───────────────────────────── */}
       <ActiveOrderBanner />
 
-      {/* ── LOYALTY STRIP (if logged in) ──────────────────── */}
-      {customer && level && (
-        <div className="px-4 mb-5">
-          <Link href="/perfil">
-            <div className="flex items-center justify-between bg-gray-50 rounded-2xl px-4 py-3 border border-doggo-yellow/20">
-              <div className="flex items-center gap-2.5">
-                <span className="text-xl">{level.emoji}</span>
-                <div>
-                  <p className="text-gray-900 font-black text-sm leading-none">{customer.name.split(' ')[0]}</p>
-                  <p className="text-gray-500 text-xs mt-0.5">Nivel {level.label}</p>
+      {/* ── LOYALTY CARD (if logged in) ───────────────────── */}
+      {customer && level && (() => {
+        const progress = level.next
+          ? Math.min(((customer.points - level.prevAt) / (level.nextAt - level.prevAt)) * 100, 100)
+          : 100
+        return (
+          <div className="px-4 mb-6">
+            <div
+              className="rounded-3xl overflow-hidden relative"
+              style={{ background: 'linear-gradient(135deg, #1A1A1A 0%, #2d1a00 100%)' }}
+            >
+              {/* Glow decoration */}
+              <div className="absolute top-0 right-0 w-48 h-48 rounded-full opacity-10"
+                style={{ background: 'radial-gradient(circle, #FEC523 0%, transparent 70%)', transform: 'translate(30%, -30%)' }} />
+              <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full opacity-5"
+                style={{ background: 'radial-gradient(circle, #FEC523 0%, transparent 70%)', transform: 'translate(-30%, 30%)' }} />
+
+              <div className="relative p-5">
+                {/* Top row: level + name */}
+                <div className="flex items-center justify-between mb-4">
+                  <span className="bg-doggo-yellow/15 text-doggo-yellow text-[11px] font-black px-3 py-1 rounded-full tracking-wide uppercase">
+                    {level.emoji} Nivel {level.label}
+                  </span>
+                  <span className="text-white/50 text-xs font-medium">{customer.name.split(' ')[0]}</span>
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="text-right">
-                  <p className="text-doggo-red font-black text-lg leading-none">{customer.points}</p>
-                  <p className="text-gray-500 text-[10px]">puntos</p>
+
+                {/* Points */}
+                <div className="mb-4">
+                  <p className="text-white/60 text-xs font-semibold uppercase tracking-widest mb-1">Tus puntos</p>
+                  <p className="text-doggo-yellow font-black leading-none" style={{ fontSize: '3rem' }}>
+                    {customer.points}
+                    <span className="text-white/40 text-lg font-normal ml-2">pts</span>
+                  </p>
                 </div>
-                <span className="text-gray-500 text-sm">›</span>
+
+                {/* Progress bar */}
+                {level.next && (
+                  <div className="mb-5">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-white/40 text-[10px]">{level.label}</span>
+                      <span className="text-white/40 text-[10px]">{level.nextAt - customer.points} pts para {level.next}</span>
+                    </div>
+                    <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-doggo-yellow rounded-full transition-all duration-700"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Buttons */}
+                <div className="flex gap-2.5">
+                  <Link href="/puntos" className="flex-1 bg-doggo-yellow text-doggo-dark font-black text-sm py-3 rounded-2xl text-center flex items-center justify-center gap-2">
+                    <span>📲</span> Escanear
+                  </Link>
+                  <Link href="/perfil" className="flex-1 bg-white/10 text-white font-bold text-sm py-3 rounded-2xl text-center">
+                    Ver premios
+                  </Link>
+                </div>
               </div>
             </div>
-          </Link>
-        </div>
-      )}
+          </div>
+        )
+      })()}
 
       {/* ── PROMOS (if any) ───────────────────────────────── */}
       {promos && promos.length > 0 && (
@@ -139,17 +181,18 @@ export default async function Home() {
       {/* ── LOYALTY TEASER (if not logged in) ────────────── */}
       {!customer && (
         <div className="px-4 mb-6">
-          <div className="bg-gray-50 rounded-2xl p-4 flex items-center gap-4 border border-gray-200">
-            <div className="w-12 h-12 bg-doggo-yellow/10 rounded-xl flex items-center justify-center shrink-0">
-              <span className="text-2xl">⭐</span>
+          <div className="rounded-3xl overflow-hidden relative"
+            style={{ background: 'linear-gradient(135deg, #1A1A1A 0%, #2d1a00 100%)' }}>
+            <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-10"
+              style={{ background: 'radial-gradient(circle, #FEC523 0%, transparent 70%)', transform: 'translate(30%, -30%)' }} />
+            <div className="p-5 relative">
+              <p className="text-white/60 text-xs font-semibold uppercase tracking-widest mb-1">Club Doggo</p>
+              <p className="text-white font-black text-xl leading-tight mb-1">Gana puntos con<br />cada pedido</p>
+              <p className="text-white/50 text-xs mb-4">$1 = 1 punto · Canjea premios exclusivos</p>
+              <Link href="/login" className="inline-block bg-doggo-yellow text-doggo-dark font-black text-sm px-5 py-2.5 rounded-2xl">
+                Unirme gratis →
+              </Link>
             </div>
-            <div className="flex-1">
-              <p className="text-gray-900 font-black text-sm">Gana puntos con cada pedido</p>
-              <p className="text-gray-500 text-xs mt-0.5">$1 = 1 punto. Canjea premios exclusivos.</p>
-            </div>
-            <Link href="/login" className="bg-doggo-yellow text-doggo-dark font-black text-xs px-3 py-2 rounded-xl shrink-0">
-              Entrar
-            </Link>
           </div>
         </div>
       )}

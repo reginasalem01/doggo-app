@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import ImageUpload from '@/components/ui/ImageUpload'
 
 type Category = { id: string; name: string }
 type Product = {
@@ -114,13 +115,12 @@ export default function OwnerProductForm({
           </div>
 
           <div>
-            <label className="text-gray-500 text-xs uppercase tracking-wide block mb-1">URL de imagen</label>
-            <input type="url" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="https://..."
-              className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-doggo-yellow placeholder-gray-400" />
-            {imageUrl && (
-              <img src={imageUrl} alt="preview" className="mt-2 w-full h-40 object-cover rounded-xl" />
-            )}
+            <ImageUpload
+              value={imageUrl}
+              onChange={setImageUrl}
+              folder="products"
+              label="Foto del producto"
+            />
           </div>
 
           <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">

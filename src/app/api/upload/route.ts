@@ -1,0 +1,40 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+
+export async function POST(req: NextRequest) {
+  try {
+    const formData = await req.formData()
+    const file = formData.get('file') as File | null
+    const folder = (formData.get('folder') as string) || 'misc'
+
+    if (!file) return NextResponse.json({ error: 'No file' }, { status: 400 })
+
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'
+    const allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif']
+    if (!allowed.includes(ext)) {
+      return NextResponse.json({ error: 'Formato no permitido' }, { status: 400 })
+    }
+
+    const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+    const arrayBuffer = await file.arrayBuffer()
+    const buffer = new Uint8Array(arrayBuffer)
+
+    const admin = createAdminClient()
+    const { error } = await admin.storage
+      .from('images')
+      .upload(fileName, buffer, {
+        contentType: file.type,
+        upsert: false,
+      })
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+    const { data: { publicUrl } } = admin.storage
+      .from('images')
+      .getPublicUrl(fileName)
+
+    return NextResponse.json({ url: publicUrl })
+  } catch (err) {
+    return NextResponse.json({ error: 'Error interno' }, { status: 500 })
+  }
+}

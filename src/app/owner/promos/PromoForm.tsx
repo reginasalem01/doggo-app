@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import ImageUpload from '@/components/ui/ImageUpload'
 
 type Promo = {
   id?: string
@@ -100,19 +101,14 @@ export default function PromoForm({ promo }: { promo?: Promo }) {
         />
       </div>
 
-      {/* Image URL */}
+      {/* Image upload */}
       <div className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3">
-        <label className="text-gray-500 text-xs uppercase tracking-wide block mb-1">Imagen de fondo (URL)</label>
-        <input
+        <ImageUpload
           value={form.image_url}
-          onChange={(e) => set('image_url', e.target.value)}
-          placeholder="https://... (opcional)"
-          className="w-full bg-transparent text-gray-900 placeholder-gray-400 outline-none text-sm"
+          onChange={(url) => set('image_url', url)}
+          folder="promos"
+          label="Foto lateral (opcional)"
         />
-        {form.image_url && (
-          <img src={form.image_url} alt="preview" className="mt-3 w-full h-32 object-cover rounded-xl" />
-        )}
-        <p className="text-gray-400 text-[11px] mt-2">Si pones una imagen se usa de fondo. Sin imagen se muestra el color rojo.</p>
       </div>
 
       {/* Dates */}

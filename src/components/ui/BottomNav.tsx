@@ -36,7 +36,8 @@ export default function BottomNav() {
   }
 
   return (
-    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-yellow-50 border-t border-yellow-200 pb-safe z-50">
+    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-yellow-50 border-t border-yellow-200 z-50">
+      {/* Área de iconos — padding simétrico */}
       <div className="flex">
         {tabs.map((tab) => {
           const active = isActive(tab.href)
@@ -46,7 +47,7 @@ export default function BottomNav() {
               key={tab.href}
               href={tab.href}
               className={cn(
-                'flex-1 flex flex-col items-center justify-center pt-3 pb-1 gap-0.5 transition-colors',
+                'flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 transition-colors',
                 active ? 'text-doggo-red' : 'text-gray-400'
               )}
             >
@@ -65,6 +66,8 @@ export default function BottomNav() {
           )
         })}
       </div>
+      {/* Zona del home indicator — solo fondo, sin contenido */}
+      <div className="pb-safe" />
     </nav>
   )
 }

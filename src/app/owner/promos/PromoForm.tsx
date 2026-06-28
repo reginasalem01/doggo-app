@@ -102,16 +102,17 @@ export default function PromoForm({ promo }: { promo?: Promo }) {
 
       {/* Image URL */}
       <div className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3">
-        <label className="text-gray-500 text-xs uppercase tracking-wide block mb-1">URL de imagen</label>
+        <label className="text-gray-500 text-xs uppercase tracking-wide block mb-1">Imagen de fondo (URL)</label>
         <input
           value={form.image_url}
           onChange={(e) => set('image_url', e.target.value)}
-          placeholder="https://..."
+          placeholder="https://... (opcional)"
           className="w-full bg-transparent text-gray-900 placeholder-gray-400 outline-none text-sm"
         />
         {form.image_url && (
           <img src={form.image_url} alt="preview" className="mt-3 w-full h-32 object-cover rounded-xl" />
         )}
+        <p className="text-gray-400 text-[11px] mt-2">Si pones una imagen se usa de fondo. Sin imagen se muestra el color rojo.</p>
       </div>
 
       {/* Dates */}

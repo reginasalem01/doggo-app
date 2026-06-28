@@ -24,11 +24,14 @@ export default function CartBar() {
 
   if (!hydrated || hide || totalItems === 0) return null
 
+  const bottomStyle = modalOpen
+    ? { bottom: '16px' }
+    : { bottom: 'calc(env(safe-area-inset-bottom, 0px) + 64px)' }
+
   return (
     <div
-      className={`fixed left-1/2 -translate-x-1/2 w-full max-w-[430px] z-40 px-4 transition-all duration-300 ${
-        modalOpen ? 'bottom-4' : 'bottom-[72px]'
-      }`}
+      className="fixed left-1/2 -translate-x-1/2 w-full max-w-[430px] z-40 px-4 transition-all duration-300"
+      style={bottomStyle}
     >
       <Link href="/carrito">
         <div className="bg-doggo-dark text-white rounded-2xl px-5 py-3.5 flex items-center justify-between shadow-xl">

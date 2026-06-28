@@ -36,7 +36,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body>
-        <main className="pb-20">
+        <main className="pb-20 pt-safe">
           {children}
         </main>
         <CartBar />

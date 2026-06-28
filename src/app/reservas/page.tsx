@@ -187,7 +187,7 @@ export default function ReservasPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="bg-gray-50 px-4 py-4 sticky top-0 z-10 border-b border-gray-200 flex items-center gap-3">
+      <div className="bg-white px-4 py-4 sticky top-safe z-20 border-b border-gray-200 flex items-center gap-3">
         {view === 'form' && (
           <button onClick={() => setView('list')} className="text-gray-500 text-xl leading-none">←</button>
         )}

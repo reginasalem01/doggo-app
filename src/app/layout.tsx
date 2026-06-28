@@ -37,7 +37,7 @@ export default function RootLayout({
     <html lang="es">
       <body>
         {/* Cubre la zona de la barra de estado con fondo blanco */}
-        <div className="fixed top-0 left-0 right-0 pt-safe bg-white z-50 pointer-events-none" />
+        <div className="fixed top-0 left-0 right-0 pt-safe bg-white z-[60] pointer-events-none" />
         <main className="pb-20 pt-safe">
           {children}
         </main>

@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 
 type Mode = 'login' | 'register' | 'forgot'
@@ -89,8 +88,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
-      <div className="bg-white px-4 py-4 flex items-center gap-3 border-b border-gray-100">
-        <Link href="/" className="text-gray-500 text-2xl leading-none">‹</Link>
+      <div className="bg-white px-4 py-4 border-b border-gray-100">
         <h1 className="text-gray-900 text-xl font-black">
           {mode === 'login' ? 'Iniciar sesión' : mode === 'register' ? 'Crear cuenta' : 'Recuperar contraseña'}
         </h1>

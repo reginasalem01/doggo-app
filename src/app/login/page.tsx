@@ -197,13 +197,15 @@ export default function LoginPage() {
                 <label className="block text-gray-500 text-xs font-semibold mb-1 uppercase tracking-wide">Contraseña *</label>
                 <div className="relative">
                   <input
-                    type={showPassword ? 'text' : 'password'}
+                    type="text"
+                    inputMode="text"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Mínimo 6 caracteres"
                     required
                     minLength={6}
                     autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                    style={{ WebkitTextSecurity: showPassword ? 'none' : 'disc' } as React.CSSProperties}
                     className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 pr-12 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 placeholder-gray-400"
                   />
                   <button

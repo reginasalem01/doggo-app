@@ -48,34 +48,30 @@ export async function POST(request: Request) {
     // Delivery fee: fijo según tipo de entrega
     const deliveryFee = order.delivery_type === 'delivery' ? 1.5 : 0
 
-    // ── Verificar reward ──────────────────────────────────────────────────────
+    // ── Verificar y canjear reward atómicamente (evita race condition) ──────────
     let rewardName: string | null = null
     let rewardPointsRequired = 0
-    let customerCurrentPoints = 0
     let discountAmount = 0
 
     if (reward_id && customer_id) {
-      const [{ data: customer }, { data: reward }] = await Promise.all([
-        admin.from('customers').select('points').eq('id', customer_id).single(),
-        admin.from('rewards').select('points_required, name, discount_type, discount_value').eq('id', reward_id).single(),
-      ])
-      if (!customer || !reward) {
-        return NextResponse.json({ error: 'Premio o cliente no encontrado' }, { status: 400 })
-      }
-      if (customer.points < reward.points_required) {
-        return NextResponse.json(
-          { error: `No tienes suficientes puntos. Te faltan ${reward.points_required - customer.points}.` },
-          { status: 400 }
-        )
-      }
-      rewardName = reward.name
-      rewardPointsRequired = reward.points_required
-      customerCurrentPoints = customer.points
+      const { data: redeemResult, error: redeemError } = await admin
+        .rpc('redeem_reward_atomic', { p_customer_id: customer_id, p_reward_id: reward_id })
 
-      if (reward.discount_type === 'percentage' && reward.discount_value) {
-        discountAmount = Math.round((serverSubtotal * reward.discount_value) / 100 * 100) / 100
-      } else if (reward.discount_type === 'fixed' && reward.discount_value) {
-        discountAmount = Math.min(reward.discount_value, serverSubtotal)
+      if (redeemError || !redeemResult) {
+        return NextResponse.json({ error: 'Error al procesar el premio' }, { status: 500 })
+      }
+
+      if (redeemResult.error) {
+        return NextResponse.json({ error: redeemResult.error }, { status: 400 })
+      }
+
+      rewardName = redeemResult.reward_name
+      rewardPointsRequired = redeemResult.points_required
+
+      if (redeemResult.discount_type === 'percentage' && redeemResult.discount_value) {
+        discountAmount = Math.round((serverSubtotal * redeemResult.discount_value) / 100 * 100) / 100
+      } else if (redeemResult.discount_type === 'fixed' && redeemResult.discount_value) {
+        discountAmount = Math.min(redeemResult.discount_value, serverSubtotal)
       }
     }
 
@@ -116,7 +112,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: itemsError.message }, { status: 500 })
     }
 
-    // Deduct points and log redemption — reuse data already fetched above
+    // Log redemption transaction
     if (reward_id && customer_id && rewardName && rewardPointsRequired > 0) {
       await Promise.all([
         admin.from('reward_redemptions').insert({
@@ -125,9 +121,6 @@ export async function POST(request: Request) {
           points_used: rewardPointsRequired,
           status: 'completed',
         }),
-        admin.from('customers').update({
-          points: Math.max(0, customerCurrentPoints - rewardPointsRequired),
-        }).eq('id', customer_id),
         admin.from('loyalty_transactions').insert({
           customer_id,
           order_id: newOrder.id,

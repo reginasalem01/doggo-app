@@ -13,7 +13,7 @@ export async function PATCH(
   // Get order before updating (to check previous status)
   const { data: order } = await admin
     .from('orders')
-    .select('status, total, customer_name, customer_email, delivery_type, address, order_items(product_name, quantity)')
+    .select('status, total, customer_name, customer_email, delivery_type, address, points_awarded, order_items(product_name, quantity)')
     .eq('id', id)
     .single()
 
@@ -70,8 +70,8 @@ export async function PATCH(
     })
   }
 
-  // Auto-award points when order is delivered (only once)
-  if (status === 'delivered' && order?.status !== 'delivered' && order?.customer_email) {
+  // Auto-award points when order is delivered (only once, using points_awarded flag)
+  if (status === 'delivered' && !order?.points_awarded && order?.customer_email) {
     const { data: customer } = await admin
       .from('customers')
       .select('id, points')
@@ -92,6 +92,7 @@ export async function PATCH(
             type: 'earned',
             description: `Puntos por pedido · $${Number(order.total).toFixed(2)}`,
           }),
+          admin.from('orders').update({ points_awarded: true }).eq('id', id),
         ])
       }
     }

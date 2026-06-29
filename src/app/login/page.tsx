@@ -1,23 +1,23 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 
 type Mode = 'login' | 'register' | 'forgot'
 
+const LOGO_URL = 'https://khcrenvrlfhyojbzvyyr.supabase.co/storage/v1/object/public/images/brand/LOGO%20CIRCULAR%20SIN%20FONDO.png'
+
 export default function LoginPage() {
-  const router = useRouter()
   const [mode, setMode] = useState<Mode>('login')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Login fields
+  // Fields
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-
-  // Register extra fields
+  const [showPassword, setShowPassword] = useState(false)
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [acceptedTerms, setAcceptedTerms] = useState(false)
@@ -43,7 +43,6 @@ export default function LoginPage() {
       if (mode === 'login') {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
-        // Full reload to clear Next.js router cache (avoids stale redirect to /login)
         window.location.href = '/perfil'
       } else {
         if (!acceptedTerms) {
@@ -51,7 +50,6 @@ export default function LoginPage() {
           setLoading(false)
           return
         }
-        // Register: create auth user
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
@@ -59,24 +57,21 @@ export default function LoginPage() {
         })
         if (signUpError) throw signUpError
 
-        // Create customer record via API (uses admin client, works without a DB trigger)
         if (data.user) {
           await fetch('/api/auth/register-customer', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, phone: phone || null }),
+            body: JSON.stringify({ name, phone }),
           })
         }
 
         window.location.href = '/perfil'
       }
     } catch (err: unknown) {
-      // Supabase errors are PostgrestError objects, not native Error instances
       const msg =
         err instanceof Error
           ? err.message
           : (err as { message?: string })?.message ?? 'Error desconocido'
-      // Translate common Supabase errors to Spanish
       if (msg.includes('Invalid login credentials')) {
         setError('Email o contraseña incorrectos.')
       } else if (msg.includes('User already registered')) {
@@ -94,26 +89,31 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
-      <div className="bg-gray-50 px-4 py-4 flex items-center gap-3 border-b border-gray-200">
+      <div className="bg-white px-4 py-4 flex items-center gap-3 border-b border-gray-100">
         <Link href="/" className="text-gray-500 text-2xl leading-none">‹</Link>
         <h1 className="text-gray-900 text-xl font-black">
-          {mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
+          {mode === 'login' ? 'Iniciar sesión' : mode === 'register' ? 'Crear cuenta' : 'Recuperar contraseña'}
         </h1>
       </div>
 
       <div className="flex-1 px-4 py-6">
-        {/* Logo / branding */}
+        {/* Logo */}
         <div className="text-center mb-8">
-          <span className="text-5xl">🌭</span>
-          <p className="text-doggo-red font-black text-lg mt-2">Doggo</p>
-          <p className="text-gray-500 text-sm mt-1">
+          <img
+            src={LOGO_URL}
+            alt="Doggo"
+            width={80}
+            height={80}
+            className="mx-auto mb-2"
+          />
+          <p className="text-gray-500 text-sm">
             {mode === 'login' ? 'Accede para ver tus puntos y pedidos'
               : mode === 'register' ? 'Únete y empieza a acumular puntos'
               : 'Te enviamos un link para restablecer tu contraseña'}
           </p>
         </div>
 
-        {/* Forgot password — success state */}
+        {/* Forgot password success */}
         {mode === 'forgot' && error === '__success__' && (
           <div className="bg-green-50 border border-green-200 rounded-2xl px-5 py-5 text-center mb-6">
             <p className="text-2xl mb-2">📧</p>
@@ -126,7 +126,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        {/* Mode toggle — solo en login/register */}
+        {/* Mode toggle */}
         {mode !== 'forgot' && (
           <div className="flex bg-gray-100 rounded-full p-1 mb-6">
             <button
@@ -150,131 +150,132 @@ export default function LoginPage() {
 
         {/* Form */}
         {!(mode === 'forgot' && error === '__success__') && (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {mode === 'register' && (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {mode === 'register' && (
+              <div>
+                <label className="block text-gray-500 text-xs font-semibold mb-1 uppercase tracking-wide">Nombre completo *</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Tu nombre"
+                  required
+                  className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 placeholder-gray-400"
+                />
+              </div>
+            )}
+
             <div>
-              <label className="block text-gray-500 text-xs font-semibold mb-1 uppercase tracking-wide">
-                Nombre completo *
-              </label>
+              <label className="block text-gray-500 text-xs font-semibold mb-1 uppercase tracking-wide">Email *</label>
               <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Tu nombre"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="tu@email.com"
                 required
+                autoComplete="email"
                 className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 placeholder-gray-400"
               />
             </div>
-          )}
 
-          <div>
-            <label className="block text-gray-500 text-xs font-semibold mb-1 uppercase tracking-wide">
-              Email *
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="tu@email.com"
-              required
-              autoComplete="email"
-              className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 placeholder-gray-400"
-            />
-          </div>
+            {mode === 'register' && (
+              <div>
+                <label className="block text-gray-500 text-xs font-semibold mb-1 uppercase tracking-wide">Teléfono *</label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="0999 000 000"
+                  required
+                  className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 placeholder-gray-400"
+                />
+              </div>
+            )}
 
-          {mode === 'register' && (
-            <div>
-              <label className="block text-gray-500 text-xs font-semibold mb-1 uppercase tracking-wide">
-                Teléfono (opcional)
+            {mode !== 'forgot' && (
+              <div>
+                <label className="block text-gray-500 text-xs font-semibold mb-1 uppercase tracking-wide">Contraseña *</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Mínimo 6 caracteres"
+                    required
+                    minLength={6}
+                    autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                    className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 pr-12 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 placeholder-gray-400"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg"
+                  >
+                    {showPassword ? '🙈' : '👁'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {mode === 'register' && (
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 accent-doggo-yellow shrink-0"
+                />
+                <span className="text-gray-500 text-xs leading-relaxed">
+                  He leído y acepto los{' '}
+                  <Link href="/terminos" className="text-doggo-red font-semibold underline" target="_blank">
+                    Términos y Condiciones
+                  </Link>{' '}
+                  y la{' '}
+                  <Link href="/privacidad" className="text-doggo-red font-semibold underline" target="_blank">
+                    Política de Privacidad
+                  </Link>{' '}
+                  de Doggo. *
+                </span>
               </label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="0999 000 000"
-                className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 placeholder-gray-400"
-              />
-            </div>
-          )}
+            )}
 
-          {mode !== 'forgot' && (
-            <div>
-              <label className="block text-gray-500 text-xs font-semibold mb-1 uppercase tracking-wide">
-                Contraseña *
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Mínimo 6 caracteres"
-                required
-                minLength={6}
-                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-                className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 placeholder-gray-400"
-              />
-            </div>
-          )}
+            {error && error !== '__success__' && (
+              <div className="bg-doggo-red/10 border border-doggo-red/30 rounded-xl px-4 py-3">
+                <p className="text-doggo-red text-sm">{error}</p>
+              </div>
+            )}
 
-          {mode === 'register' && (
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={acceptedTerms}
-                onChange={(e) => setAcceptedTerms(e.target.checked)}
-                className="mt-0.5 w-4 h-4 accent-doggo-yellow shrink-0"
-              />
-              <span className="text-gray-500 text-xs leading-relaxed">
-                He leído y acepto los{' '}
-                <Link href="/terminos" className="text-doggo-red font-semibold underline" target="_blank">
-                  Términos y Condiciones
-                </Link>{' '}
-                y la{' '}
-                <Link href="/privacidad" className="text-doggo-red font-semibold underline" target="_blank">
-                  Política de Privacidad
-                </Link>{' '}
-                de Doggo.
-              </span>
-            </label>
-          )}
-
-          {error && error !== '__success__' && (
-            <div className="bg-doggo-red/10 border border-doggo-red/30 rounded-xl px-4 py-3">
-              <p className="text-doggo-red text-sm">{error}</p>
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-doggo-yellow text-doggo-dark font-black py-4 rounded-full text-base mt-2 disabled:opacity-60 transition-opacity"
-          >
-            {loading ? 'Cargando...'
-              : mode === 'login' ? 'Entrar'
-              : mode === 'forgot' ? 'Enviar link'
-              : 'Crear cuenta'}
-          </button>
-
-          {/* Forgot password link */}
-          {mode === 'login' && (
             <button
-              type="button"
-              onClick={() => { setMode('forgot'); setError(null) }}
-              className="w-full text-center text-gray-400 text-sm py-1"
+              type="submit"
+              disabled={loading}
+              className="w-full bg-doggo-yellow text-doggo-dark font-black py-4 rounded-full text-base mt-2 disabled:opacity-60 transition-opacity"
             >
-              ¿Olvidaste tu contraseña?
+              {loading ? 'Cargando...'
+                : mode === 'login' ? 'Entrar'
+                : mode === 'forgot' ? 'Enviar link'
+                : 'Crear cuenta'}
             </button>
-          )}
 
-          {mode === 'forgot' && (
-            <button
-              type="button"
-              onClick={() => { setMode('login'); setError(null) }}
-              className="w-full text-center text-gray-400 text-sm py-1"
-            >
-              ← Volver al login
-            </button>
-          )}
-        </form>
+            {mode === 'login' && (
+              <button
+                type="button"
+                onClick={() => { setMode('forgot'); setError(null) }}
+                className="w-full text-center text-gray-400 text-sm py-1"
+              >
+                ¿Olvidaste tu contraseña?
+              </button>
+            )}
+
+            {mode === 'forgot' && (
+              <button
+                type="button"
+                onClick={() => { setMode('login'); setError(null) }}
+                className="w-full text-center text-gray-400 text-sm py-1"
+              >
+                ← Volver al login
+              </button>
+            )}
+          </form>
         )}
       </div>
     </div>

@@ -1,10 +1,10 @@
-import Link from 'next/link'
+import BackButton from '@/components/ui/BackButton'
 
 export default function TerminosPage() {
   return (
     <div className="min-h-screen bg-white">
       <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-4 flex items-center gap-3 z-10">
-        <Link href="/login" className="text-gray-500 text-2xl leading-none">‹</Link>
+        <BackButton />
         <h1 className="text-gray-900 text-lg font-black">Términos y Condiciones</h1>
       </div>
 

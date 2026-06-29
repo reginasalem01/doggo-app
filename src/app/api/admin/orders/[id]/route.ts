@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import { resend } from '@/lib/resend'
 import { NextResponse } from 'next/server'
 
 export async function PATCH(
@@ -12,7 +13,7 @@ export async function PATCH(
   // Get order before updating (to check previous status)
   const { data: order } = await admin
     .from('orders')
-    .select('status, total, customer_email, payment_status')
+    .select('status, total, customer_name, customer_email, delivery_type, address, order_items(product_name, quantity)')
     .eq('id', id)
     .single()
 
@@ -22,6 +23,52 @@ export async function PATCH(
     .eq('id', id)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Enviar email de confirmación cuando el admin acepta el pedido
+  if (status === 'preparing' && order?.status === 'new' && order?.customer_email) {
+    const shortId = '#' + id.slice(0, 4).toUpperCase()
+    const items = (order.order_items as { product_name: string; quantity: number }[]) ?? []
+    const itemsHtml = items
+      .map((i) => `<tr><td style="padding:4px 0;color:#555">${i.product_name}</td><td style="padding:4px 0;color:#555;text-align:right">x${i.quantity}</td></tr>`)
+      .join('')
+    const deliveryLabel =
+      order.delivery_type === 'delivery' ? '🛵 Domicilio' :
+      order.delivery_type === 'pickup' ? '🏃 Retiro en local' : '🪑 Consumo en local'
+
+    await resend.emails.send({
+      from: 'Doggo <noreply@doggo.com.ec>',
+      to: order.customer_email,
+      subject: `✅ Tu pedido ${shortId} fue aceptado`,
+      html: `
+        <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+          <div style="background:#FFDD00;border-radius:16px;padding:24px;text-align:center;margin-bottom:24px">
+            <h1 style="margin:0;font-size:32px">🐾 Doggo</h1>
+            <p style="margin:8px 0 0;font-size:18px;font-weight:bold">¡Pedido confirmado!</p>
+          </div>
+
+          <p style="color:#333">Hola <strong>${order.customer_name.split(' ')[0]}</strong>, tu pedido fue aceptado y ya estamos preparándolo.</p>
+
+          <div style="background:#f9f9f9;border-radius:12px;padding:16px;margin:16px 0">
+            <p style="margin:0 0 8px;font-size:12px;color:#999;text-transform:uppercase;letter-spacing:1px">Pedido ${shortId}</p>
+            <table style="width:100%;border-collapse:collapse">
+              ${itemsHtml}
+              <tr style="border-top:1px solid #eee">
+                <td style="padding:8px 0 0;font-weight:bold;color:#111">Total</td>
+                <td style="padding:8px 0 0;font-weight:bold;color:#111;text-align:right">$${Number(order.total).toFixed(2)}</td>
+              </tr>
+            </table>
+          </div>
+
+          <p style="color:#555;margin:8px 0"><strong>Tipo:</strong> ${deliveryLabel}</p>
+          ${order.address ? `<p style="color:#555;margin:8px 0"><strong>Dirección:</strong> ${order.address}</p>` : ''}
+
+          <p style="color:#999;font-size:12px;margin-top:24px;text-align:center">Doggo — Guayaquil, Ecuador</p>
+        </div>
+      `,
+    }).catch(() => {
+      // No bloquear la respuesta si el email falla
+    })
+  }
 
   // Auto-award points when order is delivered (only once)
   if (status === 'delivered' && order?.status !== 'delivered' && order?.customer_email) {

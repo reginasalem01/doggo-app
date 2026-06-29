@@ -42,8 +42,8 @@ export async function PATCH(
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
           <div style="background:#FFDD00;border-radius:16px;padding:24px;text-align:center;margin-bottom:24px">
-            <h1 style="margin:0;font-size:32px">🐾 Doggo</h1>
-            <p style="margin:8px 0 0;font-size:18px;font-weight:bold">¡Pedido confirmado!</p>
+            <img src="https://khcrenvrlfhyojbzvyyr.supabase.co/storage/v1/object/public/images/brand/LOGO%20CIRCULAR%20SIN%20FONDO.png" alt="Doggo" width="100" height="100" style="display:block;margin:0 auto 12px" />
+            <p style="margin:0;font-size:18px;font-weight:bold">¡Pedido confirmado!</p>
           </div>
 
           <p style="color:#333">Hola <strong>${order.customer_name.split(' ')[0]}</strong>, tu pedido fue aceptado y ya estamos preparándolo.</p>

@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { requireRole } from '@/lib/supabase/auth-guard'
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireRole(); if (auth) return auth
   const { id } = await params
   const admin = createAdminClient()
 

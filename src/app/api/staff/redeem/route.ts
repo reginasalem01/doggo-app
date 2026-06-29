@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { requireRole } from '@/lib/supabase/auth-guard'
 
 export async function POST(req: Request) {
+  const auth = await requireRole(); if (auth) return auth
   const { customerId, rewardId } = await req.json()
 
   if (!customerId || !rewardId) {

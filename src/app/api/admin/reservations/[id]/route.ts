@@ -1,10 +1,12 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
+import { requireRole } from '@/lib/supabase/auth-guard'
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireRole(); if (auth) return auth
   const { id } = await params
   const { status } = await request.json()
   const admin = createAdminClient()

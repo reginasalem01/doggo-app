@@ -12,7 +12,43 @@ export async function POST(request: Request) {
 
     const admin = createAdminClient()
 
-    // Verify points before creating order — store data for reuse below
+    // ── Recalcular precios desde BD (no confiar en el cliente) ──────────────────
+    const productIds = items.map((i: { product_id: string }) => i.product_id)
+    const { data: products, error: productsError } = await admin
+      .from('products')
+      .select('id, price, name, available')
+      .in('id', productIds)
+
+    if (productsError || !products?.length) {
+      return NextResponse.json({ error: 'Productos no encontrados' }, { status: 400 })
+    }
+
+    const priceMap = Object.fromEntries(products.map((p) => [p.id, p]))
+
+    // Verificar disponibilidad y calcular totales reales
+    const verifiedItems = []
+    let serverSubtotal = 0
+    for (const item of items) {
+      const product = priceMap[item.product_id]
+      if (!product) return NextResponse.json({ error: `Producto no encontrado: ${item.product_id}` }, { status: 400 })
+      if (!product.available) return NextResponse.json({ error: `"${product.name}" ya no está disponible` }, { status: 400 })
+      const itemTotal = Math.round(product.price * item.quantity * 100) / 100
+      serverSubtotal += itemTotal
+      verifiedItems.push({
+        product_id: item.product_id,
+        product_name: product.name,
+        quantity: item.quantity,
+        unit_price: product.price,
+        total: itemTotal,
+        notes: item.notes ?? null,
+      })
+    }
+    serverSubtotal = Math.round(serverSubtotal * 100) / 100
+
+    // Delivery fee: fijo según tipo de entrega
+    const deliveryFee = order.delivery_type === 'delivery' ? 1.5 : 0
+
+    // ── Verificar reward ──────────────────────────────────────────────────────
     let rewardName: string | null = null
     let rewardPointsRequired = 0
     let customerCurrentPoints = 0
@@ -36,24 +72,27 @@ export async function POST(request: Request) {
       rewardPointsRequired = reward.points_required
       customerCurrentPoints = customer.points
 
-      // Calculate discount
       if (reward.discount_type === 'percentage' && reward.discount_value) {
-        discountAmount = Math.round((order.subtotal * reward.discount_value) / 100 * 100) / 100
+        discountAmount = Math.round((serverSubtotal * reward.discount_value) / 100 * 100) / 100
       } else if (reward.discount_type === 'fixed' && reward.discount_value) {
-        discountAmount = Math.min(reward.discount_value, order.subtotal)
+        discountAmount = Math.min(reward.discount_value, serverSubtotal)
       }
     }
 
-    // Append reward note and apply discount
-    const orderData = { ...order }
+    // Total final calculado en el servidor
+    const serverTotal = Math.round((serverSubtotal + deliveryFee - discountAmount) * 100) / 100
+
+    // Append reward note
+    const orderData = {
+      ...order,
+      subtotal: serverSubtotal,
+      delivery_fee: deliveryFee,
+      total: serverTotal,
+    }
     if (rewardName) {
       orderData.notes = orderData.notes
         ? `${orderData.notes} | 🎁 Premio: ${rewardName}`
         : `🎁 Premio: ${rewardName}`
-      if (discountAmount > 0) {
-        orderData.discount = discountAmount
-        // order.total already has the discount applied by the client
-      }
     }
 
     // Create order
@@ -67,15 +106,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: orderError?.message ?? 'Error creando pedido' }, { status: 500 })
     }
 
-    // Create order items
-    const orderItems = items.map((item: {
-      product_id: string
-      product_name: string
-      quantity: number
-      unit_price: number
-      total: number
-      notes: string | null
-    }) => ({ ...item, order_id: newOrder.id }))
+    // Create order items (con precios verificados)
+    const orderItems = verifiedItems.map((item) => ({ ...item, order_id: newOrder.id }))
 
     const { error: itemsError } = await admin.from('order_items').insert(orderItems)
 

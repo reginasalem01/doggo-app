@@ -12,51 +12,25 @@ export async function POST(req: Request) {
 
   const admin = createAdminClient()
 
-  // Get reward
-  const { data: reward, error: rewardError } = await admin
-    .from('rewards')
-    .select('id, name, points_required, active')
-    .eq('id', rewardId)
-    .single()
+  // Canje atómico con FOR UPDATE para evitar race condition
+  const { data: result, error } = await admin
+    .rpc('redeem_reward_atomic', { p_customer_id: customerId, p_reward_id: rewardId })
 
-  if (rewardError || !reward || !reward.active) {
-    return NextResponse.json({ error: 'Premio no válido' }, { status: 404 })
-  }
-
-  // Get customer
-  const { data: customer, error: customerError } = await admin
-    .from('customers')
-    .select('id, points')
-    .eq('id', customerId)
-    .single()
-
-  if (customerError || !customer) {
-    return NextResponse.json({ error: 'Cliente no encontrado' }, { status: 404 })
-  }
-
-  if (customer.points < reward.points_required) {
-    return NextResponse.json({ error: 'Puntos insuficientes' }, { status: 400 })
-  }
-
-  const newPoints = customer.points - reward.points_required
-
-  // Deduct points
-  const { error: updateError } = await admin
-    .from('customers')
-    .update({ points: newPoints })
-    .eq('id', customerId)
-
-  if (updateError) {
+  if (error || !result) {
     return NextResponse.json({ error: 'Error al canjear' }, { status: 500 })
+  }
+
+  if (result.error) {
+    return NextResponse.json({ error: result.error }, { status: 400 })
   }
 
   // Log transaction
   await admin.from('loyalty_transactions').insert({
     customer_id: customerId,
-    points: -reward.points_required,
+    points: -result.points_required,
     type: 'redeemed',
-    description: `Canje: ${reward.name}`,
+    description: `Canje en local: ${result.reward_name}`,
   })
 
-  return NextResponse.json({ success: true, newPoints, reward: reward.name })
+  return NextResponse.json({ success: true, newPoints: result.new_points, reward: result.reward_name })
 }

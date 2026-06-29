@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 
 export async function POST(request: Request) {
   try {
@@ -54,6 +55,20 @@ export async function POST(request: Request) {
     let discountAmount = 0
 
     if (reward_id && customer_id) {
+      // Verificar que el customer_id pertenece al usuario autenticado
+      const supabase = await createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data: ownCustomer } = await admin
+          .from('customers')
+          .select('id')
+          .eq('auth_user_id', user.id)
+          .single()
+        if (!ownCustomer || ownCustomer.id !== customer_id) {
+          return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+        }
+      }
+
       const { data: redeemResult, error: redeemError } = await admin
         .rpc('redeem_reward_atomic', { p_customer_id: customer_id, p_reward_id: reward_id })
 
@@ -78,17 +93,26 @@ export async function POST(request: Request) {
     // Total final calculado en el servidor
     const serverTotal = Math.round((serverSubtotal + deliveryFee - discountAmount) * 100) / 100
 
-    // Append reward note
+    // Construir orderData con campos explícitos (nunca confiar en el spread del cliente)
+    const notes = rewardName
+      ? (order.notes ? `${order.notes} | 🎁 Premio: ${rewardName}` : `🎁 Premio: ${rewardName}`)
+      : (order.notes ?? null)
+
     const orderData = {
-      ...order,
+      customer_name: order.customer_name,
+      customer_phone: order.customer_phone,
+      customer_email: order.customer_email ?? null,
+      delivery_type: order.delivery_type,
+      address: order.address ?? null,
+      notes,
+      lat: order.lat ?? null,
+      lng: order.lng ?? null,
       subtotal: serverSubtotal,
       delivery_fee: deliveryFee,
       total: serverTotal,
-    }
-    if (rewardName) {
-      orderData.notes = orderData.notes
-        ? `${orderData.notes} | 🎁 Premio: ${rewardName}`
-        : `🎁 Premio: ${rewardName}`
+      status: 'new',
+      payment_status: 'pending',
+      points_awarded: false,
     }
 
     // Create order

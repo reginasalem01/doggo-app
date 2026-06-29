@@ -1,13 +1,21 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { resend } from '@/lib/resend'
 import { NextResponse } from 'next/server'
+import { requireRole } from '@/lib/supabase/auth-guard'
+
+const VALID_STATUSES = ['new', 'accepted', 'preparing', 'ready', 'delivered', 'cancelled']
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireRole(); if (auth) return auth
   const { id } = await params
   const { status } = await request.json()
+
+  if (!VALID_STATUSES.includes(status)) {
+    return NextResponse.json({ error: 'Estado inválido' }, { status: 400 })
+  }
   const admin = createAdminClient()
 
   // Get order before updating (to check previous status)

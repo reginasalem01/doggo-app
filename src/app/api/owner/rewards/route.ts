@@ -6,7 +6,14 @@ export async function POST(request: Request) {
   const auth = await requireRole('owner'); if (auth) return auth
   const body = await request.json()
   const admin = createAdminClient()
-  const { data, error } = await admin.from('rewards').insert(body).select().single()
+  const { data, error } = await admin.from('rewards').insert({
+    name: body.name,
+    description: body.description ?? null,
+    points_required: body.points_required,
+    discount_type: body.discount_type ?? null,
+    discount_value: body.discount_value ?? null,
+    active: body.active ?? true,
+  }).select().single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data)
 }

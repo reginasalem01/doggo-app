@@ -11,6 +11,11 @@ export async function POST(req: NextRequest) {
 
     if (!file) return NextResponse.json({ error: 'No file' }, { status: 400 })
 
+    const MAX_SIZE = 5 * 1024 * 1024 // 5MB
+    if (file.size > MAX_SIZE) {
+      return NextResponse.json({ error: 'Archivo demasiado grande (máx 5MB)' }, { status: 400 })
+    }
+
     const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'
     const allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif']
     if (!allowed.includes(ext)) {

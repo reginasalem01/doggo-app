@@ -20,6 +20,7 @@ export default function LoginPage() {
   // Register extra fields
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -45,6 +46,11 @@ export default function LoginPage() {
         // Full reload to clear Next.js router cache (avoids stale redirect to /login)
         window.location.href = '/perfil'
       } else {
+        if (!acceptedTerms) {
+          setError('Debes aceptar los Términos y la Política de Privacidad para continuar.')
+          setLoading(false)
+          return
+        }
         // Register: create auth user
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
@@ -207,6 +213,28 @@ export default function LoginPage() {
                 className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 placeholder-gray-400"
               />
             </div>
+          )}
+
+          {mode === 'register' && (
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                className="mt-0.5 w-4 h-4 accent-doggo-yellow shrink-0"
+              />
+              <span className="text-gray-500 text-xs leading-relaxed">
+                He leído y acepto los{' '}
+                <Link href="/terminos" className="text-doggo-red font-semibold underline" target="_blank">
+                  Términos y Condiciones
+                </Link>{' '}
+                y la{' '}
+                <Link href="/privacidad" className="text-doggo-red font-semibold underline" target="_blank">
+                  Política de Privacidad
+                </Link>{' '}
+                de Doggo.
+              </span>
+            </label>
           )}
 
           {error && error !== '__success__' && (

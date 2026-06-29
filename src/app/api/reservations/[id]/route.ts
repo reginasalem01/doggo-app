@@ -1,7 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 
-// PATCH /api/reservations/[id] — cliente edita o cancela su propia reserva
+// PATCH /api/reservations/[id] — cliente cancela su propia reserva (requiere teléfono)
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -9,24 +9,45 @@ export async function PATCH(
   const { id } = await params
   const body = await request.json()
 
-  // Only allow fields the client can change
-  const allowed: Record<string, unknown> = {}
-  if (body.reservation_date) allowed.reservation_date = body.reservation_date
-  if (body.reservation_time) allowed.reservation_time = body.reservation_time
-  if (body.party_size)       allowed.party_size = body.party_size
-  if (body.status === 'cancelled') allowed.status = 'cancelled'
-
-  if (Object.keys(allowed).length === 0) {
-    return NextResponse.json({ error: 'Nada que actualizar' }, { status: 400 })
+  // Solo permitir cancelación (no edición) desde el cliente
+  if (body.status !== 'cancelled') {
+    return NextResponse.json({ error: 'Solo se permite cancelar' }, { status: 400 })
   }
 
-  // Editing date/time/party_size → 'modified' so staff can see it's a change request
-  if (allowed.reservation_date || allowed.reservation_time || allowed.party_size) {
-    if (allowed.status !== 'cancelled') allowed.status = 'modified'
+  // Requerir teléfono para verificar propiedad (guest checkout)
+  const phone = body.phone?.replace(/\s|-/g, '')
+  if (!phone) {
+    return NextResponse.json({ error: 'Teléfono requerido' }, { status: 400 })
   }
 
   const admin = createAdminClient()
-  const { error } = await admin.from('reservations').update(allowed).eq('id', id)
+
+  // Verificar que la reserva pertenece al teléfono dado
+  const alt = phone.startsWith('0') ? phone.slice(1) : '0' + phone
+  const { data: reservation } = await admin
+    .from('reservations')
+    .select('id, status, customer_phone')
+    .eq('id', id)
+    .single()
+
+  if (!reservation) {
+    return NextResponse.json({ error: 'Reserva no encontrada' }, { status: 404 })
+  }
+
+  const stored = reservation.customer_phone.replace(/\s|-/g, '')
+  if (stored !== phone && stored !== alt) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+  }
+
+  if (reservation.status === 'cancelled') {
+    return NextResponse.json({ error: 'La reserva ya está cancelada' }, { status: 400 })
+  }
+
+  const { error } = await admin
+    .from('reservations')
+    .update({ status: 'cancelled' })
+    .eq('id', id)
+
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })
 }

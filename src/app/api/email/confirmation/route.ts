@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 const DELIVERY_LABELS: Record<string, string> = {
   delivery: '🛵 Domicilio',
@@ -8,13 +9,24 @@ const DELIVERY_LABELS: Record<string, string> = {
 
 export async function POST(req: NextRequest) {
   if (!process.env.RESEND_API_KEY) {
-    // Sin API key configurada → silenciosamente omitir
     return NextResponse.json({ ok: true, skipped: true })
   }
 
   const { email, customerName, orderId, items, total, deliveryType, address } = await req.json()
 
-  if (!email) return NextResponse.json({ ok: true, skipped: true })
+  if (!email || !orderId) return NextResponse.json({ ok: true, skipped: true })
+
+  // Verificar que el pedido existe y el email coincide (previene uso como spam relay)
+  const admin = createAdminClient()
+  const { data: order } = await admin
+    .from('orders')
+    .select('customer_email')
+    .eq('id', orderId)
+    .single()
+
+  if (!order || order.customer_email !== email) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+  }
 
   const shortId = orderId.slice(0, 8).toUpperCase()
 

@@ -31,13 +31,13 @@ export default async function PedidoPage({ params }: Props) {
 
   const { data: order } = await admin
     .from('orders')
-    .select('*')
+    .select('id, customer_name, delivery_type, address, notes, subtotal, delivery_fee, total, status, created_at')
     .eq('id', id)
     .single()
 
   const { data: items } = await admin
     .from('order_items')
-    .select('*')
+    .select('id, product_name, quantity, unit_price, total, notes')
     .eq('order_id', id)
 
   if (!order) {

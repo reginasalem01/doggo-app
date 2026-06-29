@@ -6,7 +6,8 @@ export async function POST(req: Request) {
   const auth = await requireRole(); if (auth) return auth
   const { customerId, points, description } = await req.json()
 
-  if (!customerId || !points || points <= 0) {
+  const MAX_POINTS_PER_TX = 5000
+  if (!customerId || !points || points <= 0 || points > MAX_POINTS_PER_TX || !Number.isInteger(points)) {
     return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 })
   }
 

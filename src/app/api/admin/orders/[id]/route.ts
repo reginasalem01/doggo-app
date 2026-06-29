@@ -78,30 +78,40 @@ export async function PATCH(
     })
   }
 
-  // Auto-award points when order is delivered (only once, using points_awarded flag)
+  // Auto-award points when order is delivered
+  // Update condicional atómico: solo continúa si points_awarded era false (previene doble entrega)
   if (status === 'delivered' && !order?.points_awarded && order?.customer_email) {
-    const { data: customer } = await admin
-      .from('customers')
-      .select('id, points')
-      .eq('email', order.customer_email)
+    const { data: claimed, error: claimError } = await admin
+      .from('orders')
+      .update({ points_awarded: true })
+      .eq('id', id)
+      .eq('points_awarded', false) // condición atómica — solo 1 request gana
+      .select('id')
       .single()
 
-    if (customer) {
-      const pointsToAdd = Math.floor(Number(order.total))
-      if (pointsToAdd > 0) {
-        await Promise.all([
-          admin.from('customers').update({
-            points: customer.points + pointsToAdd,
-          }).eq('id', customer.id),
-          admin.from('loyalty_transactions').insert({
-            customer_id: customer.id,
-            order_id: id,
-            points: pointsToAdd,
-            type: 'earned',
-            description: `Puntos por pedido · $${Number(order.total).toFixed(2)}`,
-          }),
-          admin.from('orders').update({ points_awarded: true }).eq('id', id),
-        ])
+    if (!claimError && claimed) {
+      const { data: customer } = await admin
+        .from('customers')
+        .select('id, points')
+        .eq('email', order.customer_email)
+        .single()
+
+      if (customer) {
+        const pointsToAdd = Math.floor(Number(order.total))
+        if (pointsToAdd > 0) {
+          await Promise.all([
+            admin.from('customers').update({
+              points: customer.points + pointsToAdd,
+            }).eq('id', customer.id),
+            admin.from('loyalty_transactions').insert({
+              customer_id: customer.id,
+              order_id: id,
+              points: pointsToAdd,
+              type: 'earned',
+              description: `Puntos por pedido · $${Number(order.total).toFixed(2)}`,
+            }),
+          ])
+        }
       }
     }
   }

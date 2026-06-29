@@ -55,18 +55,20 @@ export async function POST(request: Request) {
     let discountAmount = 0
 
     if (reward_id && customer_id) {
-      // Verificar que el customer_id pertenece al usuario autenticado
+      // Canjear un premio requiere sesión activa
       const supabase = await createClient()
       const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data: ownCustomer } = await admin
-          .from('customers')
-          .select('id')
-          .eq('auth_user_id', user.id)
-          .single()
-        if (!ownCustomer || ownCustomer.id !== customer_id) {
-          return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
-        }
+      if (!user) {
+        return NextResponse.json({ error: 'Debes iniciar sesión para canjear premios' }, { status: 401 })
+      }
+      // Verificar que el customer_id pertenece al usuario autenticado
+      const { data: ownCustomer } = await admin
+        .from('customers')
+        .select('id')
+        .eq('auth_user_id', user.id)
+        .single()
+      if (!ownCustomer || ownCustomer.id !== customer_id) {
+        return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
       }
 
       const { data: redeemResult, error: redeemError } = await admin

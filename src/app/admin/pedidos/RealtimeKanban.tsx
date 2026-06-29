@@ -61,19 +61,41 @@ export default function RealtimeKanban({ initialOrders }: { initialOrders: Order
           const updated = payload.new as { id: string; status: string }
           const kanbanStatuses = ['new', 'accepted', 'preparing', 'ready']
           if (kanbanStatuses.includes(updated.status)) {
-            // Update just this order in local state — no fetch needed
             setOrders((prev) =>
               prev.map((o) => o.id === updated.id ? { ...o, status: updated.status } : o)
             )
           } else {
-            // delivered / cancelled — remove from kanban
             setOrders((prev) => prev.filter((o) => o.id !== updated.id))
           }
         }
       )
       .subscribe()
 
-    return () => { supabase.removeChannel(channel) }
+    // Polling de respaldo cada 15s por si Realtime falla
+    const prevCountRef = { current: 0 }
+    const poll = setInterval(async () => {
+      const supabasePoll = createClient()
+      const { data } = await supabasePoll
+        .from('orders')
+        .select('*, order_items(product_name, quantity, notes)')
+        .in('status', ['new', 'accepted', 'preparing', 'ready'])
+        .order('created_at', { ascending: true })
+      if (data) {
+        const newCount = data.filter((o) => o.status === 'new').length
+        if (newCount > prevCountRef.current) {
+          playBeep()
+          setAlert(true)
+          setTimeout(() => setAlert(false), 4000)
+        }
+        prevCountRef.current = newCount
+        setOrders(data as Order[])
+      }
+    }, 15000)
+
+    return () => {
+      supabase.removeChannel(channel)
+      clearInterval(poll)
+    }
   }, [fetchOrders])
 
   return (

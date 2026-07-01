@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import Script from 'next/script'
 import Link from 'next/link'
 import DoggoLogo from '@/components/ui/DoggoLogo'
+import { formatPrice } from '@/lib/utils'
 
 const DATAFAST_BASE_URL = process.env.NEXT_PUBLIC_DATAFAST_BASE_URL ?? 'https://test.oppwa.com'
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ''
@@ -14,6 +15,7 @@ function PagoContent() {
   const orderId       = searchParams.get('orderId')
 
   const [checkoutId, setCheckoutId] = useState<string | null>(null)
+  const [total, setTotal]           = useState<number | null>(null)
   const [error, setError]           = useState<string | null>(null)
   const [loading, setLoading]       = useState(true)
   const [widgetReady, setWidgetReady] = useState(false)
@@ -28,8 +30,12 @@ function PagoContent() {
     })
       .then((r) => r.json())
       .then((data) => {
-        if (data.checkoutId) setCheckoutId(data.checkoutId)
-        else setError(data.error ?? 'No se pudo iniciar el pago')
+        if (data.checkoutId) {
+          setCheckoutId(data.checkoutId)
+          if (data.total) setTotal(data.total)
+        } else {
+          setError(data.error ?? 'No se pudo iniciar el pago')
+        }
       })
       .catch(() => setError('Error de conexión'))
       .finally(() => setLoading(false))
@@ -52,6 +58,14 @@ function PagoContent() {
 
   return (
     <div className="px-4 py-6 max-w-sm mx-auto">
+      {/* Monto a pagar */}
+      {total && (
+        <div className="bg-doggo-yellow/10 border border-doggo-yellow/30 rounded-2xl px-5 py-4 mb-5 text-center">
+          <p className="text-gray-500 text-xs font-semibold uppercase tracking-wide mb-1">Total a pagar</p>
+          <p className="text-doggo-dark font-black text-3xl">{formatPrice(total)}</p>
+        </div>
+      )}
+
       {/* Sello de seguridad */}
       <div className="flex items-center justify-center gap-2 mb-6">
         <span className="text-green-500">🔒</span>
@@ -120,10 +134,10 @@ function PagoContent() {
       )}
 
       {/* Link de vuelta */}
-      {!loading && !error && (
+      {!loading && !error && orderId && (
         <p className="text-center mt-6">
-          <Link href="/carrito" className="text-gray-400 text-xs">
-            ← Volver al carrito
+          <Link href={`/pedido/${orderId}`} className="text-gray-400 text-xs">
+            ← Ver estado del pedido
           </Link>
         </p>
       )}

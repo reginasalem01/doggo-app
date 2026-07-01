@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
       { onConflict: 'order_id' }
     )
 
-    return NextResponse.json({ checkoutId: json.id })
+    return NextResponse.json({ checkoutId: json.id, total })
   } catch (err) {
     console.error('[payments/create] error:', err)
     return NextResponse.json({ error: 'Error interno' }, { status: 500 })

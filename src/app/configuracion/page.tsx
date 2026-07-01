@@ -214,6 +214,27 @@ export default function ConfiguracionPage() {
           </Link>
         </div>
 
+        {/* Contáctanos */}
+        <div className="bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden">
+          <p className="text-gray-500 text-xs font-semibold uppercase tracking-wide px-5 pt-4 pb-2">Contáctanos</p>
+          <a
+            href="https://wa.me/593XXXXXXXXX"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-between px-5 py-4 border-t border-gray-200 active:bg-gray-100"
+          >
+            <span className="text-gray-900 text-sm font-semibold">💬 WhatsApp</span>
+            <span className="text-gray-400 text-lg">›</span>
+          </a>
+          <a
+            href="tel:+593XXXXXXXXX"
+            className="flex items-center justify-between px-5 py-4 border-t border-gray-200 active:bg-gray-100"
+          >
+            <span className="text-gray-900 text-sm font-semibold">📞 Llamar</span>
+            <span className="text-gray-400 text-lg">›</span>
+          </a>
+        </div>
+
         {/* Cerrar sesión */}
         <button
           onClick={handleLogout}

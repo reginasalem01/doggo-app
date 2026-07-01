@@ -197,6 +197,40 @@ export default async function Home() {
         </div>
       )}
 
+      {/* ── CONTÁCTANOS ──────────────────────────────────── */}
+      <div className="px-4 mb-6">
+        <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
+          <p className="text-gray-900 font-black text-sm mb-3">¿Necesitas ayuda?</p>
+          <div className="space-y-2">
+            <a
+              href="https://wa.me/593XXXXXXXXX"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 bg-green-50 border border-green-100 rounded-xl px-4 py-3 active:bg-green-100 transition-colors"
+            >
+              <span className="text-xl">💬</span>
+              <div>
+                <p className="text-gray-900 font-bold text-sm">WhatsApp</p>
+                <p className="text-gray-500 text-xs">Escríbenos al +593 XX XXX XXXX</p>
+              </div>
+              <span className="ml-auto text-gray-400 text-lg">›</span>
+            </a>
+            <a
+              href="tel:+593XXXXXXXXX"
+              className="flex items-center gap-3 bg-gray-100 rounded-xl px-4 py-3 active:bg-gray-200 transition-colors"
+            >
+              <span className="text-xl">📞</span>
+              <div>
+                <p className="text-gray-900 font-bold text-sm">Llamar</p>
+                <p className="text-gray-500 text-xs">+593 XX XXX XXXX</p>
+              </div>
+              <span className="ml-auto text-gray-400 text-lg">›</span>
+            </a>
+          </div>
+          <p className="text-gray-400 text-xs mt-3 text-center">📍 Plaza Guayarte · Guayaquil</p>
+        </div>
+      </div>
+
     </div>
   )
 }

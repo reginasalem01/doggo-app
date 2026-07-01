@@ -16,11 +16,10 @@ type MyReservation = {
   notes: string | null
 }
 
+// Deben coincidir con VALID_TIMES del servidor (horario almuerzo + cena)
 const HOURS = [
-  '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
-  '14:00', '14:30', '15:00', '15:30', '16:00', '16:30',
-  '17:00', '17:30', '18:00', '18:30', '19:00', '19:30',
-  '20:00', '20:30', '21:00',
+  '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
+  '19:00', '19:30', '20:00', '20:30', '21:00', '21:30',
 ]
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
@@ -97,6 +96,7 @@ export default function ReservasPage() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          phone: phone.trim(),
           reservation_date: editDate,
           reservation_time: editTime + ':00',
           party_size: editPartySize,
@@ -109,6 +109,9 @@ export default function ReservasPage() {
             : r
         ))
         setEditingId(null)
+      } else {
+        const data = await res.json()
+        alert(data.error ?? 'No se pudo guardar el cambio')
       }
     } finally { setEditLoading(false) }
   }
@@ -120,11 +123,14 @@ export default function ReservasPage() {
       const res = await fetch(`/api/reservations/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'cancelled' }),
+        body: JSON.stringify({ status: 'cancelled', phone: phone.trim() }),
       })
       if (res.ok) {
         setReservations((prev) => prev.map((r) => r.id === id ? { ...r, status: 'cancelled' } : r))
         setEditingId(null)
+      } else {
+        const data = await res.json()
+        alert(data.error ?? 'No se pudo cancelar')
       }
     } finally { setEditLoading(false) }
   }

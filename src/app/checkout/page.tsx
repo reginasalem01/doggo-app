@@ -196,28 +196,8 @@ export default function CheckoutPage() {
         if (email.trim()) localStorage.setItem('doggo_checkout_email', email.trim())
       } catch {}
 
-      // Email de confirmación (si el cliente ingresó su email)
-      if (email.trim()) {
-        fetch('/api/email/confirmation', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: email.trim(),
-            customerName: name.trim(),
-            orderId: data.id,
-            items: items.map((i) => ({
-              product_name: i.product.name,
-              quantity: i.quantity,
-              total: i.product.price * i.quantity,
-            })),
-            total,
-            deliveryType,
-            address: address.trim() || null,
-          }),
-        }).catch(() => {}) // fire-and-forget, no bloquear el flujo
-      }
-
-      router.push(`/pedido/${data.id}`)
+      // Email de confirmación se envía desde /api/payments/verify tras confirmar el pago
+      router.push(`/pago?orderId=${data.id}`)
     } catch (err) {
       setError((err as { message?: string })?.message ?? 'Hubo un error al crear tu pedido. Intenta de nuevo.')
     } finally {
@@ -454,7 +434,7 @@ export default function CheckoutPage() {
         </button>
 
         <p className="text-gray-400 text-xs text-center pb-2">
-          Al confirmar, se abrirá WhatsApp para notificar al local.
+          Al confirmar, el local recibirá tu pedido de inmediato.
         </p>
       </form>
     </div>

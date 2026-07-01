@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
         <!-- Header amarillo -->
         <tr>
           <td style="background:#FEC523;padding:28px 32px;text-align:center;">
-            <img src="https://doggo-app.vercel.app/logo-circle.png" alt="Doggo" width="80" height="80" style="border-radius:50%;display:block;margin:0 auto 12px;" />
+            <img src="https://khcrenvrlfhyojbzvyyr.supabase.co/storage/v1/object/public/images/brand/LOGO%20CIRCULAR%20SIN%20FONDO.png" alt="Doggo" width="80" height="80" style="border-radius:50%;display:block;margin:0 auto 12px;" />
             <h1 style="margin:0;font-size:22px;font-weight:900;color:#1a1a1a;">¡Pedido confirmado!</h1>
             <p style="margin:6px 0 0;font-size:14px;color:#1a1a1a;opacity:0.7;">Hotdog sin dramas 🌭</p>
           </td>

@@ -137,7 +137,7 @@ function PagoContent() {
       {!loading && !error && orderId && (
         <p className="text-center mt-6">
           <Link href={`/pedido/${orderId}`} className="text-gray-400 text-xs">
-            ← Ver estado del pedido
+            ← Ver resumen del pedido
           </Link>
         </p>
       )}

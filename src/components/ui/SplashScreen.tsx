@@ -26,7 +26,7 @@ export default function SplashScreen() {
       style={{ opacity: fading ? 0 : 1, backgroundColor: '#FDC423' }}
     >
       <Image
-        src="/logo-circle.png"
+        src="/logo-transparent.png"
         alt="Doggo"
         width={320}
         height={320}

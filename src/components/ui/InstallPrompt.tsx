@@ -4,23 +4,18 @@ import { useEffect, useState } from 'react'
 
 export default function InstallPrompt() {
   const [showAndroid, setShowAndroid] = useState(false)
-  const [showIOS, setShowIOS] = useState(false)
+  const [showIOS, setShowIOS]         = useState(false)
   const [deferredPrompt, setDeferredPrompt] = useState<Event & { prompt: () => void } | null>(null)
-  const [dismissed, setDismissed] = useState(false)
+  const [dismissed, setDismissed]     = useState(false)
 
   useEffect(() => {
-    // Ya instalada → no mostrar
     if (window.matchMedia('(display-mode: standalone)').matches) return
-    // Ya descartada esta sesión
     if (sessionStorage.getItem('installDismissed')) return
 
-    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent)
+    const isIOS    = /iphone|ipad|ipod/i.test(navigator.userAgent)
     const isSafari = /safari/i.test(navigator.userAgent) && !/chrome/i.test(navigator.userAgent)
 
-    if (isIOS && isSafari) {
-      setShowIOS(true)
-      return
-    }
+    if (isIOS && isSafari) { setShowIOS(true); return }
 
     const handler = (e: Event) => {
       e.preventDefault()
@@ -44,49 +39,58 @@ export default function InstallPrompt() {
 
   if (dismissed || (!showAndroid && !showIOS)) return null
 
-  // ── ANDROID / CHROME ──────────────────────────────────────
+  // ── ANDROID / CHROME ──────────────────────────────────────────────────────
   if (showAndroid) {
     return (
-      <div className="fixed bottom-20 left-1/2 -translate-x-1/2 w-[calc(100%-32px)] max-w-[398px] z-[999] bg-white rounded-2xl shadow-xl border border-gray-100 px-4 py-3 flex items-center gap-3">
+      <div className="fixed bottom-20 left-1/2 -translate-x-1/2 w-[calc(100%-24px)] max-w-[420px] z-[999]
+                      bg-doggo-dark rounded-2xl shadow-2xl px-4 py-4 flex items-center gap-3">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/icon-192.png" alt="Doggo" className="w-11 h-11 rounded-xl shrink-0" />
+        <img src="/icon-192.png" alt="Doggo" className="w-14 h-14 rounded-2xl shrink-0 shadow-md" />
         <div className="flex-1 min-w-0">
-          <p className="text-gray-900 font-black text-sm leading-tight">Instala Doggo</p>
-          <p className="text-gray-400 text-xs">Accede directo sin abrir el browser</p>
+          <p className="text-white font-black text-base leading-tight">¡Descarga la app!</p>
+          <p className="text-white/60 text-xs mt-0.5">Sin App Store · en tu pantalla de inicio</p>
         </div>
         <button
           onClick={install}
-          className="bg-doggo-yellow text-doggo-dark font-black text-xs px-4 py-2 rounded-xl shrink-0"
+          className="bg-doggo-yellow text-doggo-dark font-black text-sm px-4 py-2.5 rounded-xl shrink-0"
         >
           Instalar
         </button>
-        <button onClick={dismiss} className="text-gray-300 text-lg leading-none shrink-0">×</button>
+        <button onClick={dismiss} className="text-white/30 text-2xl leading-none shrink-0 pl-1">×</button>
       </div>
     )
   }
 
-  // ── iOS / SAFARI ──────────────────────────────────────────
+  // ── iOS / SAFARI ──────────────────────────────────────────────────────────
   return (
-    <div className="fixed bottom-20 left-1/2 -translate-x-1/2 w-[calc(100%-32px)] max-w-[398px] z-[999] bg-white rounded-2xl shadow-xl border border-gray-100 px-4 py-4">
-      <div className="flex items-start justify-between mb-3">
+    <div className="fixed bottom-20 left-1/2 -translate-x-1/2 w-[calc(100%-24px)] max-w-[420px] z-[999]
+                    bg-doggo-dark rounded-2xl shadow-2xl px-5 py-4">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icon-192.png" alt="Doggo" className="w-11 h-11 rounded-xl shrink-0" />
+          <img src="/icon-192.png" alt="Doggo" className="w-14 h-14 rounded-2xl shrink-0 shadow-md" />
           <div>
-            <p className="text-gray-900 font-black text-sm">Instala Doggo</p>
-            <p className="text-gray-400 text-xs">Accede directo desde tu pantalla</p>
+            <p className="text-white font-black text-base leading-tight">¡Descarga la app!</p>
+            <p className="text-white/60 text-xs mt-0.5">Sin App Store · gratis</p>
           </div>
         </div>
-        <button onClick={dismiss} className="text-gray-300 text-xl leading-none">×</button>
+        <button onClick={dismiss} className="text-white/30 text-2xl leading-none pl-2">×</button>
       </div>
+
+      {/* Pasos */}
       <div className="space-y-2">
-        <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-3 py-2">
-          <span className="text-xl shrink-0">📤</span>
-          <p className="text-gray-600 text-xs">Toca el botón de <strong>Compartir</strong> en Safari</p>
+        <div className="flex items-center gap-3 bg-white/10 rounded-xl px-3 py-2.5">
+          <span className="text-2xl shrink-0">📤</span>
+          <p className="text-white text-sm">
+            Toca <strong className="text-doggo-yellow">Compartir</strong> en Safari
+          </p>
         </div>
-        <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-3 py-2">
-          <span className="text-xl shrink-0">➕</span>
-          <p className="text-gray-600 text-xs">Selecciona <strong>"Agregar a pantalla de inicio"</strong></p>
+        <div className="flex items-center gap-3 bg-white/10 rounded-xl px-3 py-2.5">
+          <span className="text-2xl shrink-0">➕</span>
+          <p className="text-white text-sm">
+            Selecciona <strong className="text-doggo-yellow">"Agregar a inicio"</strong>
+          </p>
         </div>
       </div>
     </div>

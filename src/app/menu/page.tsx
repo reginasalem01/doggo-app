@@ -1,4 +1,10 @@
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
+
+export const metadata: Metadata = {
+  title: 'Menú · Doggo',
+  description: 'Explora nuestro menú de hot dogs, bebidas y más. Pide en línea y recibe en tu mesa o a domicilio.',
+}
 import MenuClient from './MenuClient'
 import type { Category, Product } from '@/types'
 

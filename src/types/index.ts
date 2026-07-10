@@ -12,7 +12,7 @@ export type PaymentStatus = 'pending' | 'paid' | 'failed'
 
 export type DeliveryType = 'pickup' | 'delivery' | 'dine_in'
 
-export type ReservationStatus = 'pending' | 'confirmed' | 'cancelled'
+export type ReservationStatus = 'pending' | 'confirmed' | 'cancelled' | 'modified'
 
 export type LoyaltyType = 'earned' | 'redeemed'
 
@@ -130,11 +130,3 @@ export interface CartItem {
   notes?: string
 }
 
-export interface CheckoutForm {
-  name: string
-  phone: string
-  email?: string
-  delivery_type: DeliveryType
-  address?: string
-  notes?: string
-}

@@ -10,7 +10,6 @@ export default function InstallPrompt() {
 
   useEffect(() => {
     if (window.matchMedia('(display-mode: standalone)').matches) return
-    if (sessionStorage.getItem('installDismissed')) return
 
     const isIOS    = /iphone|ipad|ipod/i.test(navigator.userAgent)
     const isSafari = /safari/i.test(navigator.userAgent) && !/chrome/i.test(navigator.userAgent)
@@ -27,7 +26,6 @@ export default function InstallPrompt() {
   }, [])
 
   function dismiss() {
-    sessionStorage.setItem('installDismissed', '1')
     setDismissed(true)
   }
 

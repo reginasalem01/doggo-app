@@ -23,6 +23,18 @@ function PagoContent() {
   useEffect(() => {
     if (!orderId) { setError('Pedido no encontrado'); setLoading(false); return }
 
+    // Reutilizar checkoutId si ya existe para este pedido (evita crear sesión nueva en cada recarga)
+    const cacheKey = `doggo_checkout_${orderId}`
+    try {
+      const cached = JSON.parse(sessionStorage.getItem(cacheKey) ?? 'null')
+      if (cached?.checkoutId && cached?.expiresAt > Date.now()) {
+        setCheckoutId(cached.checkoutId)
+        if (cached.total) setTotal(cached.total)
+        setLoading(false)
+        return
+      }
+    } catch {}
+
     fetch('/api/payments/create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -33,6 +45,14 @@ function PagoContent() {
         if (data.checkoutId) {
           setCheckoutId(data.checkoutId)
           if (data.total) setTotal(data.total)
+          // Cachear por 25 minutos (sesiones Datafast expiran en 30)
+          try {
+            sessionStorage.setItem(cacheKey, JSON.stringify({
+              checkoutId: data.checkoutId,
+              total: data.total,
+              expiresAt: Date.now() + 25 * 60 * 1000,
+            }))
+          } catch {}
         } else {
           setError(data.error ?? 'No se pudo iniciar el pago')
         }

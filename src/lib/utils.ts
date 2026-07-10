@@ -32,10 +32,6 @@ export function buildWhatsAppLink(message: string): string {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`
 }
 
-export function buildOrderWhatsAppMessage(orderNumber: string, items: string, total: string): string {
-  return `Hola Doggo 🌭\n\nNuevo pedido #${orderNumber}\n${items}\nTotal: ${total}`
-}
-
 export const ORDER_STATUS_LABELS: Record<string, string> = {
   new: 'Nuevo',
   accepted: 'Aceptado',

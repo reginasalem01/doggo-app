@@ -21,7 +21,7 @@ export async function PATCH(
   // Get order before updating (to check previous status)
   const { data: order } = await admin
     .from('orders')
-    .select('status, total, customer_name, customer_email, delivery_type, address, points_awarded, order_items(product_name, quantity)')
+    .select('status, total, customer_name, customer_email, delivery_type, address, points_awarded, payment_status, order_items(product_name, quantity)')
     .eq('id', id)
     .single()
 
@@ -32,8 +32,14 @@ export async function PATCH(
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // Enviar email de confirmación cuando el admin acepta el pedido
-  if (status === 'preparing' && order?.status === 'new' && order?.customer_email) {
+  // Enviar email de confirmación cuando el admin acepta el pedido.
+  // Se dispara en dos casos:
+  //   1. new → accepted  (flujo normal del Kanban)
+  //   2. new → preparing  (admin se saltó accepted)
+  const isFirstAcceptance =
+    (status === 'accepted' && order?.status === 'new') ||
+    (status === 'preparing' && order?.status === 'new')
+  if (isFirstAcceptance && order?.customer_email) {
     const shortId = '#' + id.slice(0, 4).toUpperCase()
     const items = (order.order_items as { product_name: string; quantity: number }[]) ?? []
     const itemsHtml = items
@@ -78,9 +84,9 @@ export async function PATCH(
     })
   }
 
-  // Auto-award points when order is delivered
+  // Auto-award points when order is delivered AND paid
   // Update condicional atómico: solo continúa si points_awarded era false (previene doble entrega)
-  if (status === 'delivered' && !order?.points_awarded && order?.customer_email) {
+  if (status === 'delivered' && !order?.points_awarded && order?.payment_status === 'paid' && order?.customer_email) {
     const { data: claimed, error: claimError } = await admin
       .from('orders')
       .update({ points_awarded: true })

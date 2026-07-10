@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       .getPublicUrl(fileName)
 
     return NextResponse.json({ url: publicUrl })
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Error interno' }, { status: 500 })
   }
 }

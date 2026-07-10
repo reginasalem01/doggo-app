@@ -1,4 +1,10 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
+
+export const metadata: Metadata = {
+  title: 'Tu pedido · Doggo',
+  description: 'Sigue el estado de tu pedido en tiempo real.',
+}
 import { createAdminClient } from '@/lib/supabase/admin'
 import { formatPrice, DELIVERY_LABELS } from '@/lib/utils'
 import type { Order, OrderItem } from '@/types'
@@ -58,7 +64,7 @@ export default async function PedidoPage({ params }: Props) {
   const isDelivery    = o.delivery_type === 'delivery'
   const isCancelled   = o.status === 'cancelled'
   const isDelivered   = o.status === 'delivered'
-  const paymentPending = (o as Order & { payment_status: string }).payment_status === 'pending'
+  const paymentPending = o.payment_status === 'pending'
 
   // Etiqueta del paso "Listo" cambia según tipo de entrega
   const steps = STEPS.map((s, i) =>

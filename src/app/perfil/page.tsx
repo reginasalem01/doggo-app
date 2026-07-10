@@ -1,4 +1,10 @@
+import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
+
+export const metadata: Metadata = {
+  title: 'Mi perfil · Doggo',
+  description: 'Consulta tus puntos, historial de pedidos y recompensas disponibles.',
+}
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { Customer, LoyaltyTransaction, Reward } from '@/types'

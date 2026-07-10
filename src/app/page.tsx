@@ -1,4 +1,10 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
+
+export const metadata: Metadata = {
+  title: 'Doggo · Hotdog sin dramas',
+  description: 'Pide en línea, gana puntos y reserva tu mesa. Los mejores hot dogs de Guayaquil en Plaza Guayarte.',
+}
 import CartIcon from '@/components/ui/CartIcon'
 import FeaturedProducts from '@/components/ui/FeaturedProducts'
 import ActiveOrderBanner from '@/components/ui/ActiveOrderBanner'

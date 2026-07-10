@@ -7,7 +7,15 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const { id } = await params
   const body = await request.json()
   const admin = createAdminClient()
-  const { data, error } = await admin.from('promotions').update(body).eq('id', id).select().single()
+  const allowed = {
+    ...(body.title       !== undefined && { title: body.title }),
+    ...(body.description !== undefined && { description: body.description }),
+    ...(body.image_url   !== undefined && { image_url: body.image_url }),
+    ...(body.active      !== undefined && { active: body.active }),
+    ...(body.starts_at   !== undefined && { starts_at: body.starts_at }),
+    ...(body.ends_at     !== undefined && { ends_at: body.ends_at }),
+  }
+  const { data, error } = await admin.from('promotions').update(allowed).eq('id', id).select().single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data)
 }

@@ -10,7 +10,16 @@ export async function PATCH(
   const { id } = await params
   const body = await request.json()
   const admin = createAdminClient()
-  const { error } = await admin.from('products').update(body).eq('id', id)
+  const allowed = {
+    ...(body.name        !== undefined && { name:        body.name }),
+    ...(body.description !== undefined && { description: body.description }),
+    ...(body.price       !== undefined && { price:       body.price }),
+    ...(body.category_id !== undefined && { category_id: body.category_id }),
+    ...(body.image_url   !== undefined && { image_url:   body.image_url }),
+    ...(body.available   !== undefined && { available:   body.available }),
+    ...(body.sort_order  !== undefined && { sort_order:  body.sort_order }),
+  }
+  const { error } = await admin.from('products').update(allowed).eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })
 }

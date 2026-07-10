@@ -70,9 +70,9 @@ export default async function Home() {
             >
               {/* Glow decoration */}
               <div className="absolute top-0 right-0 w-48 h-48 rounded-full opacity-10"
-                style={{ background: 'radial-gradient(circle, #FEC523 0%, transparent 70%)', transform: 'translate(30%, -30%)' }} />
+                style={{ background: 'radial-gradient(circle, #FDC423 0%, transparent 70%)', transform: 'translate(30%, -30%)' }} />
               <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full opacity-5"
-                style={{ background: 'radial-gradient(circle, #FEC523 0%, transparent 70%)', transform: 'translate(-30%, 30%)' }} />
+                style={{ background: 'radial-gradient(circle, #FDC423 0%, transparent 70%)', transform: 'translate(-30%, 30%)' }} />
 
               <div className="relative p-5">
                 {/* Top row: level + name */}
@@ -190,7 +190,7 @@ export default async function Home() {
           <div className="rounded-3xl overflow-hidden relative"
             style={{ background: 'linear-gradient(135deg, #1A1A1A 0%, #2d1a00 100%)' }}>
             <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-10"
-              style={{ background: 'radial-gradient(circle, #FEC523 0%, transparent 70%)', transform: 'translate(30%, -30%)' }} />
+              style={{ background: 'radial-gradient(circle, #FDC423 0%, transparent 70%)', transform: 'translate(30%, -30%)' }} />
             <div className="p-5 relative">
               <p className="text-white/60 text-xs font-semibold uppercase tracking-widest mb-1">Club Doggo</p>
               <p className="text-white font-black text-xl leading-tight mb-1">Gana puntos con<br />cada pedido</p>

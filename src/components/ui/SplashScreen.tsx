@@ -23,7 +23,7 @@ export default function SplashScreen() {
   return (
     <div
       className="fixed inset-0 z-[9999] flex flex-col items-center justify-center transition-opacity duration-500"
-      style={{ opacity: fading ? 0 : 1, backgroundColor: '#FEC523' }}
+      style={{ opacity: fading ? 0 : 1, backgroundColor: '#FDC423' }}
     >
       <Image
         src="/logo-circle.png"

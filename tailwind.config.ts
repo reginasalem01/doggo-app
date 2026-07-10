@@ -9,7 +9,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        'doggo-yellow':     '#FEC523',
+        'doggo-yellow':     '#FDC423',
         'doggo-red':        '#AA1126',
         'doggo-red-bright': '#ED0126',
         'doggo-dark':       '#1A1A1A',

@@ -80,18 +80,21 @@ export default function InstallPrompt() {
 
       {/* Pasos */}
       <div className="space-y-2">
-        <div className="flex items-center gap-3 bg-white/10 rounded-xl px-3 py-2.5">
-          <span className="text-2xl shrink-0">📤</span>
-          <p className="text-white text-sm">
-            Toca <strong className="text-doggo-yellow">Compartir</strong> en Safari
-          </p>
-        </div>
-        <div className="flex items-center gap-3 bg-white/10 rounded-xl px-3 py-2.5">
-          <span className="text-2xl shrink-0">➕</span>
-          <p className="text-white text-sm">
-            Selecciona <strong className="text-doggo-yellow">"Agregar a inicio"</strong>
-          </p>
-        </div>
+        {[
+          'Toca los <b>tres puntos</b> abajo a la derecha',
+          'Toca <b>Compartir</b>',
+          'Selecciona <b>"Agregar a inicio"</b>',
+        ].map((text, i) => (
+          <div key={i} className="flex items-center gap-3 bg-white/10 rounded-xl px-3 py-2.5">
+            <span className="w-6 h-6 rounded-full bg-doggo-yellow text-doggo-dark font-black text-xs flex items-center justify-center shrink-0">
+              {i + 1}
+            </span>
+            <p
+              className="text-white text-sm [&_b]:text-doggo-yellow [&_b]:font-bold"
+              dangerouslySetInnerHTML={{ __html: text }}
+            />
+          </div>
+        ))}
       </div>
     </div>
   )

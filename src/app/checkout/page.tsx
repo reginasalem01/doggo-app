@@ -236,8 +236,8 @@ export default function CheckoutPage() {
         {/* Tipo de entrega */}
         <div>
           <label className="text-gray-900 text-sm font-bold mb-2 block">¿Cómo quieres recibir tu pedido?</label>
-          <div className="grid grid-cols-2 gap-2">
-            {(['delivery', 'pickup'] as DeliveryType[]).map((type) => (
+          <div className="grid grid-cols-3 gap-2">
+            {(['delivery', 'pickup', 'dine_in'] as DeliveryType[]).map((type) => (
               <button
                 key={type}
                 type="button"
@@ -346,19 +346,19 @@ export default function CheckoutPage() {
           </div>
         )}
 
-        {/* Instrucciones de entrega — solo domicilio */}
-        {deliveryType === 'delivery' && (
-          <div>
-            <label className="text-gray-900 text-sm font-bold block mb-2">Instrucciones de entrega (opcional)</label>
-            <textarea
-              placeholder="Piso, apartamento, cómo llegar, referencias..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={2}
-              className="w-full bg-white border border-gray-200 text-gray-900 placeholder-gray-400 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 resize-none"
-            />
-          </div>
-        )}
+        {/* Instrucciones / notas — siempre visible */}
+        <div>
+          <label className="text-gray-900 text-sm font-bold block mb-2">
+            {deliveryType === 'delivery' ? 'Instrucciones de entrega (opcional)' : 'Notas adicionales (opcional)'}
+          </label>
+          <textarea
+            placeholder={deliveryType === 'delivery' ? 'Piso, apartamento, cómo llegar, referencias...' : 'Alergias, preferencias, peticiones especiales...'}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={2}
+            className="w-full bg-white border border-gray-200 text-gray-900 placeholder-gray-400 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 resize-none"
+          />
+        </div>
 
         {/* Premios de fidelización */}
         {customerData && customerData.rewards.length > 0 && (

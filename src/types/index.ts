@@ -52,6 +52,7 @@ export interface Order {
   total: number
   status: OrderStatus
   payment_status: PaymentStatus
+  points_awarded: boolean
   created_at: string
   // joined
   items?: OrderItem[]

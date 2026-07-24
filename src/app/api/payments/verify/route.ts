@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-const DATAFAST_BASE_URL = process.env.DATAFAST_BASE_URL ?? 'https://test.oppwa.com'
-const ENTITY_ID = process.env.DATAFAST_ENTITY_ID ?? '8a829418533cf31d01533d06f2ee06fa'
-const BEARER = process.env.DATAFAST_BEARER_TOKEN ?? 'OGE4Mjk0MTg1MzNjZjMxZDAxNTMzZDA2ZmQwNDA3NDh8WHQ3RjIyUUVOWA=='
+const DATAFAST_BASE_URL = process.env.DATAFAST_BASE_URL ?? ''
+const ENTITY_ID        = process.env.DATAFAST_ENTITY_ID ?? ''
+const BEARER           = process.env.DATAFAST_BEARER_TOKEN ?? ''
 
 /**
  * Códigos de aprobación Datafast:
@@ -16,6 +16,9 @@ function isApproved(code: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
+  if (!DATAFAST_BASE_URL || !ENTITY_ID || !BEARER) {
+    return NextResponse.json({ error: 'Proveedor de pagos no configurado' }, { status: 503 })
+  }
   try {
     const { orderId, resourcePath } = await req.json()
 

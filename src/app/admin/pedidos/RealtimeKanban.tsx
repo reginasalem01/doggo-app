@@ -72,7 +72,8 @@ export default function RealtimeKanban({ initialOrders }: { initialOrders: Order
       .subscribe()
 
     // Polling de respaldo cada 15s por si Realtime falla
-    const prevCountRef = { current: 0 }
+    // Inicializar con el conteo actual para evitar falso-positivo en el primer poll
+    const prevCountRef = { current: orders.filter((o) => o.status === 'new').length }
     const poll = setInterval(async () => {
       const supabasePoll = createClient()
       const { data } = await supabasePoll

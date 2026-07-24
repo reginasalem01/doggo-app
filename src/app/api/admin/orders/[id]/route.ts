@@ -50,7 +50,7 @@ export async function PATCH(
       order.delivery_type === 'pickup' ? '🏃 Retiro en local' : '🪑 Consumo en local'
 
     await resend.emails.send({
-      from: 'Doggo <noreply@doggo.com.ec>',
+      from: process.env.RESEND_FROM_EMAIL ?? 'Doggo <noreply@doggo.com.ec>',
       to: order.customer_email,
       subject: `✅ Tu pedido ${shortId} fue aceptado`,
       html: `

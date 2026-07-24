@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { resend } from '@/lib/resend'
 
 const DELIVERY_LABELS: Record<string, string> = {
   delivery: '🛵 Domicilio',
@@ -112,24 +113,16 @@ export async function POST(req: NextRequest) {
 </body>
 </html>`
 
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      from: process.env.RESEND_FROM_EMAIL ?? 'Doggo <onboarding@resend.dev>',
-      to: email,
-      subject: `Tu pedido #${shortId} está confirmado 🌭`,
-      html,
-    }),
+  const { error: sendError } = await resend.emails.send({
+    from: process.env.RESEND_FROM_EMAIL ?? 'Doggo <onboarding@resend.dev>',
+    to: email,
+    subject: `Tu pedido #${shortId} está confirmado 🌭`,
+    html,
   })
 
-  if (!res.ok) {
-    const err = await res.json()
-    console.error('Resend error:', err)
-    return NextResponse.json({ error: err }, { status: 500 })
+  if (sendError) {
+    console.error('Resend error:', sendError)
+    return NextResponse.json({ error: sendError }, { status: 500 })
   }
 
   return NextResponse.json({ ok: true })

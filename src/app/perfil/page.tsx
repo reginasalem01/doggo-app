@@ -253,6 +253,11 @@ export default async function PerfilPage() {
           </div>
         )}
 
+        {/* Logout */}
+        <div className="pt-2 pb-4">
+          <LogoutButton />
+        </div>
+
       </div>
     </div>
   )

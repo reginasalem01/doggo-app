@@ -8,6 +8,8 @@ type Reward = {
   name: string
   description: string
   points_required: number
+  discount_type: 'percentage' | 'fixed' | 'none'
+  discount_value: number
   active: boolean
   expires_at: string
 }
@@ -20,6 +22,8 @@ export default function RewardForm({ reward }: { reward?: Reward }) {
     name: reward?.name ?? '',
     description: reward?.description ?? '',
     points_required: reward?.points_required ?? 100,
+    discount_type: (reward as Reward & { discount_type?: Reward['discount_type'] })?.discount_type ?? 'none',
+    discount_value: (reward as Reward & { discount_value?: number })?.discount_value ?? 0,
     active: reward?.active ?? true,
     expires_at: reward?.expires_at ?? '',
   })
@@ -41,6 +45,8 @@ export default function RewardForm({ reward }: { reward?: Reward }) {
       name: form.name.trim(),
       description: form.description.trim() || null,
       points_required: form.points_required,
+      discount_type: form.discount_type === 'none' ? null : form.discount_type,
+      discount_value: form.discount_type !== 'none' && form.discount_value > 0 ? form.discount_value : null,
       active: form.active,
       expires_at: form.expires_at || null,
     }
@@ -109,6 +115,42 @@ export default function RewardForm({ reward }: { reward?: Reward }) {
           className="w-full bg-transparent text-gray-900 outline-none text-sm"
         />
         <p className="text-gray-400 text-xs mt-1">1 punto = $1 gastado</p>
+      </div>
+
+      {/* Descuento */}
+      <div className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3">
+        <label className="text-gray-500 text-xs uppercase tracking-wide block mb-2">Tipo de descuento</label>
+        <div className="grid grid-cols-3 gap-1.5 mb-3">
+          {(['none', 'percentage', 'fixed'] as const).map((type) => (
+            <button
+              key={type}
+              type="button"
+              onClick={() => set('discount_type', type)}
+              className={`py-2 rounded-xl text-xs font-bold transition-colors ${
+                form.discount_type === type ? 'bg-doggo-yellow text-doggo-dark' : 'bg-gray-200 text-gray-600'
+              }`}
+            >
+              {type === 'none' ? 'Sin descuento' : type === 'percentage' ? '% Porcentaje' : '$ Valor fijo'}
+            </button>
+          ))}
+        </div>
+        {form.discount_type !== 'none' && (
+          <div>
+            <label className="text-gray-500 text-xs uppercase tracking-wide block mb-1">
+              {form.discount_type === 'percentage' ? 'Porcentaje (%)' : 'Valor ($)'}
+            </label>
+            <input
+              type="number"
+              min={0}
+              max={form.discount_type === 'percentage' ? 100 : undefined}
+              step={form.discount_type === 'percentage' ? 1 : 0.01}
+              value={form.discount_value}
+              onChange={(e) => set('discount_value', parseFloat(e.target.value) || 0)}
+              placeholder={form.discount_type === 'percentage' ? 'Ej: 10 (10%)' : 'Ej: 2.50'}
+              className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40"
+            />
+          </div>
+        )}
       </div>
 
       {/* Expires at */}

@@ -97,13 +97,14 @@ export default function LoginPage() {
       <div className="flex-1 px-4 py-6">
         {/* Logo */}
         <div className="text-center mb-8">
-          <img
-            src={LOGO_URL}
-            alt="Doggo"
-            width={80}
-            height={80}
-            className="mx-auto mb-2"
-          />
+          <div className="w-24 h-24 rounded-full bg-doggo-yellow flex items-center justify-center mx-auto mb-2">
+            <img
+              src={LOGO_URL}
+              alt="Doggo"
+              width={80}
+              height={80}
+            />
+          </div>
           <p className="text-gray-500 text-sm">
             {mode === 'login' ? 'Accede para ver tus puntos y pedidos'
               : mode === 'register' ? 'Únete y empieza a acumular puntos'

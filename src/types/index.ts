@@ -97,6 +97,8 @@ export interface Reward {
   name: string
   description: string | null
   points_required: number
+  discount_type: 'percentage' | 'fixed' | 'none' | null
+  discount_value: number | null
   active: boolean
   expires_at: string | null
   created_at: string

@@ -54,9 +54,7 @@ export default function ReservasPage() {
 
   const sortRes = (data: MyReservation[]) => {
     const order: Record<string, number> = { pending: 0, modified: 0, confirmed: 1, cancelled: 2 }
-    return [...data]
-      .filter((r) => !isPast(r))
-      .sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9))
+    return [...data].sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9))
   }
 
   useEffect(() => {
@@ -225,7 +223,10 @@ export default function ReservasPage() {
           ) : (
             /* Lista de reservas */
             <div className="space-y-3">
-              {reservations.map((r) => {
+              {reservations.filter((r) => !isPast(r)).length === 0 && reservations.length > 0 && (
+                <p className="text-gray-400 text-sm text-center py-4">No tienes reservas próximas.</p>
+              )}
+              {reservations.filter((r) => !isPast(r)).map((r) => {
                 const dateStr = new Date(r.reservation_date + 'T12:00:00').toLocaleDateString('es-EC', {
                   weekday: 'long', day: 'numeric', month: 'long',
                 })
@@ -307,6 +308,30 @@ export default function ReservasPage() {
                   </div>
                 )
               })}
+
+              {/* Historial: reservas pasadas */}
+              {reservations.filter((r) => isPast(r)).length > 0 && (
+                <div className="mt-4">
+                  <p className="text-gray-400 text-xs font-semibold uppercase tracking-wide mb-2">Historial</p>
+                  <div className="space-y-2 opacity-60">
+                    {reservations.filter((r) => isPast(r)).map((r) => {
+                      const dateStr = new Date(r.reservation_date + 'T12:00:00').toLocaleDateString('es-EC', {
+                        day: 'numeric', month: 'short', year: 'numeric',
+                      })
+                      const s = STATUS_CONFIG[r.status] ?? { label: r.status, color: 'bg-gray-100 text-gray-500', icon: '📋' }
+                      return (
+                        <div key={r.id} className="bg-gray-50 rounded-xl px-4 py-3 border border-gray-100 flex items-center justify-between">
+                          <div>
+                            <p className="text-gray-600 text-sm font-semibold">{dateStr} · {r.reservation_time.slice(0, 5)}</p>
+                            <p className="text-gray-400 text-xs">{r.party_size} {r.party_size === 1 ? 'persona' : 'personas'}</p>
+                          </div>
+                          <span className={`text-xs font-bold px-2 py-1 rounded-full ${s.color}`}>{s.icon} {s.label}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Botón nueva reserva al final de la lista */}
               <button

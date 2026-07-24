@@ -104,6 +104,10 @@ export async function PATCH(
         .eq('email', order.customer_email)
         .single()
 
+      if (!customer) {
+        console.error(`[points] No se encontró cliente con email "${order.customer_email}" para el pedido ${id}. Puntos no otorgados.`)
+      }
+
       if (customer) {
         const pointsToAdd = Math.floor(Number(order.total))
         if (pointsToAdd > 0) {

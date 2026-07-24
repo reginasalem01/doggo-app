@@ -24,6 +24,8 @@ export default async function EditRewardPage({
         name: reward.name,
         description: reward.description ?? '',
         points_required: reward.points_required,
+        discount_type: reward.discount_type ?? 'none',
+        discount_value: reward.discount_value ?? 0,
         active: reward.active,
         expires_at: reward.expires_at ?? '',
       }} />

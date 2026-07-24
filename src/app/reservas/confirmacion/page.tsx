@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
 import SaveReservationId from './SaveReservationId'
 
@@ -8,6 +9,8 @@ export default async function ReservaConfirmacionPage({
   searchParams: Promise<{ id?: string }>
 }) {
   const { id } = await searchParams
+
+  if (!id) redirect('/reservas')
 
   let reserva = null
   if (id) {

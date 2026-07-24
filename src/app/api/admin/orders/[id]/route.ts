@@ -56,7 +56,7 @@ export async function PATCH(
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
           <div style="background:#FFDD00;border-radius:16px;padding:24px;text-align:center;margin-bottom:24px">
-            <img src="https://khcrenvrlfhyojbzvyyr.supabase.co/storage/v1/object/public/images/brand/LOGO%20CIRCULAR%20SIN%20FONDO.png" alt="Doggo" width="100" height="100" style="display:block;margin:0 auto 12px" />
+            <img src="https://rasmalxjusrwpwbtoavs.supabase.co/storage/v1/object/public/images/brand/logo-transparent.png" alt="Doggo" width="100" height="100" style="display:block;margin:0 auto 12px" />
             <p style="margin:0;font-size:18px;font-weight:bold">¡Pedido confirmado!</p>
           </div>
 
@@ -86,7 +86,9 @@ export async function PATCH(
 
   // Auto-award points when order is delivered AND paid
   // Update condicional atómico: solo continúa si points_awarded era false (previene doble entrega)
-  if (status === 'delivered' && !order?.points_awarded && order?.payment_status === 'paid' && order?.customer_email) {
+  // Otorgar puntos al entregar — acepta 'paid' y 'pending' (modo pago manual)
+  if (status === 'delivered' && !order?.points_awarded && order?.customer_email &&
+      (order?.payment_status === 'paid' || order?.payment_status === 'pending')) {
     const { data: claimed, error: claimError } = await admin
       .from('orders')
       .update({ points_awarded: true })

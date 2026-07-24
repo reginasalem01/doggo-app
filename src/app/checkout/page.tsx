@@ -196,8 +196,27 @@ export default function CheckoutPage() {
         if (email.trim()) localStorage.setItem('doggo_checkout_email', email.trim())
       } catch {}
 
-      // Email de confirmación se envía desde /api/payments/verify tras confirmar el pago
-      router.push(`/pago?orderId=${data.id}`)
+      // Enviar email de confirmación
+      if (email.trim()) {
+        fetch('/api/email/confirmation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: email.trim(),
+            customerName: name.trim(),
+            orderId: data.id,
+            items: items.map((i) => ({
+              product_name: i.product.name,
+              quantity: i.quantity,
+              total: i.product.price * i.quantity,
+            })),
+            total,
+            deliveryType,
+            address: address.trim() || null,
+          }),
+        }).catch(() => {})
+      }
+      router.push(`/pedido/${data.id}`)
     } catch (err) {
       setError((err as { message?: string })?.message ?? 'Hubo un error al crear tu pedido. Intenta de nuevo.')
     } finally {

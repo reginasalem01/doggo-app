@@ -71,77 +71,7 @@ export default async function PedidoPage({ params }: Props) {
     i === 2 && isDelivery ? { ...s, label: 'En camino', icon: '🛵' } : s
   )
 
-  // ── Pago pendiente: mostrar resumen + botón para completar pago ──
-  if (paymentPending) {
-    return (
-      <div className="min-h-screen bg-white px-4 py-8 pb-24">
-        <div className="text-center mb-8">
-          <div className="text-5xl mb-3">💳</div>
-          <h1 className="text-gray-900 text-2xl font-black">Resumen del pedido</h1>
-          <p className="text-gray-500 text-sm mt-1">#{shortId} · Pendiente de pago</p>
-        </div>
-
-        {/* Detalle de items */}
-        <div className="bg-gray-50 rounded-2xl p-4 mb-4 border border-gray-200">
-          <p className="text-gray-900 font-bold text-sm mb-3">Tu pedido</p>
-          {(items as OrderItem[])?.map((item) => (
-            <div key={item.id} className="mb-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">{item.quantity}× {item.product_name}</span>
-                <span className="text-gray-900">{formatPrice(item.total)}</span>
-              </div>
-              {item.notes && (
-                <p className="text-gray-400 text-xs italic mt-0.5 pl-3">📝 {item.notes}</p>
-              )}
-            </div>
-          ))}
-          <div className="border-t border-gray-200 mt-3 pt-3 space-y-1 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-500">Subtotal</span>
-              <span className="text-gray-900">{formatPrice(o.subtotal)}</span>
-            </div>
-            {o.delivery_fee > 0 && (
-              <div className="flex justify-between">
-                <span className="text-gray-500">Envío</span>
-                <span className="text-gray-900">{formatPrice(o.delivery_fee)}</span>
-              </div>
-            )}
-            <div className="flex justify-between font-black pt-1">
-              <span className="text-gray-900">Total</span>
-              <span className="text-doggo-red">{formatPrice(o.total)}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Info entrega */}
-        {(o.address || o.delivery_type) && (
-          <div className="bg-gray-50 rounded-2xl p-4 mb-6 border border-gray-200">
-            <div className="flex justify-between text-sm mb-1">
-              <span className="text-gray-500">Tipo</span>
-              <span className="text-gray-900 font-semibold">{DELIVERY_LABELS[o.delivery_type] ?? o.delivery_type}</span>
-            </div>
-            {o.address && (
-              <div className="flex justify-between text-sm gap-4">
-                <span className="text-gray-500 shrink-0">Dirección</span>
-                <span className="text-gray-900 text-right">{o.address}</span>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* CTA de pago */}
-        <Link
-          href={`/pago?orderId=${o.id}`}
-          className="block w-full bg-doggo-yellow text-doggo-dark text-center font-black py-4 rounded-full text-base"
-        >
-          💳 Completar pago · {formatPrice(o.total)}
-        </Link>
-        <Link href="/menu" className="block w-full text-center text-gray-400 text-sm py-3 mt-1">
-          Cancelar y seguir viendo el menú
-        </Link>
-      </div>
-    )
-  }
+  // ── Pago pendiente: mostrar tracker con banner de pago en local ──
 
   return (
     <div className="min-h-screen bg-white px-4 py-6 pb-24">
@@ -200,6 +130,17 @@ export default async function PedidoPage({ params }: Props) {
             {o.status === 'ready' &&  isDelivery && '¡Tu pedido está en camino! 🛵'}
             {o.status === 'delivered' && '¡Gracias por tu pedido! Buen provecho 😋'}
           </p>
+        </div>
+      )}
+
+      {/* Pago pendiente (efectivo / transferencia) */}
+      {paymentPending && !isCancelled && (
+        <div className="bg-doggo-yellow/10 border border-doggo-yellow/30 rounded-2xl p-4 mb-4 flex items-center gap-3">
+          <span className="text-2xl">💵</span>
+          <div>
+            <p className="text-gray-900 font-bold text-sm">Pago al recibir</p>
+            <p className="text-gray-500 text-xs">Total a pagar: {formatPrice(o.total)}</p>
+          </div>
         </div>
       )}
 

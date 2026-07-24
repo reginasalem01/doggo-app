@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 
 type Mode = 'login' | 'register' | 'forgot'
 
-const LOGO_URL = 'https://khcrenvrlfhyojbzvyyr.supabase.co/storage/v1/object/public/images/brand/LOGO%20CIRCULAR%20SIN%20FONDO.png'
+const LOGO_URL = 'https://rasmalxjusrwpwbtoavs.supabase.co/storage/v1/object/public/images/brand/logo-transparent.png'
 
 export default function LoginPage() {
   const [mode, setMode] = useState<Mode>('login')

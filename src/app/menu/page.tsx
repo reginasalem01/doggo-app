@@ -23,13 +23,16 @@ export default async function MenuPage() {
   const supabase = await createClient()
   const admin = createAdminClient()
 
-  const [{ data: categories }, { data: products }, { data: settingsRows }] = await Promise.all([
+  const [{ data: categories }, { data: products }] = await Promise.all([
     supabase.from('categories').select('*').order('sort_order'),
     supabase.from('products').select('*').eq('available', true).order('sort_order'),
-    admin.from('business_settings').select('key, value').catch(() => ({ data: null })),
   ])
 
-  const s = Object.fromEntries(((settingsRows ?? []) as { key: string; value: string }[]).map((r) => [r.key, r.value]))
+  const { data: settingsRows } = await Promise.resolve(
+    admin.from('business_settings').select('key, value')
+  ).catch(() => ({ data: null }))
+
+  const s = Object.fromEntries(((settingsRows ?? []) as { key: string; value: string }[]).map((r: { key: string; value: string }) => [r.key, r.value]))
   const ordersEnabled = s['orders_enabled'] !== 'false'
   const openTime = s['orders_open_time'] ?? '11:00'
   const closeTime = s['orders_close_time'] ?? '19:00'

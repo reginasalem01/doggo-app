@@ -88,7 +88,7 @@ function ProductModal({
 
 export default function FeaturedProducts({ products }: { products: Product[] }) {
   const [selected, setSelected] = useState<Product | null>(null)
-  const { addItem } = useCartStore()
+  const { addItem, addCustomizedItem } = useCartStore()
 
   return (
     <>
@@ -121,8 +121,14 @@ export default function FeaturedProducts({ products }: { products: Product[] }) 
         <ProductModal
           product={selected}
           onClose={() => setSelected(null)}
-          onAdd={(_, qty) => {
-            addItem(selected, qty)
+          onAdd={(notes, qty) => {
+            if (notes?.trim()) {
+              addCustomizedItem(selected, qty, {
+                salsas: [], extras: [], paidToppings: [], extraPrice: 0, notes: notes.trim(),
+              })
+            } else {
+              addItem(selected, qty)
+            }
             setSelected(null)
           }}
         />

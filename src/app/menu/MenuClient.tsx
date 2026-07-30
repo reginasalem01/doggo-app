@@ -258,7 +258,14 @@ function ProductModal({
       }
       onAdd(customizations, qty)
     } else {
-      onAdd(null, qty)
+      // Pass notes even for non-hotdog items so kitchen gets the instructions
+      const notes = removeNotes.trim()
+      onAdd(
+        notes
+          ? { salsas: [], extras: [], paidToppings: [], extraPrice: 0, notes }
+          : null,
+        qty
+      )
     }
     setAdded(true)
   }

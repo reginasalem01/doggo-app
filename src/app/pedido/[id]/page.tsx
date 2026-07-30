@@ -43,7 +43,7 @@ export default async function PedidoPage({ params }: Props) {
 
   const { data: items } = await admin
     .from('order_items')
-    .select('id, product_name, quantity, unit_price, total, notes')
+    .select('id, product_name, quantity, unit_price, total, notes, customizations')
     .eq('order_id', id)
 
   if (!order) {
@@ -154,17 +154,36 @@ export default async function PedidoPage({ params }: Props) {
       {/* Detalle del pedido */}
       <div className="bg-gray-50 rounded-2xl p-4 mb-4 border border-gray-200">
         <p className="text-gray-900 font-bold text-sm mb-3">Tu pedido</p>
-        {(items as OrderItem[])?.map((item) => (
-          <div key={item.id} className="mb-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-500">{item.quantity}× {item.product_name}</span>
-              <span className="text-gray-900">{formatPrice(item.total)}</span>
+        {(items as (OrderItem & { customizations?: { salsas?: string[]; extras?: string[]; paidToppings?: string[]; notes?: string } | null })[])?.map((item) => {
+          const c = item.customizations
+          return (
+            <div key={item.id} className="mb-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">{item.quantity}× {item.product_name}</span>
+                <span className="text-gray-900">{formatPrice(item.total)}</span>
+              </div>
+              {c && (
+                <div className="pl-3 mt-0.5 space-y-0.5">
+                  {(c.salsas?.length ?? 0) > 0 && (
+                    <p className="text-green-600 text-xs">✓ {c.salsas!.join(', ')}</p>
+                  )}
+                  {(c.extras?.length ?? 0) > 0 && (
+                    <p className="text-green-600 text-xs">✓ {c.extras!.join(', ')}</p>
+                  )}
+                  {(c.paidToppings?.length ?? 0) > 0 && (
+                    <p className="text-doggo-red text-xs font-semibold">+ {c.paidToppings!.join(', ')}</p>
+                  )}
+                  {c.notes && (
+                    <p className="text-orange-500 text-xs italic">✂ {c.notes}</p>
+                  )}
+                </div>
+              )}
+              {!c && item.notes && (
+                <p className="text-gray-400 text-xs italic mt-0.5 pl-3">📝 {item.notes}</p>
+              )}
             </div>
-            {item.notes && (
-              <p className="text-gray-400 text-xs italic mt-0.5 pl-3">📝 {item.notes}</p>
-            )}
-          </div>
-        ))}
+          )
+        })}
         {o.notes && (
           <p className="text-gray-400 text-xs mt-2 pt-2 border-t border-gray-200">
             📝 {o.notes}

@@ -47,8 +47,8 @@ export default function ReservasPage() {
   const [editLoading, setEditLoading] = useState(false)
 
   function isPast(r: MyReservation) {
-    // Build a datetime from date + time and compare to now
-    const dt = new Date(`${r.reservation_date}T${r.reservation_time.slice(0, 5)}`)
+    // Parse as Ecuador time (UTC-5) to avoid timezone mismatches
+    const dt = new Date(`${r.reservation_date}T${r.reservation_time.slice(0, 5)}-05:00`)
     return dt < new Date()
   }
 
@@ -89,12 +89,14 @@ export default function ReservasPage() {
 
   async function handleSaveEdit(id: string) {
     setEditLoading(true)
+    // Use stored phone directly — not the form's phone state which may have been edited
+    const storedPhone = (() => { try { return localStorage.getItem('doggo_customer_phone') ?? '' } catch { return '' } })()
     try {
       const res = await fetch(`/api/reservations/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          phone: phone.trim(),
+          phone: storedPhone,
           reservation_date: editDate,
           reservation_time: editTime + ':00',
           party_size: editPartySize,
@@ -117,11 +119,12 @@ export default function ReservasPage() {
   async function handleCancelReservation(id: string) {
     if (!confirm('¿Cancelar esta reserva?')) return
     setEditLoading(true)
+    const storedPhone = (() => { try { return localStorage.getItem('doggo_customer_phone') ?? '' } catch { return '' } })()
     try {
       const res = await fetch(`/api/reservations/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'cancelled', phone: phone.trim() }),
+        body: JSON.stringify({ status: 'cancelled', phone: storedPhone }),
       })
       if (res.ok) {
         setReservations((prev) => prev.map((r) => r.id === id ? { ...r, status: 'cancelled' } : r))

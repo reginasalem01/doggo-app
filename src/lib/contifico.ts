@@ -113,15 +113,18 @@ function ecuadorDate(date: Date = new Date()): string {
 }
 
 function buildDetalles(items: CreateDocumentParams['detalles']) {
+  // DB prices are tax-inclusive (consumer-facing). Back-calculate base (pre-tax) price.
   const rate = ivaRate()
+  const divisor = rate > 0 ? 1 + rate / 100 : 1
   return items.map((item) => {
-    const precio = Math.round(item.precio_unitario * 100) / 100
-    const baseGravable = rate > 0 ? Math.round(precio * item.cantidad * 100) / 100 : 0
-    const baseCero = rate === 0 ? Math.round(precio * item.cantidad * 100) / 100 : 0
+    // precio_unitario from DB is tax-inclusive → convert to pre-tax base
+    const precioBase = Math.round((item.precio_unitario / divisor) * 100) / 100
+    const baseGravable = rate > 0 ? Math.round(precioBase * item.cantidad * 100) / 100 : 0
+    const baseCero = rate === 0 ? Math.round(precioBase * item.cantidad * 100) / 100 : 0
     return {
       producto_id: item.producto_id,
       cantidad: item.cantidad,
-      precio,
+      precio: precioBase,
       porcentaje_iva: rate,
       porcentaje_descuento: 0,
       base_cero: baseCero,
@@ -132,9 +135,14 @@ function buildDetalles(items: CreateDocumentParams['detalles']) {
 }
 
 function buildTotals(items: CreateDocumentParams['detalles']) {
+  // precio_unitario values are tax-inclusive; back-calculate base for totals
   const rate = ivaRate()
-  const subtotal = items.reduce((s, i) => s + Math.round(i.precio_unitario * i.cantidad * 100) / 100, 0)
-  const subtotalRounded = Math.round(subtotal * 100) / 100
+  const divisor = rate > 0 ? 1 + rate / 100 : 1
+  const subtotalBase = items.reduce((s, i) => {
+    const precioBase = Math.round((i.precio_unitario / divisor) * 100) / 100
+    return s + Math.round(precioBase * i.cantidad * 100) / 100
+  }, 0)
+  const subtotalRounded = Math.round(subtotalBase * 100) / 100
   const iva = rate > 0 ? Math.round(subtotalRounded * rate / 100 * 100) / 100 : 0
   return {
     subtotal_0: rate === 0 ? subtotalRounded : 0,

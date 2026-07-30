@@ -83,12 +83,13 @@ function OrderCard({ order, onOptimisticUpdate, onRefresh }: {
     setBusy(true)
     // Actualizar UI inmediatamente sin esperar la BD
     onOptimisticUpdate(order.id, action.next)
-    await fetch(`/api/admin/orders/${order.id}`, {
+    const res = await fetch(`/api/admin/orders/${order.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: action.next }),
     })
-    // Realtime se encarga de confirmar el cambio via postgres_changes UPDATE
+    // Si el update falló, hacer refresh para restaurar el estado real
+    if (!res.ok) onRefresh()
     setBusy(false)
   }
 

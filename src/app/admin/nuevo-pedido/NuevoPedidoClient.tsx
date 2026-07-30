@@ -166,17 +166,23 @@ export default function NuevoPedidoClient({
     if (!ticket) return
     setDelivering(true)
     try {
-      await fetch(`/api/admin/orders/${ticket.orderId}`, {
+      const res = await fetch(`/api/admin/orders/${ticket.orderId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'delivered' }),
       })
-    } catch {
-      // Non-blocking — order was already created, loyalty/Contífico will retry
-    } finally {
-      setDelivering(false)
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setCreateError(data.error ?? 'Error al marcar entregado. Intenta de nuevo.')
+        setDelivering(false)
+        return
+      }
       setDone(true)
       setTimeout(() => resetForm(), 2200)
+    } catch {
+      setCreateError('Error de red. Intenta de nuevo.')
+    } finally {
+      setDelivering(false)
     }
   }
 
@@ -270,6 +276,9 @@ export default function NuevoPedidoClient({
 
               {/* Confirm */}
               <div className="px-5 py-4 space-y-2">
+                {createError && (
+                  <p className="text-doggo-red text-xs text-center font-semibold">{createError}</p>
+                )}
                 <button
                   onClick={handleDeliver}
                   disabled={delivering}

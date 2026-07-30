@@ -212,7 +212,7 @@ export default function CheckoutPage() {
             items: items.map((i) => ({
               product_name: i.product.name,
               quantity: i.quantity,
-              total: i.product.price * i.quantity,
+              total: (i.product.price + (i.customizations?.extraPrice ?? 0)) * i.quantity,
             })),
             total,
             deliveryType,

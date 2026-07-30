@@ -24,17 +24,17 @@ export default async function Home() {
     admin.from('products').select('*').eq('available', true).order('sort_order').limit(6),
     admin.from('promotions').select('*').eq('active', true).or(`ends_at.is.null,ends_at.gte.${today}`).order('created_at', { ascending: false }).limit(3),
     user
-      ? admin.from('customers').select('id, name, points').eq('auth_user_id', user.id).single()
+      ? admin.from('customers').select('id, name, estrellas, doggo_cash').eq('auth_user_id', user.id).single()
       : Promise.resolve({ data: null }),
   ])
 
-  function getLevel(pts: number) {
-    if (pts >= 500) return { label: 'Oro', emoji: '🥇', next: null, nextAt: 500, prevAt: 500 }
-    if (pts >= 200) return { label: 'Plata', emoji: '🥈', next: 'Oro', nextAt: 500, prevAt: 200 }
-    return { label: 'Bronce', emoji: '🥉', next: 'Plata', nextAt: 200, prevAt: 0 }
+  function getLevel(stars: number) {
+    if (stars >= 50) return { label: 'Oro', emoji: '🥇', next: null, nextAt: 50, prevAt: 50 }
+    if (stars >= 20) return { label: 'Plata', emoji: '🥈', next: 'Oro', nextAt: 50, prevAt: 20 }
+    return { label: 'Bronce', emoji: '🥉', next: 'Plata', nextAt: 20, prevAt: 0 }
   }
 
-  const level = customer ? getLevel(customer.points) : null
+  const level = customer ? getLevel(customer.estrellas ?? 0) : null
 
   return (
     <div className="min-h-screen bg-white pb-24">
@@ -59,8 +59,10 @@ export default async function Home() {
 
       {/* ── LOYALTY CARD (if logged in) ───────────────────── */}
       {customer && level && (() => {
+        const estrellas = customer.estrellas ?? 0
+        const doggoCash = Number(customer.doggo_cash ?? 0)
         const progress = level.next
-          ? Math.min(((customer.points - level.prevAt) / (level.nextAt - level.prevAt)) * 100, 100)
+          ? Math.min(((estrellas - level.prevAt) / (level.nextAt - level.prevAt)) * 100, 100)
           : 100
         return (
           <div className="px-4 mb-6">
@@ -83,13 +85,21 @@ export default async function Home() {
                   <span className="text-white/50 text-xs font-medium">{customer.name.split(' ')[0]}</span>
                 </div>
 
-                {/* Points */}
-                <div className="mb-4">
-                  <p className="text-white/60 text-xs font-semibold uppercase tracking-widest mb-1">Tus puntos</p>
-                  <p className="text-doggo-yellow font-black leading-none" style={{ fontSize: '3rem' }}>
-                    {customer.points}
-                    <span className="text-white/40 text-lg font-normal ml-2">pts</span>
-                  </p>
+                {/* Stars + Doggo Cash */}
+                <div className="mb-4 flex items-end gap-4">
+                  <div>
+                    <p className="text-white/60 text-xs font-semibold uppercase tracking-widest mb-1">Estrellas</p>
+                    <p className="text-doggo-yellow font-black leading-none" style={{ fontSize: '3rem' }}>
+                      {estrellas}
+                      <span className="text-white/40 text-lg font-normal ml-2">⭐</span>
+                    </p>
+                  </div>
+                  {doggoCash > 0 && (
+                    <div className="mb-1">
+                      <p className="text-white/60 text-xs font-semibold uppercase tracking-widest mb-1">Doggo Cash</p>
+                      <p className="text-green-400 font-black text-2xl">${doggoCash.toFixed(2)}</p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Progress bar */}
@@ -97,7 +107,7 @@ export default async function Home() {
                   <div className="mb-5">
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="text-white/40 text-[10px]">{level.label}</span>
-                      <span className="text-white/40 text-[10px]">{level.nextAt - customer.points} pts para {level.next}</span>
+                      <span className="text-white/40 text-[10px]">{level.nextAt - estrellas} ⭐ para {level.next}</span>
                     </div>
                     <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
                       <div
@@ -110,8 +120,8 @@ export default async function Home() {
 
                 {/* Buttons */}
                 <div className="flex gap-2.5">
-                  <Link href="/puntos" className="flex-1 bg-doggo-yellow text-doggo-dark font-black text-sm py-3 rounded-2xl text-center flex items-center justify-center gap-2">
-                    <span>📲</span> Escanear
+                  <Link href="/perfil" className="flex-1 bg-doggo-yellow text-doggo-dark font-black text-sm py-3 rounded-2xl text-center flex items-center justify-center gap-2">
+                    <span>📲</span> Mi QR
                   </Link>
                   <Link href="/perfil" className="flex-1 bg-white/10 text-white font-bold text-sm py-3 rounded-2xl text-center">
                     Ver premios
@@ -193,8 +203,8 @@ export default async function Home() {
               style={{ background: 'radial-gradient(circle, #FDC423 0%, transparent 70%)', transform: 'translate(30%, -30%)' }} />
             <div className="p-5 relative">
               <p className="text-white/60 text-xs font-semibold uppercase tracking-widest mb-1">Club Doggo</p>
-              <p className="text-white font-black text-xl leading-tight mb-1">Gana puntos con<br />cada pedido</p>
-              <p className="text-white/50 text-xs mb-4">$1 = 1 punto · Canjea premios exclusivos</p>
+              <p className="text-white font-black text-xl leading-tight mb-1">Gana estrellas con<br />cada pedido</p>
+              <p className="text-white/50 text-xs mb-4">$5 = 1 ⭐ · Acumula Doggo Cash y canjea premios</p>
               <Link href="/login" className="inline-block bg-doggo-yellow text-doggo-dark font-black text-sm px-5 py-2.5 rounded-2xl">
                 Unirme gratis →
               </Link>

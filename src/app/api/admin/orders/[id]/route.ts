@@ -216,15 +216,18 @@ export async function PATCH(
           }
         : CONSUMIDOR_FINAL
 
-    // Atomic sequence counter stored in business_settings
+    // Atomic sequence counter — use RPC to avoid race conditions between concurrent deliveries
     let seq = 1
-    const { data: seqRow } = await admin
-      .from('business_settings')
-      .select('value')
-      .eq('key', 'contifico_sequence')
-      .single()
-    seq = parseInt(seqRow?.value ?? '0', 10) + 1
-    await admin.from('business_settings').upsert({ key: 'contifico_sequence', value: String(seq) })
+    const { data: seqData } = await admin.rpc('increment_contifico_sequence')
+    if (seqData !== null && seqData !== undefined) {
+      seq = Number(seqData)
+    } else {
+      // Fallback: non-atomic read (safe for low-volume, avoids breaking flow)
+      const { data: seqRow } = await admin
+        .from('business_settings').select('value').eq('key', 'contifico_sequence').single()
+      seq = parseInt(seqRow?.value ?? '0', 10) + 1
+      await admin.from('business_settings').upsert({ key: 'contifico_sequence', value: String(seq) })
+    }
     const now = new Date()
     const fecha = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`
 

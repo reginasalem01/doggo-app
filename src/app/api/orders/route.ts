@@ -179,9 +179,9 @@ export async function POST(request: Request) {
     if (orderError || !newOrder) {
       // Si falló la orden, restaurar el Doggo Cash al cliente
       if (doggoDiscount > 0 && customer_id) {
-        await admin.from('customers')
-          .update({ doggo_cash: doggoDiscount })
-          .eq('id', customer_id)
+        const { data: currentCust } = await admin.from('customers').select('doggo_cash').eq('id', customer_id).single()
+        const restoredBalance = Math.round((Number(currentCust?.doggo_cash ?? 0) + doggoDiscount) * 100) / 100
+        await admin.from('customers').update({ doggo_cash: restoredBalance }).eq('id', customer_id)
       }
       return NextResponse.json({ error: orderError?.message ?? 'Error creando pedido' }, { status: 500 })
     }
@@ -192,6 +192,12 @@ export async function POST(request: Request) {
 
     if (itemsError) {
       await admin.from('orders').delete().eq('id', newOrder.id)
+      // Restaurar Doggo Cash si falló el insert de items
+      if (doggoDiscount > 0 && customer_id) {
+        const { data: currentCust } = await admin.from('customers').select('doggo_cash').eq('id', customer_id).single()
+        const restoredBalance = Math.round((Number(currentCust?.doggo_cash ?? 0) + doggoDiscount) * 100) / 100
+        await admin.from('customers').update({ doggo_cash: restoredBalance }).eq('id', customer_id)
+      }
       return NextResponse.json({ error: itemsError.message }, { status: 500 })
     }
 

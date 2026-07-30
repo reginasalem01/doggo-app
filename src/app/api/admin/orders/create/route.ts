@@ -32,15 +32,34 @@ export async function POST(request: Request) {
     const product = priceMap[item.product_id]
     if (!product) return NextResponse.json({ error: 'Producto no encontrado' }, { status: 400 })
     if (!product.available) return NextResponse.json({ error: `"${product.name}" no disponible` }, { status: 400 })
-    const lineTotal = Math.round(product.price * item.quantity * 100) / 100
+
+    // Verify paid toppings server-side — always $1.25 each, never trust client
+    const paidToppings: string[] = Array.isArray(item.customizations?.paidToppings)
+      ? item.customizations.paidToppings
+      : []
+    const verifiedExtraPrice = parseFloat((paidToppings.length * 1.25).toFixed(2))
+    const verifiedUnitPrice = parseFloat((product.price + verifiedExtraPrice).toFixed(2))
+    const lineTotal = Math.round(verifiedUnitPrice * item.quantity * 100) / 100
     subtotal += lineTotal
+
+    const customizations = item.customizations
+      ? {
+          salsas: item.customizations.salsas ?? [],
+          extras: item.customizations.extras ?? [],
+          paidToppings,
+          extraPrice: verifiedExtraPrice,
+          notes: item.customizations.notes ?? '',
+        }
+      : null
+
     verifiedItems.push({
       product_id: item.product_id,
       product_name: product.name,
       quantity: item.quantity,
-      unit_price: product.price,
+      unit_price: verifiedUnitPrice,
       total: lineTotal,
-      notes: null,
+      notes: item.customizations?.notes ?? null,
+      customizations,
     })
   }
   subtotal = Math.round(subtotal * 100) / 100

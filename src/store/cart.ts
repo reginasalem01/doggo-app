@@ -1,12 +1,15 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { CartItem, Product } from '@/types'
+import { CartItem, ItemCustomization, Product } from '@/types'
 
 interface CartStore {
   items: CartItem[]
-  addItem: (product: Product, quantity?: number, notes?: string) => void
-  removeItem: (productId: string) => void
-  updateQuantity: (productId: string, quantity: number) => void
+  // Plain add — merges by product.id if no customizations
+  addItem: (product: Product, quantity?: number) => void
+  // Customized add — always creates a new cart entry with a unique ID
+  addCustomizedItem: (product: Product, quantity: number, customizations: ItemCustomization) => void
+  removeItem: (cartItemId: string) => void
+  updateQuantity: (cartItemId: string, quantity: number) => void
   clearCart: () => void
   subtotal: () => number
   totalItems: () => number
@@ -17,36 +20,53 @@ export const useCartStore = create<CartStore>()(
     (set, get) => ({
       items: [],
 
-      addItem: (product, quantity = 1, notes) => {
+      addItem: (product, quantity = 1) => {
         set((state) => {
-          const existing = state.items.find((i) => i.product.id === product.id)
+          const existing = state.items.find(
+            (i) => i.cartItemId === product.id && !i.customizations
+          )
           if (existing) {
             return {
               items: state.items.map((i) =>
-                i.product.id === product.id
+                i.cartItemId === product.id && !i.customizations
                   ? { ...i, quantity: i.quantity + quantity }
                   : i
               ),
             }
           }
-          return { items: [...state.items, { product, quantity, notes }] }
+          return {
+            items: [
+              ...state.items,
+              { cartItemId: product.id, product, quantity },
+            ],
+          }
         })
       },
 
-      removeItem: (productId) => {
+      addCustomizedItem: (product, quantity, customizations) => {
+        const cartItemId = crypto.randomUUID()
         set((state) => ({
-          items: state.items.filter((i) => i.product.id !== productId),
+          items: [
+            ...state.items,
+            { cartItemId, product, quantity, customizations },
+          ],
         }))
       },
 
-      updateQuantity: (productId, quantity) => {
+      removeItem: (cartItemId) => {
+        set((state) => ({
+          items: state.items.filter((i) => i.cartItemId !== cartItemId),
+        }))
+      },
+
+      updateQuantity: (cartItemId, quantity) => {
         if (quantity <= 0) {
-          get().removeItem(productId)
+          get().removeItem(cartItemId)
           return
         }
         set((state) => ({
           items: state.items.map((i) =>
-            i.product.id === productId ? { ...i, quantity } : i
+            i.cartItemId === cartItemId ? { ...i, quantity } : i
           ),
         }))
       },
@@ -54,7 +74,10 @@ export const useCartStore = create<CartStore>()(
       clearCart: () => set({ items: [] }),
 
       subtotal: () =>
-        get().items.reduce((sum, i) => sum + i.product.price * i.quantity, 0),
+        get().items.reduce((sum, i) => {
+          const extra = i.customizations?.extraPrice ?? 0
+          return sum + (i.product.price + extra) * i.quantity
+        }, 0),
 
       totalItems: () =>
         get().items.reduce((sum, i) => sum + i.quantity, 0),

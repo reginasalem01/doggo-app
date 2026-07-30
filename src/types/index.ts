@@ -127,11 +127,22 @@ export interface Payment {
   created_at: string
 }
 
+// ── Customization types ──────────────────────────────────────────
+
+export interface ItemCustomization {
+  salsas: string[]       // free salsas selected
+  extras: string[]       // free extras selected
+  paidToppings: string[] // paid topping names selected
+  extraPrice: number     // total extra cost from paid toppings
+  notes: string          // "quitar" or remove requests
+}
+
 // ── Cart / UI types ──────────────────────────────────────────────
 
 export interface CartItem {
+  cartItemId: string     // product.id for plain items; UUID for customized items
   product: Product
   quantity: number
-  notes?: string
+  customizations?: ItemCustomization
 }
 

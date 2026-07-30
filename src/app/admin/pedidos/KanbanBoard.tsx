@@ -3,7 +3,21 @@
 import { useState } from 'react'
 import Link from 'next/link'
 
-type OrderItem = { product_name: string; quantity: number; notes?: string | null }
+type ItemCustomization = {
+  salsas?: string[]
+  extras?: string[]
+  paidToppings?: string[]
+  extraPrice?: number
+  notes?: string
+}
+
+type OrderItem = {
+  product_name: string
+  quantity: number
+  unit_price?: number
+  notes?: string | null
+  customizations?: ItemCustomization | null
+}
 
 export type Order = {
   id: string
@@ -90,17 +104,38 @@ function OrderCard({ order, onOptimisticUpdate, onRefresh }: {
         <p className="text-gray-900 font-bold text-sm mb-0.5">{displayName}</p>
 
         {order.order_items.length > 0 && (
-          <div className="mb-1 space-y-0.5">
-            {order.order_items.map((item, i) => (
-              <div key={i}>
-                <p className="text-gray-500 text-xs leading-relaxed">
-                  {item.product_name} x{item.quantity}
-                </p>
-                {item.notes && (
-                  <p className="text-orange-400 text-xs italic pl-2">↳ {item.notes}</p>
-                )}
-              </div>
-            ))}
+          <div className="mb-1 space-y-1.5">
+            {order.order_items.map((item, i) => {
+              const c = item.customizations
+              return (
+                <div key={i}>
+                  <p className="text-gray-500 text-xs leading-relaxed font-semibold">
+                    {item.product_name} x{item.quantity}
+                  </p>
+                  {c && (
+                    <div className="pl-2 space-y-0.5 mt-0.5">
+                      {(c.salsas?.length ?? 0) > 0 && (
+                        <p className="text-green-600 text-[10px]">✓ {c.salsas!.join(', ')}</p>
+                      )}
+                      {(c.extras?.length ?? 0) > 0 && (
+                        <p className="text-green-600 text-[10px]">✓ {c.extras!.join(', ')}</p>
+                      )}
+                      {(c.paidToppings?.length ?? 0) > 0 && (
+                        <p className="text-doggo-red text-[10px] font-semibold">
+                          + {c.paidToppings!.join(', ')}
+                        </p>
+                      )}
+                      {c.notes && (
+                        <p className="text-orange-500 text-[10px] italic">✂ {c.notes}</p>
+                      )}
+                    </div>
+                  )}
+                  {!c && item.notes && (
+                    <p className="text-orange-400 text-xs italic pl-2">↳ {item.notes}</p>
+                  )}
+                </div>
+              )
+            })}
           </div>
         )}
 

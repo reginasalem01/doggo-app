@@ -36,49 +36,72 @@ export default function CarritoPage() {
 
       {/* Items */}
       <div className="px-4 py-4 pb-28 space-y-3">
-        {items.map((item) => (
-          <div key={item.product.id} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <p className="text-gray-900 font-bold text-sm">{item.product.name}</p>
-                {item.notes && (
-                  <p className="text-gray-400 text-xs mt-0.5 italic">📝 {item.notes}</p>
-                )}
-                <p className="text-doggo-red text-sm font-bold mt-1">
-                  {formatPrice(item.product.price * item.quantity)}
-                </p>
-                {item.quantity > 1 && (
-                  <p className="text-gray-400 text-xs">
-                    {formatPrice(item.product.price)} c/u
-                  </p>
-                )}
-              </div>
-              <button
-                onClick={() => removeItem(item.product.id)}
-                className="text-gray-400 text-lg leading-none p-1"
-              >
-                ✕
-              </button>
-            </div>
+        {items.map((item) => {
+          const extra = item.customizations?.extraPrice ?? 0
+          const unitPrice = item.product.price + extra
+          const lineTotal = unitPrice * item.quantity
+          const c = item.customizations
 
-            {/* Quantity controls */}
-            <div className="flex items-center gap-3 mt-3">
-              <button
-                onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                className="w-8 h-8 rounded-full bg-gray-100 text-gray-900 font-bold flex items-center justify-center text-lg"
-              >
-                −
-              </button>
-              <span className="text-gray-900 font-bold w-6 text-center">{item.quantity}</span>
-              <button
-                onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                className="w-8 h-8 rounded-full bg-doggo-yellow text-doggo-dark font-bold flex items-center justify-center text-lg"
-              >
-                +
-              </button>
+          return (
+            <div key={item.cartItemId} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="text-gray-900 font-bold text-sm">{item.product.name}</p>
+
+                  {/* Customizations summary */}
+                  {c && (
+                    <div className="mt-1 space-y-0.5">
+                      {c.salsas.length > 0 && (
+                        <p className="text-green-600 text-xs">✓ {c.salsas.join(', ')}</p>
+                      )}
+                      {c.extras.length > 0 && (
+                        <p className="text-green-600 text-xs">✓ {c.extras.join(', ')}</p>
+                      )}
+                      {c.paidToppings.length > 0 && (
+                        <p className="text-doggo-red text-xs font-semibold">
+                          + {c.paidToppings.join(', ')} (+{formatPrice(c.extraPrice)})
+                        </p>
+                      )}
+                      {c.notes && (
+                        <p className="text-gray-400 text-xs italic">📝 {c.notes}</p>
+                      )}
+                    </div>
+                  )}
+
+                  <p className="text-doggo-red text-sm font-bold mt-1.5">
+                    {formatPrice(lineTotal)}
+                  </p>
+                  {item.quantity > 1 && (
+                    <p className="text-gray-400 text-xs">{formatPrice(unitPrice)} c/u</p>
+                  )}
+                </div>
+                <button
+                  onClick={() => removeItem(item.cartItemId)}
+                  className="text-gray-400 text-lg leading-none p-1"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Quantity controls */}
+              <div className="flex items-center gap-3 mt-3">
+                <button
+                  onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
+                  className="w-8 h-8 rounded-full bg-gray-100 text-gray-900 font-bold flex items-center justify-center text-lg"
+                >
+                  −
+                </button>
+                <span className="text-gray-900 font-bold w-6 text-center">{item.quantity}</span>
+                <button
+                  onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
+                  className="w-8 h-8 rounded-full bg-doggo-yellow text-doggo-dark font-bold flex items-center justify-center text-lg"
+                >
+                  +
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
 
         {/* Add more */}
         <Link

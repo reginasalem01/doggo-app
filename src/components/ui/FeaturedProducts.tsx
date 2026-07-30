@@ -121,8 +121,8 @@ export default function FeaturedProducts({ products }: { products: Product[] }) 
         <ProductModal
           product={selected}
           onClose={() => setSelected(null)}
-          onAdd={(notes, qty) => {
-            addItem(selected, qty, notes || undefined)
+          onAdd={(_, qty) => {
+            addItem(selected, qty)
             setSelected(null)
           }}
         />

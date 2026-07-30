@@ -148,14 +148,26 @@ export default function CheckoutPage() {
             lat: lat ?? null,
             lng: lng ?? null,
           },
-          items: items.map((item) => ({
-            product_id: item.product.id,
-            product_name: item.product.name,
-            quantity: item.quantity,
-            unit_price: item.product.price,
-            total: item.product.price * item.quantity,
-            notes: item.notes ?? null,
-          })),
+          items: items.map((item) => {
+            const extra = item.customizations?.extraPrice ?? 0
+            const unitPrice = item.product.price + extra
+            return {
+              product_id: item.product.id,
+              product_name: item.product.name,
+              quantity: item.quantity,
+              unit_price: unitPrice,
+              total: unitPrice * item.quantity,
+              notes: item.customizations?.notes || null,
+              customizations: item.customizations
+                ? {
+                    salsas: item.customizations.salsas,
+                    extras: item.customizations.extras,
+                    paidToppings: item.customizations.paidToppings,
+                    extraPrice: item.customizations.extraPrice,
+                  }
+                : null,
+            }
+          }),
           doggo_cash_used: doggoToUse > 0 ? doggoToUse : undefined,
           customer_id: customerData?.customer.id ?? undefined,
         }),
@@ -388,17 +400,29 @@ export default function CheckoutPage() {
         {/* Resumen del pedido */}
         <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
           <p className="text-gray-900 font-bold text-sm mb-3">Resumen</p>
-          {items.map((item) => (
-            <div key={item.product.id} className="mb-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">{item.quantity}× {item.product.name}</span>
-                <span className="text-gray-900">{formatPrice(item.product.price * item.quantity)}</span>
+          {items.map((item) => {
+            const extra = item.customizations?.extraPrice ?? 0
+            const unitPrice = item.product.price + extra
+            const c = item.customizations
+            return (
+              <div key={item.cartItemId} className="mb-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">{item.quantity}× {item.product.name}</span>
+                  <span className="text-gray-900">{formatPrice(unitPrice * item.quantity)}</span>
+                </div>
+                {c && (
+                  <div className="mt-0.5 pl-3 space-y-0.5">
+                    {c.salsas.length > 0 && <p className="text-gray-400 text-xs">✓ {c.salsas.join(', ')}</p>}
+                    {c.extras.length > 0 && <p className="text-gray-400 text-xs">✓ {c.extras.join(', ')}</p>}
+                    {c.paidToppings.length > 0 && (
+                      <p className="text-doggo-red text-xs">+ {c.paidToppings.join(', ')}</p>
+                    )}
+                    {c.notes && <p className="text-gray-400 text-xs italic">📝 {c.notes}</p>}
+                  </div>
+                )}
               </div>
-              {item.notes && (
-                <p className="text-gray-400 text-xs italic mt-0.5 pl-3">📝 {item.notes}</p>
-              )}
-            </div>
-          ))}
+            )
+          })}
           <div className="border-t border-gray-200 mt-3 pt-3 space-y-1">
             <div className="flex justify-between text-sm">
               <span className="text-gray-500">Subtotal</span>

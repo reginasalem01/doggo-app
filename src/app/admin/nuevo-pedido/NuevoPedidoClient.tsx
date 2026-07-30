@@ -1,10 +1,31 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import {
+  HOTDOG_CATEGORY_NAMES,
+  FREE_SALSAS,
+  FREE_EXTRAS,
+  PAID_TOPPINGS,
+} from '@/lib/hotdog-options'
 
 interface Category { id: string; name: string; sort_order: number }
 interface Product  { id: string; name: string; price: number; category_id: string | null; image_url: string | null }
-interface OrderItem { product: Product; qty: number }
+
+interface ItemCustomization {
+  salsas: string[]
+  extras: string[]
+  paidToppings: string[]
+  extraPrice: number
+  notes: string
+}
+
+interface OrderItem {
+  cartItemId: string
+  product: Product
+  qty: number
+  customizations?: ItemCustomization
+}
+
 interface LinkedCustomer { id: string; name: string; estrellas: number; doggo_cash: number }
 
 interface TicketData {
@@ -34,16 +55,29 @@ export default function NuevoPedidoClient({
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
 
-  // Ticket state: shown after order is created, before confirming delivery
+  // Ticket state
   const [ticket, setTicket] = useState<TicketData | null>(null)
   const [delivering, setDelivering] = useState(false)
   const [done, setDone] = useState(false)
+
+  // Hotdog customization modal
+  const [customizingProduct, setCustomizingProduct] = useState<Product | null>(null)
+
+  // Hotdog category IDs
+  const hotdogCatIds = new Set(
+    categories
+      .filter((c) => HOTDOG_CATEGORY_NAMES.includes(c.name))
+      .map((c) => c.id)
+  )
 
   const filtered = activeCat
     ? products.filter((p) => p.category_id === activeCat)
     : products
 
-  const subtotal = items.reduce((sum, i) => sum + i.product.price * i.qty, 0)
+  const subtotal = items.reduce((sum, i) => {
+    const extra = i.customizations?.extraPrice ?? 0
+    return sum + (i.product.price + extra) * i.qty
+  }, 0)
   const availableDoggo = Number(linkedCustomer?.doggo_cash ?? 0)
   const doggoToUse = useDoggoGash && availableDoggo > 0
     ? Math.min(availableDoggo, subtotal)
@@ -63,16 +97,21 @@ export default function NuevoPedidoClient({
 
   function addItem(product: Product) {
     setItems((prev) => {
-      const existing = prev.find((i) => i.product.id === product.id)
-      if (existing) return prev.map((i) => i.product.id === product.id ? { ...i, qty: i.qty + 1 } : i)
-      return [...prev, { product, qty: 1 }]
+      const existing = prev.find((i) => i.cartItemId === product.id)
+      if (existing) return prev.map((i) => i.cartItemId === product.id ? { ...i, qty: i.qty + 1 } : i)
+      return [...prev, { cartItemId: product.id, product, qty: 1 }]
     })
   }
 
-  function changeQty(productId: string, delta: number) {
+  function addCustomizedItem(product: Product, customizations: ItemCustomization) {
+    const cartItemId = crypto.randomUUID()
+    setItems((prev) => [...prev, { cartItemId, product, qty: 1, customizations }])
+  }
+
+  function changeQty(cartItemId: string, delta: number) {
     setItems((prev) =>
       prev
-        .map((i) => i.product.id === productId ? { ...i, qty: i.qty + delta } : i)
+        .map((i) => i.cartItemId === cartItemId ? { ...i, qty: i.qty + delta } : i)
         .filter((i) => i.qty > 0)
     )
   }
@@ -86,7 +125,18 @@ export default function NuevoPedidoClient({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: items.map((i) => ({ product_id: i.product.id, quantity: i.qty })),
+          items: items.map((i) => ({
+            product_id: i.product.id,
+            quantity: i.qty,
+            customizations: i.customizations
+              ? {
+                  salsas: i.customizations.salsas,
+                  extras: i.customizations.extras,
+                  paidToppings: i.customizations.paidToppings,
+                  notes: i.customizations.notes,
+                }
+              : null,
+          })),
           linked_customer_id: linkedCustomer?.id ?? null,
           doggo_cash_used: doggoToUse > 0 ? doggoToUse : undefined,
           payment_method: paymentMethod,
@@ -173,17 +223,27 @@ export default function NuevoPedidoClient({
               </div>
 
               {/* Items */}
-              <div className="px-5 py-4 space-y-2 border-b border-dashed border-gray-200">
-                {ticket.items.map((item) => (
-                  <div key={item.product.id} className="flex justify-between text-sm">
-                    <span className="text-gray-600">
-                      {item.qty}× {item.product.name}
-                    </span>
-                    <span className="text-gray-900 font-semibold">
-                      ${(item.product.price * item.qty).toFixed(2)}
-                    </span>
-                  </div>
-                ))}
+              <div className="px-5 py-4 space-y-2.5 border-b border-dashed border-gray-200">
+                {ticket.items.map((item) => {
+                  const unitPrice = item.product.price + (item.customizations?.extraPrice ?? 0)
+                  const c = item.customizations
+                  return (
+                    <div key={item.cartItemId} className="space-y-0.5">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">{item.qty}× {item.product.name}</span>
+                        <span className="text-gray-900 font-semibold">${(unitPrice * item.qty).toFixed(2)}</span>
+                      </div>
+                      {c && (c.salsas.length > 0 || c.extras.length > 0 || c.paidToppings.length > 0 || c.notes) && (
+                        <div className="pl-4 text-[10px] text-gray-400 space-y-0.5">
+                          {c.salsas.length > 0 && <p className="text-green-600">✓ {c.salsas.join(', ')}</p>}
+                          {c.extras.length > 0 && <p className="text-green-600">✓ {c.extras.join(', ')}</p>}
+                          {c.paidToppings.length > 0 && <p className="text-doggo-red font-semibold">+ {c.paidToppings.join(', ')}</p>}
+                          {c.notes && <p className="text-orange-500 italic">✂ {c.notes}</p>}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
 
               {/* Totals */}
@@ -264,11 +324,13 @@ export default function NuevoPedidoClient({
         {/* Product grid */}
         <div className="flex-1 overflow-y-auto p-4 grid grid-cols-2 gap-3 content-start">
           {filtered.map((product) => {
-            const inCart = items.find((i) => i.product.id === product.id)
+            const isHotdog = product.category_id !== null && hotdogCatIds.has(product.category_id)
+            const inCart = items.filter((i) => i.product.id === product.id)
+            const totalQtyInCart = inCart.reduce((s, i) => s + i.qty, 0)
             return (
               <button
                 key={product.id}
-                onClick={() => addItem(product)}
+                onClick={() => isHotdog ? setCustomizingProduct(product) : addItem(product)}
                 className="bg-gray-50 border border-gray-200 rounded-2xl p-3 text-left flex flex-col gap-2 active:scale-[0.98] transition-transform"
               >
                 {product.image_url ? (
@@ -280,10 +342,13 @@ export default function NuevoPedidoClient({
                 <div>
                   <p className="text-gray-900 font-bold text-sm leading-tight">{product.name}</p>
                   <p className="text-doggo-red font-black text-base mt-0.5">${product.price.toFixed(2)}</p>
+                  {isHotdog && (
+                    <p className="text-gray-400 text-[10px] mt-0.5">Toca para personalizar</p>
+                  )}
                 </div>
-                {inCart && (
+                {totalQtyInCart > 0 && (
                   <div className="bg-doggo-yellow text-doggo-dark text-xs font-black px-2 py-0.5 rounded-full self-start">
-                    {inCart.qty} en pedido
+                    {totalQtyInCart} en pedido
                   </div>
                 )}
               </button>
@@ -315,28 +380,50 @@ export default function NuevoPedidoClient({
               <p className="text-sm">Toca un producto para agregar</p>
             </div>
           ) : (
-            items.map((item) => (
-              <div key={item.product.id} className="flex items-center gap-3 bg-gray-50 rounded-xl px-3 py-2.5 border border-gray-100">
-                <div className="flex-1 min-w-0">
-                  <p className="text-gray-900 font-semibold text-sm truncate">{item.product.name}</p>
-                  <p className="text-gray-400 text-xs">${item.product.price.toFixed(2)} c/u</p>
+            items.map((item) => {
+              const unitPrice = item.product.price + (item.customizations?.extraPrice ?? 0)
+              const c = item.customizations
+              return (
+                <div key={item.cartItemId} className="bg-gray-50 rounded-xl px-3 py-2.5 border border-gray-100">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-gray-900 font-semibold text-sm truncate">{item.product.name}</p>
+                      {c && (
+                        <div className="mt-0.5 space-y-0.5">
+                          {c.salsas.length > 0 && (
+                            <p className="text-green-600 text-[10px] leading-tight">✓ {c.salsas.join(', ')}</p>
+                          )}
+                          {c.extras.length > 0 && (
+                            <p className="text-green-600 text-[10px] leading-tight">✓ {c.extras.join(', ')}</p>
+                          )}
+                          {c.paidToppings.length > 0 && (
+                            <p className="text-doggo-red text-[10px] leading-tight font-semibold">+ {c.paidToppings.join(', ')}</p>
+                          )}
+                          {c.notes && (
+                            <p className="text-orange-500 text-[10px] leading-tight italic">✂ {c.notes}</p>
+                          )}
+                        </div>
+                      )}
+                      <p className="text-gray-400 text-xs mt-0.5">${unitPrice.toFixed(2)} c/u</p>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        onClick={() => changeQty(item.cartItemId, -1)}
+                        className="w-7 h-7 rounded-full bg-gray-200 text-gray-700 font-bold text-sm flex items-center justify-center"
+                      >−</button>
+                      <span className="text-gray-900 font-black text-sm w-5 text-center">{item.qty}</span>
+                      <button
+                        onClick={() => changeQty(item.cartItemId, 1)}
+                        className="w-7 h-7 rounded-full bg-doggo-yellow text-doggo-dark font-bold text-sm flex items-center justify-center"
+                      >+</button>
+                    </div>
+                    <p className="text-doggo-red font-black text-sm shrink-0 w-14 text-right">
+                      ${(unitPrice * item.qty).toFixed(2)}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <button
-                    onClick={() => changeQty(item.product.id, -1)}
-                    className="w-7 h-7 rounded-full bg-gray-200 text-gray-700 font-bold text-sm flex items-center justify-center"
-                  >−</button>
-                  <span className="text-gray-900 font-black text-sm w-5 text-center">{item.qty}</span>
-                  <button
-                    onClick={() => changeQty(item.product.id, 1)}
-                    className="w-7 h-7 rounded-full bg-doggo-yellow text-doggo-dark font-bold text-sm flex items-center justify-center"
-                  >+</button>
-                </div>
-                <p className="text-doggo-red font-black text-sm shrink-0 w-14 text-right">
-                  ${(item.product.price * item.qty).toFixed(2)}
-                </p>
-              </div>
-            ))
+              )
+            })
           )}
         </div>
 
@@ -458,6 +545,18 @@ export default function NuevoPedidoClient({
         </div>
       </div>
 
+      {/* ── Hotdog customization modal ─────────────────────────── */}
+      {customizingProduct && (
+        <HotdogCustomizeModal
+          product={customizingProduct}
+          onAdd={(customizations) => {
+            addCustomizedItem(customizingProduct, customizations)
+            setCustomizingProduct(null)
+          }}
+          onClose={() => setCustomizingProduct(null)}
+        />
+      )}
+
       {/* ── QR Scanner overlay ─────────────────────────────────── */}
       {scanning && (
         <QRScanOverlay
@@ -484,6 +583,148 @@ export default function NuevoPedidoClient({
           error={scanError}
         />
       )}
+    </div>
+  )
+}
+
+// ── Hotdog customization modal ────────────────────────────────────────────────
+function HotdogCustomizeModal({
+  product,
+  onAdd,
+  onClose,
+}: {
+  product: Product
+  onAdd: (customizations: ItemCustomization) => void
+  onClose: () => void
+}) {
+  const [salsas, setSalsas] = useState<string[]>([])
+  const [extras, setExtras] = useState<string[]>([])
+  const [paidToppings, setPaidToppings] = useState<string[]>([])
+  const [notes, setNotes] = useState('')
+
+  function toggle<T>(arr: T[], item: T, set: (v: T[]) => void) {
+    set(arr.includes(item) ? arr.filter((x) => x !== item) : [...arr, item])
+  }
+
+  const extraPrice = parseFloat((paidToppings.length * 1.25).toFixed(2))
+  const totalPrice = product.price + extraPrice
+
+  function handleAdd() {
+    onAdd({ salsas, extras, paidToppings, extraPrice, notes: notes.trim() })
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 flex items-end justify-center" onClick={onClose}>
+      <div
+        className="bg-white rounded-t-3xl w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="px-5 pt-5 pb-3 border-b border-gray-100 flex items-start justify-between shrink-0">
+          <div>
+            <p className="text-gray-900 font-black text-base">{product.name}</p>
+            <p className="text-gray-400 text-sm">${product.price.toFixed(2)} base</p>
+          </div>
+          <button onClick={onClose} className="text-gray-400 text-2xl leading-none mt-0.5">×</button>
+        </div>
+
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+
+          {/* Salsas — GRATIS */}
+          <div>
+            <p className="text-gray-700 font-black text-sm mb-2">
+              Salsas <span className="text-green-600 font-semibold text-xs">GRATIS</span>
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {FREE_SALSAS.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => toggle(salsas, s, setSalsas)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${
+                    salsas.includes(s)
+                      ? 'bg-green-500 text-white border-green-500'
+                      : 'bg-white text-gray-600 border-gray-200'
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Extras — GRATIS */}
+          <div>
+            <p className="text-gray-700 font-black text-sm mb-2">
+              Extras <span className="text-green-600 font-semibold text-xs">GRATIS</span>
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {FREE_EXTRAS.map((e) => (
+                <button
+                  key={e}
+                  onClick={() => toggle(extras, e, setExtras)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${
+                    extras.includes(e)
+                      ? 'bg-green-500 text-white border-green-500'
+                      : 'bg-white text-gray-600 border-gray-200'
+                  }`}
+                >
+                  {e}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Paid toppings */}
+          <div>
+            <p className="text-gray-700 font-black text-sm mb-2">
+              Toppings extra <span className="text-doggo-red font-semibold text-xs">+$1.25 c/u</span>
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {PAID_TOPPINGS.map((t) => (
+                <button
+                  key={t.name}
+                  onClick={() => toggle(paidToppings, t.name, setPaidToppings)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${
+                    paidToppings.includes(t.name)
+                      ? 'bg-doggo-red text-white border-doggo-red'
+                      : 'bg-white text-gray-600 border-gray-200'
+                  }`}
+                >
+                  {t.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Notes (remove toppings) */}
+          <div>
+            <p className="text-gray-700 font-black text-sm mb-2">
+              Quitar ingredientes <span className="text-gray-400 font-normal text-xs">(notas para cocina)</span>
+            </p>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Ej: sin mermelada de piña, sin cebolla…"
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 resize-none focus:outline-none focus:ring-2 focus:ring-doggo-yellow"
+              rows={2}
+            />
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-5 py-4 border-t border-gray-100 shrink-0">
+          <button
+            onClick={handleAdd}
+            className="w-full bg-doggo-yellow text-doggo-dark font-black py-3.5 rounded-2xl text-sm transition-colors hover:brightness-110"
+          >
+            Agregar — ${totalPrice.toFixed(2)}
+            {extraPrice > 0 && (
+              <span className="font-normal opacity-70 ml-1">(+${extraPrice.toFixed(2)} toppings)</span>
+            )}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

@@ -1,13 +1,19 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 import { requireRole } from '@/lib/supabase/auth-guard'
 
 export async function POST(req: Request) {
   const auth = await requireRole(); if (auth) return auth
-  const { customerId, points, description } = await req.json()
+  const { customerId, points, description, invoiceRef } = await req.json()
+
+  // Get staff user for audit trail
+  const supabase = await createClient()
+  const { data: { user: staffUser } } = await supabase.auth.getUser()
+  const staffId = staffUser?.id ?? null
 
   const MAX_POINTS_PER_TX = 5000
-  if (!customerId || !points || points <= 0 || points > MAX_POINTS_PER_TX || !Number.isInteger(points)) {
+  if (!customerId || !points || points <= 0 || points > MAX_POINTS_PER_TX || !Number.isInteger(points) || !invoiceRef?.trim()) {
     return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 })
   }
 
@@ -36,12 +42,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Error al actualizar puntos' }, { status: 500 })
   }
 
-  // Log transaction
+  // Log transaction with staff audit trail
   await admin.from('loyalty_transactions').insert({
     customer_id: customerId,
     points,
     type: 'earned',
     description: description ?? 'Puntos por compra en local',
+    staff_id: staffId,
+    invoice_ref: invoiceRef?.trim() ?? null,
   })
 
   return NextResponse.json({ success: true, newPoints })

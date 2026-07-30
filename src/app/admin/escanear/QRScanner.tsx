@@ -31,6 +31,7 @@ export default function QRScanner() {
   const html5QrRef = useRef<unknown>(null)
   const [state, setState] = useState<State>({ phase: 'scanning' })
   const [pointsInput, setPointsInput] = useState('')
+  const [invoiceRef, setInvoiceRef] = useState('')
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -84,6 +85,7 @@ export default function QRScanner() {
     if (state.phase !== 'found') return
     const pts = parseInt(pointsInput)
     if (!pts || pts <= 0) return
+    if (!invoiceRef.trim()) return
     setLoading(true)
     try {
       const res = await fetch('/api/staff/points', {
@@ -92,7 +94,8 @@ export default function QRScanner() {
         body: JSON.stringify({
           customerId: state.customer.id,
           points: pts,
-          description: `Puntos por compra en local ($${pts})`,
+          invoiceRef: invoiceRef.trim(),
+          description: `Compra en local · Ref: ${invoiceRef.trim()}`,
         }),
       })
       const data = await res.json()
@@ -126,6 +129,7 @@ export default function QRScanner() {
 
   function reset() {
     setPointsInput('')
+    setInvoiceRef('')
     setState({ phase: 'scanning' })
   }
 
@@ -208,15 +212,26 @@ export default function QRScanner() {
       </div>
 
       {/* Add points */}
-      <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
-        <p className="text-gray-900 font-black text-sm mb-3">Sumar puntos</p>
+      <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200 space-y-3">
+        <p className="text-gray-900 font-black text-sm">Sumar puntos por compra</p>
+
+        {/* Invoice ref — required */}
+        <input
+          type="text"
+          placeholder="# Factura o referencia de pago *"
+          value={invoiceRef}
+          onChange={(e) => setInvoiceRef(e.target.value)}
+          className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:border-doggo-yellow bg-white"
+        />
+
+        {/* Amount */}
         <div className="flex gap-2">
           <div className="relative flex-1">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
             <input
               type="number"
               min="1"
-              placeholder="Monto gastado"
+              placeholder="Monto cobrado"
               value={pointsInput}
               onChange={(e) => setPointsInput(e.target.value)}
               className="w-full pl-7 pr-3 py-2.5 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:border-doggo-yellow bg-white"
@@ -224,13 +239,19 @@ export default function QRScanner() {
           </div>
           <button
             onClick={addPoints}
-            disabled={loading || !pointsInput}
+            disabled={loading || !pointsInput || !invoiceRef.trim()}
             className="bg-doggo-yellow text-doggo-dark font-black px-4 py-2.5 rounded-xl text-sm disabled:opacity-50"
           >
             {loading ? '…' : '+Pts'}
           </button>
         </div>
-        <p className="text-gray-400 text-xs mt-2">1 punto por cada $1 gastado</p>
+
+        <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+          <p className="text-amber-700 text-xs font-semibold">
+            🔒 Esta transacción queda registrada con tu usuario y la referencia de pago para auditoría del dueño.
+          </p>
+        </div>
+        <p className="text-gray-400 text-xs">1 punto por cada $1 gastado · Requiere referencia de pago</p>
       </div>
 
       {/* Rewards to redeem */}

@@ -11,9 +11,13 @@ import CartIcon from '@/components/ui/CartIcon'
 interface Props {
   categories: Category[]
   products: Product[]
+  isOpen: boolean
+  closedReason: string
+  openTime: string
+  closeTime: string
 }
 
-export default function MenuClient({ categories, products }: Props) {
+export default function MenuClient({ categories, products, isOpen, closedReason, openTime, closeTime }: Props) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const { addItem } = useCartStore()
@@ -29,6 +33,17 @@ export default function MenuClient({ categories, products }: Props) {
         <h1 className="text-gray-900 text-xl font-black">Menú</h1>
         <CartIcon />
       </div>
+
+      {/* Closed banner */}
+      {!isOpen && (
+        <div className="mx-4 mt-3 bg-doggo-red/10 border border-doggo-red/20 rounded-2xl px-4 py-3 flex items-center gap-3">
+          <span className="text-xl">🕐</span>
+          <div>
+            <p className="text-doggo-red font-black text-sm">{closedReason}</p>
+            <p className="text-gray-500 text-xs mt-0.5">Horario: {openTime} – {closeTime}</p>
+          </div>
+        </div>
+      )}
 
       {/* Category filter */}
       <div className="px-4 py-3 flex gap-2 overflow-x-auto no-scrollbar">
@@ -69,8 +84,9 @@ export default function MenuClient({ categories, products }: Props) {
           <ProductCard
             key={product.id}
             product={product}
+            isOpen={isOpen}
             onOpen={() => setSelectedProduct(product)}
-            onQuickAdd={() => addItem(product, 1)}
+            onQuickAdd={() => { if (isOpen) addItem(product, 1) }}
           />
         ))}
       </div>
@@ -92,10 +108,12 @@ export default function MenuClient({ categories, products }: Props) {
 
 function ProductCard({
   product,
+  isOpen,
   onOpen,
   onQuickAdd,
 }: {
   product: Product
+  isOpen: boolean
   onOpen: () => void
   onQuickAdd: () => void
 }) {
@@ -144,7 +162,10 @@ function ProductCard({
       {/* Quick add button */}
       <button
         onClick={handleQuickAdd}
+        disabled={!isOpen}
+        title={!isOpen ? 'Fuera de horario' : undefined}
         className={`flex-shrink-0 w-9 h-9 rounded-full font-black text-lg flex items-center justify-center transition-all ${
+          !isOpen ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
           quickAdded ? 'bg-green-500 text-white' : 'bg-doggo-yellow text-doggo-dark'
         }`}
       >

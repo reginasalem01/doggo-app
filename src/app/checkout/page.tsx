@@ -66,6 +66,9 @@ export default function CheckoutPage() {
   const [customerData, setCustomerData]       = useState<CustomerData | null>(null)
   const [selectedRewardId, setSelectedRewardId] = useState<string | null>(null)
 
+  // Business hours
+  const [businessHours, setBusinessHours] = useState<{ isOpen: boolean; openTime: string; closeTime: string; reason: string | null } | null>(null)
+
   useEffect(() => {
     fetch('/api/customer/me')
       .then((r) => r.json())
@@ -76,6 +79,11 @@ export default function CheckoutPage() {
       .then((r) => r.json())
       .then((data) => { if (Array.isArray(data)) setSavedAddresses(data) })
       .catch(() => {})
+
+    fetch('/api/business-hours')
+      .then((r) => r.json())
+      .then((data) => setBusinessHours(data))
+      .catch(() => setBusinessHours({ isOpen: true, openTime: '11:00', closeTime: '19:00', reason: null }))
   }, [])
 
   const deliveryFee = deliveryType === 'delivery' ? DELIVERY_FEE : 0
@@ -444,9 +452,22 @@ export default function CheckoutPage() {
 
         {error && <p className="text-red-400 text-sm text-center">{error}</p>}
 
+        {/* Closed banner */}
+        {businessHours && !businessHours.isOpen && (
+          <div className="bg-doggo-red/10 border border-doggo-red/20 rounded-2xl px-4 py-3 flex items-center gap-3">
+            <span className="text-xl">🕐</span>
+            <div>
+              <p className="text-doggo-red font-black text-sm">{businessHours.reason ?? 'Fuera de horario'}</p>
+              <p className="text-gray-500 text-xs mt-0.5">
+                Pedidos disponibles de {businessHours.openTime} a {businessHours.closeTime}
+              </p>
+            </div>
+          </div>
+        )}
+
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || (businessHours !== null && !businessHours.isOpen)}
           className="w-full bg-doggo-yellow text-doggo-dark font-black py-4 rounded-full text-base disabled:opacity-60"
         >
           {loading ? 'Enviando pedido…' : `Hacer pedido · ${formatPrice(total)}`}

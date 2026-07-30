@@ -2,6 +2,16 @@ import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 
+// Ecuador is UTC-5, no DST
+function getEcuadorMinutes(): number {
+  const now = new Date()
+  return (now.getUTCHours() * 60 + now.getUTCMinutes() + 24 * 60 + (-5 * 60)) % (24 * 60)
+}
+function timeToMinutes(t: string): number {
+  const [h, m] = t.split(':').map(Number)
+  return h * 60 + m
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()
@@ -12,6 +22,26 @@ export async function POST(request: Request) {
     }
 
     const admin = createAdminClient()
+
+    // ── Verificar horario de atención ──────────────────────────────────────────
+    try {
+      const { data: rows } = await admin.from('business_settings').select('key, value')
+      const s = Object.fromEntries((rows ?? []).map((r: { key: string; value: string }) => [r.key, r.value]))
+      const enabled = s['orders_enabled'] !== 'false'
+      if (!enabled) {
+        return NextResponse.json({ error: 'Los pedidos están temporalmente suspendidos. ¡Vuelve pronto!' }, { status: 400 })
+      }
+      const openTime = s['orders_open_time'] ?? '11:00'
+      const closeTime = s['orders_close_time'] ?? '19:00'
+      const nowMins = getEcuadorMinutes()
+      if (nowMins < timeToMinutes(openTime) || nowMins >= timeToMinutes(closeTime)) {
+        return NextResponse.json({
+          error: `Pedidos disponibles de ${openTime} a ${closeTime} (hora Ecuador). ¡Te esperamos!`,
+        }, { status: 400 })
+      }
+    } catch {
+      // Si la tabla no existe aún, dejamos pasar
+    }
 
     // ── Recalcular precios desde BD (no confiar en el cliente) ──────────────────
     const productIds = items.map((i: { product_id: string }) => i.product_id)

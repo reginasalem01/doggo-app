@@ -44,7 +44,12 @@ function OrderCard({ order, onOptimisticUpdate, onRefresh }: {
 }) {
   const [busy, setBusy] = useState(false)
 
-  const action = ACTION[order.status]
+  // Para pedidos en local (dine_in) en estado 'new': botón directo a entregado
+  const isDineInNew = order.delivery_type === 'dine_in' && order.status === 'new'
+  const action = isDineInNew
+    ? { label: 'COBRADO ✓ ENTREGAR', next: 'delivered', cls: 'bg-doggo-yellow text-doggo-dark hover:brightness-110' }
+    : ACTION[order.status]
+
   const shortId = '#' + order.id.slice(0, 4).toUpperCase()
   const nameParts = order.customer_name.trim().split(' ')
   const displayName = nameParts[0] + (nameParts[1] ? ' ' + nameParts[1][0] + '.' : '')

@@ -13,6 +13,8 @@ const NAV = [
   { href: '/owner/promos',     label: 'Promos',         icon: '🎉' },
   { href: '/owner/clientes',   label: 'Clientes',       icon: '👥' },
   { href: '/owner/fidelizacion', label: 'Fidelización', icon: '⭐' },
+  { href: '/owner/auditoria',   label: 'Auditoría',    icon: '🔍' },
+  { href: '/owner/configuracion', label: 'Config.',    icon: '⚙️' },
 ]
 
 export default function OwnerSidebar() {

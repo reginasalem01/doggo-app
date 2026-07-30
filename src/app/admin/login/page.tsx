@@ -53,7 +53,7 @@ export default function AdminLoginPage() {
     <div className="min-h-screen bg-white flex flex-col items-center justify-center p-8">
       {/* Logo */}
       <div className="mb-12 text-center">
-        <p className="text-doggo-red font-black text-5xl tracking-tight mb-1">🌭 DOGGO</p>
+        <img src="/logo-round.png" alt="Doggo" width={96} height={96} className="mx-auto mb-3" />
         <p className="text-gray-400 text-xs tracking-[0.3em] uppercase">Panel de Cocina</p>
       </div>
 

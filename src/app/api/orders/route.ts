@@ -15,7 +15,7 @@ function timeToMinutes(t: string): number {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { order, items, reward_id, customer_id } = body
+    const { order, items, doggo_cash_used: rawDoggoUsed, customer_id } = body
 
     if (!order || !items?.length) {
       return NextResponse.json({ error: 'Datos incompletos' }, { status: 400 })
@@ -79,56 +79,59 @@ export async function POST(request: Request) {
     // Delivery fee: fijo según tipo de entrega
     const deliveryFee = order.delivery_type === 'delivery' ? 1.5 : 0
 
-    // ── Verificar y canjear reward atómicamente (evita race condition) ──────────
-    let rewardName: string | null = null
-    let rewardPointsRequired = 0
-    let discountAmount = 0
+    // ── Doggo Cash: verificar y descontar del saldo del cliente ────────────────
+    let doggoDiscount = 0
+    const requestedDoggo = typeof rawDoggoUsed === 'number' && rawDoggoUsed > 0 ? rawDoggoUsed : 0
 
-    if (reward_id && customer_id) {
-      // Canjear un premio requiere sesión activa
+    if (requestedDoggo > 0 && customer_id) {
+      // Requiere sesión activa
       const supabase = await createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
-        return NextResponse.json({ error: 'Debes iniciar sesión para canjear premios' }, { status: 401 })
+        return NextResponse.json({ error: 'Debes iniciar sesión para usar Doggo Cash' }, { status: 401 })
       }
+
       // Verificar que el customer_id pertenece al usuario autenticado
-      const { data: ownCustomer } = await admin
+      const { data: cust } = await admin
         .from('customers')
-        .select('id')
+        .select('id, doggo_cash')
         .eq('auth_user_id', user.id)
+        .eq('id', customer_id)
         .single()
-      if (!ownCustomer || ownCustomer.id !== customer_id) {
+
+      if (!cust) {
         return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
       }
 
-      const { data: redeemResult, error: redeemError } = await admin
-        .rpc('redeem_reward_atomic', { p_customer_id: customer_id, p_reward_id: reward_id })
-
-      if (redeemError || !redeemResult) {
-        return NextResponse.json({ error: 'Error al procesar el premio' }, { status: 500 })
+      const availableCash = Number(cust.doggo_cash)
+      if (availableCash < 0.01) {
+        return NextResponse.json({ error: 'No tienes saldo Doggo Cash disponible' }, { status: 400 })
       }
 
-      if (redeemResult.error) {
-        return NextResponse.json({ error: redeemResult.error }, { status: 400 })
-      }
+      // Cap: min(solicitado, saldo disponible, total bruto del pedido)
+      const orderGrossTotal = Math.round((serverSubtotal + deliveryFee) * 100) / 100
+      doggoDiscount = Math.min(requestedDoggo, availableCash, orderGrossTotal)
+      doggoDiscount = Math.round(doggoDiscount * 100) / 100
 
-      rewardName = redeemResult.reward_name
-      rewardPointsRequired = redeemResult.points_required
+      // Deducir del saldo del cliente
+      const newBalance = Math.round((availableCash - doggoDiscount) * 100) / 100
+      const { error: deductError } = await admin
+        .from('customers')
+        .update({ doggo_cash: newBalance })
+        .eq('id', cust.id)
 
-      if (redeemResult.discount_type === 'percentage' && redeemResult.discount_value) {
-        discountAmount = Math.round((serverSubtotal * redeemResult.discount_value) / 100 * 100) / 100
-      } else if (redeemResult.discount_type === 'fixed' && redeemResult.discount_value) {
-        discountAmount = Math.min(redeemResult.discount_value, serverSubtotal)
+      if (deductError) {
+        return NextResponse.json({ error: 'Error procesando Doggo Cash. Intenta de nuevo.' }, { status: 500 })
       }
     }
 
     // Total final calculado en el servidor
-    const serverTotal = Math.round((serverSubtotal + deliveryFee - discountAmount) * 100) / 100
+    const serverTotal = Math.max(0, Math.round((serverSubtotal + deliveryFee - doggoDiscount) * 100) / 100)
 
-    // Construir orderData con campos explícitos (nunca confiar en el spread del cliente)
-    const notes = rewardName
-      ? (order.notes ? `${order.notes} | 🎁 Premio: ${rewardName}` : `🎁 Premio: ${rewardName}`)
-      : (order.notes ?? null)
+    const baseNotes = order.notes ?? null
+    const notes = doggoDiscount > 0
+      ? (baseNotes ? `${baseNotes} | ⭐ Doggo Cash: -$${doggoDiscount.toFixed(2)}` : `⭐ Doggo Cash: -$${doggoDiscount.toFixed(2)}`)
+      : baseNotes
 
     const orderData = {
       customer_name: order.customer_name,
@@ -142,6 +145,7 @@ export async function POST(request: Request) {
       subtotal: serverSubtotal,
       delivery_fee: deliveryFee,
       total: serverTotal,
+      doggo_cash_used: doggoDiscount,
       status: 'new',
       payment_status: 'pending',
       points_awarded: false,
@@ -155,12 +159,17 @@ export async function POST(request: Request) {
       .single()
 
     if (orderError || !newOrder) {
+      // Si falló la orden, restaurar el Doggo Cash al cliente
+      if (doggoDiscount > 0 && customer_id) {
+        await admin.from('customers')
+          .update({ doggo_cash: doggoDiscount })
+          .eq('id', customer_id)
+      }
       return NextResponse.json({ error: orderError?.message ?? 'Error creando pedido' }, { status: 500 })
     }
 
     // Create order items (con precios verificados)
     const orderItems = verifiedItems.map((item) => ({ ...item, order_id: newOrder.id }))
-
     const { error: itemsError } = await admin.from('order_items').insert(orderItems)
 
     if (itemsError) {
@@ -168,23 +177,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: itemsError.message }, { status: 500 })
     }
 
-    // Log redemption transaction
-    if (reward_id && customer_id && rewardName && rewardPointsRequired > 0) {
-      await Promise.all([
-        admin.from('reward_redemptions').insert({
-          customer_id,
-          reward_id,
-          points_used: rewardPointsRequired,
-          status: 'completed',
-        }),
-        admin.from('loyalty_transactions').insert({
-          customer_id,
-          order_id: newOrder.id,
-          points: -rewardPointsRequired,
-          type: 'redeemed',
-          description: `Premio canjeado: ${rewardName}`,
-        }),
-      ])
+    // Log transacción de canje
+    if (doggoDiscount > 0 && customer_id) {
+      await admin.from('loyalty_transactions').insert({
+        customer_id,
+        order_id: newOrder.id,
+        points: 0,
+        doggo_cash_amount: -doggoDiscount,
+        type: 'redeemed',
+        description: `⭐ Doggo Cash usado: -$${doggoDiscount.toFixed(2)}`,
+      })
     }
 
     return NextResponse.json({ id: newOrder.id })

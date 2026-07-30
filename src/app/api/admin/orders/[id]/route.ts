@@ -11,6 +11,17 @@ import {
 
 const VALID_STATUSES = ['new', 'accepted', 'preparing', 'ready', 'delivered', 'cancelled']
 
+// ── Doggo loyalty helpers ───────────────────────────────────────────────────
+// $5 gastados → 1 estrella
+// Bronce (0-10 estrellas): $0.50/estrella
+// Plata (11-25 estrellas): $0.75/estrella
+// Oro (26+ estrellas): $1.00/estrella
+function getEstrellasRate(currentEstrellas: number): number {
+  if (currentEstrellas < 11) return 0.50
+  if (currentEstrellas < 26) return 0.75
+  return 1.00
+}
+
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -90,16 +101,16 @@ export async function PATCH(
     })
   }
 
-  // Auto-award points when order is delivered AND paid
-  // Acepta 'paid' y 'pending' (modo pago manual / en local)
+  // Auto-award estrellas + Doggo Cash when order is delivered
+  // Acepta 'paid' y 'pending' (pago online y en local respectivamente)
   // Prioridad: linked_customer_id (pedido en local con QR) > customer_email (pedido online)
-  const canAwardPoints =
+  const canAwardEstrellas =
     status === 'delivered' &&
     !order?.points_awarded &&
     (order?.payment_status === 'paid' || order?.payment_status === 'pending') &&
     (order?.linked_customer_id || order?.customer_email)
 
-  if (canAwardPoints) {
+  if (canAwardEstrellas) {
     const { data: claimed, error: claimError } = await admin
       .from('orders')
       .update({ points_awarded: true })
@@ -109,41 +120,49 @@ export async function PATCH(
       .single()
 
     if (!claimError && claimed) {
-      // Lookup customer — linked_customer_id (from walk-in QR scan) takes priority
-      let customer: { id: string; points: number } | null = null
+      // Lookup customer — linked_customer_id (walk-in QR) takes priority
+      let customer: { id: string; estrellas: number; doggo_cash: number } | null = null
 
       if (order?.linked_customer_id) {
         const { data: c } = await admin
           .from('customers')
-          .select('id, points')
+          .select('id, estrellas, doggo_cash')
           .eq('id', order.linked_customer_id)
           .single()
         customer = c
       } else if (order?.customer_email) {
         const { data: c } = await admin
           .from('customers')
-          .select('id, points')
+          .select('id, estrellas, doggo_cash')
           .eq('email', order.customer_email)
           .single()
         if (!c) {
-          console.error(`[points] No se encontró cliente con email "${order.customer_email}" para el pedido ${id}. Puntos no otorgados.`)
+          console.error(`[estrella] No se encontró cliente con email "${order.customer_email}" para pedido ${id}`)
         }
         customer = c
       }
 
       if (customer) {
-        const pointsToAdd = Math.floor(Number(order.total))
-        if (pointsToAdd > 0) {
+        // 1 estrella por cada $5 gastados (redondeado hacia abajo)
+        const estrellasEarned = Math.floor(Number(order.total) / 5)
+        if (estrellasEarned > 0) {
+          const currentEstrellas = customer.estrellas ?? 0
+          const rate = getEstrellasRate(currentEstrellas)
+          const doggoEarned = parseFloat((estrellasEarned * rate).toFixed(2))
+          const levelLabel = currentEstrellas < 11 ? 'Bronce' : currentEstrellas < 26 ? 'Plata' : 'Oro'
+
           await Promise.all([
             admin.from('customers').update({
-              points: customer.points + pointsToAdd,
+              estrellas: currentEstrellas + estrellasEarned,
+              doggo_cash: parseFloat(((customer.doggo_cash ?? 0) + doggoEarned).toFixed(2)),
             }).eq('id', customer.id),
             admin.from('loyalty_transactions').insert({
               customer_id: customer.id,
               order_id: id,
-              points: pointsToAdd,
+              points: estrellasEarned,
+              doggo_cash_amount: doggoEarned,
               type: 'earned',
-              description: `Puntos por pedido · $${Number(order.total).toFixed(2)}`,
+              description: `+${estrellasEarned} ⭐ (${levelLabel}) → +$${doggoEarned.toFixed(2)} Doggo Cash`,
             }),
           ])
         }

@@ -5,7 +5,7 @@ import { requireRole } from '@/lib/supabase/auth-guard'
 export async function POST(request: Request) {
   const auth = await requireRole(); if (auth) return auth
 
-  const { items, linked_customer_id } = await request.json()
+  const { items, linked_customer_id, doggo_cash_used: rawDoggoUsed, payment_method } = await request.json()
 
   if (!items?.length) {
     return NextResponse.json({ error: 'Sin productos' }, { status: 400 })
@@ -45,36 +45,56 @@ export async function POST(request: Request) {
   }
   subtotal = Math.round(subtotal * 100) / 100
 
-  // Walk-in orders: no delivery fee, dine_in, cash payment pending
-  const orderData: Record<string, unknown> = {
-    customer_name: 'Cliente en local',
-    customer_phone: '—',
-    customer_email: null,
-    delivery_type: 'dine_in',
-    subtotal,
-    delivery_fee: 0,
-    total: subtotal,
-    status: 'new',
-    payment_status: 'pending',
-    points_awarded: false,
-    notes: null,
-  }
+  // ── Doggo Cash en caja ─────────────────────────────────────────────────────
+  // Si el staff vinculó un cliente con QR y quiere aplicar su saldo
+  let doggoDiscount = 0
+  let linkedCustomerData: { id: string; name: string; email: string | null; phone: string | null } | null = null
 
-  // Link to customer account if QR was scanned
   if (linked_customer_id) {
-    // Verify customer exists
     const { data: customer } = await admin
       .from('customers')
-      .select('id, name, email, phone')
+      .select('id, name, email, phone, doggo_cash')
       .eq('id', linked_customer_id)
       .single()
 
     if (customer) {
-      orderData['linked_customer_id'] = customer.id
-      orderData['customer_name'] = customer.name
-      orderData['customer_phone'] = customer.phone ?? '—'
-      orderData['customer_email'] = customer.email ?? null
+      linkedCustomerData = { id: customer.id, name: customer.name, email: customer.email, phone: customer.phone }
+
+      const requestedDoggo = typeof rawDoggoUsed === 'number' && rawDoggoUsed > 0 ? rawDoggoUsed : 0
+      if (requestedDoggo > 0) {
+        const available = Number(customer.doggo_cash ?? 0)
+        doggoDiscount = Math.min(requestedDoggo, available, subtotal)
+        doggoDiscount = Math.round(doggoDiscount * 100) / 100
+
+        if (doggoDiscount > 0) {
+          const newBalance = Math.round((available - doggoDiscount) * 100) / 100
+          await admin.from('customers').update({ doggo_cash: newBalance }).eq('id', customer.id)
+        }
+      }
     }
+  }
+
+  const total = Math.max(0, Math.round((subtotal - doggoDiscount) * 100) / 100)
+  const notes = doggoDiscount > 0 ? `⭐ Doggo Cash: -$${doggoDiscount.toFixed(2)}` : null
+
+  // Walk-in orders: no delivery fee, dine_in, cash payment pending
+  const orderData: Record<string, unknown> = {
+    customer_name: linkedCustomerData?.name ?? 'Cliente en local',
+    customer_phone: linkedCustomerData?.phone ?? '—',
+    customer_email: linkedCustomerData?.email ?? null,
+    delivery_type: 'dine_in',
+    subtotal,
+    delivery_fee: 0,
+    total,
+    doggo_cash_used: doggoDiscount,
+    status: 'new',
+    payment_status: payment_method === 'card' ? 'paid' : 'pending',
+    points_awarded: false,
+    notes,
+  }
+
+  if (linkedCustomerData) {
+    orderData['linked_customer_id'] = linkedCustomerData.id
   }
 
   const { data: newOrder, error: orderError } = await admin
@@ -91,9 +111,26 @@ export async function POST(request: Request) {
   const { error: itemsError } = await admin.from('order_items').insert(orderItems)
 
   if (itemsError) {
+    // Restaurar Doggo Cash si falló
+    if (doggoDiscount > 0 && linked_customer_id) {
+      const { data: cust } = await admin.from('customers').select('doggo_cash').eq('id', linked_customer_id).single()
+      await admin.from('customers').update({ doggo_cash: (Number(cust?.doggo_cash ?? 0) + doggoDiscount) }).eq('id', linked_customer_id)
+    }
     await admin.from('orders').delete().eq('id', newOrder.id)
     return NextResponse.json({ error: itemsError.message }, { status: 500 })
   }
 
-  return NextResponse.json({ id: newOrder.id })
+  // Log transacción de canje Doggo Cash
+  if (doggoDiscount > 0 && linked_customer_id) {
+    await admin.from('loyalty_transactions').insert({
+      customer_id: linked_customer_id,
+      order_id: newOrder.id,
+      points: 0,
+      doggo_cash_amount: -doggoDiscount,
+      type: 'redeemed',
+      description: `⭐ Doggo Cash usado en caja: -$${doggoDiscount.toFixed(2)}`,
+    })
+  }
+
+  return NextResponse.json({ id: newOrder.id, doggo_cash_used: doggoDiscount })
 }

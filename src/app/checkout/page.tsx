@@ -13,16 +13,7 @@ const MapPicker = dynamic(() => import('@/components/ui/MapPicker'), { ssr: fals
 const DELIVERY_FEE = 1.5
 
 type CustomerData = {
-  customer: { id: string; name: string; points: number }
-  rewards: {
-    id: string
-    name: string
-    description: string | null
-    points_required: number
-    expires_at: string | null
-    discount_type: 'percentage' | 'fixed' | 'none' | null
-    discount_value: number | null
-  }[]
+  customer: { id: string; name: string; estrellas: number; doggo_cash: number }
 }
 
 type SavedAddress = {
@@ -63,8 +54,8 @@ export default function CheckoutPage() {
   const [addressLabel, setAddressLabel]         = useState('Casa')
 
   // Loyalty
-  const [customerData, setCustomerData]       = useState<CustomerData | null>(null)
-  const [selectedRewardId, setSelectedRewardId] = useState<string | null>(null)
+  const [customerData, setCustomerData] = useState<CustomerData | null>(null)
+  const [useDoggoGash, setUseDoggoGash] = useState(false)
 
   // Business hours
   const [businessHours, setBusinessHours] = useState<{ isOpen: boolean; openTime: string; closeTime: string; reason: string | null } | null>(null)
@@ -88,19 +79,12 @@ export default function CheckoutPage() {
 
   const deliveryFee = deliveryType === 'delivery' ? DELIVERY_FEE : 0
 
-  const selectedReward = customerData?.rewards.find((r) => r.id === selectedRewardId) ?? null
-  const discountAmount = (() => {
-    if (!selectedReward) return 0
-    if (selectedReward.discount_type === 'percentage' && selectedReward.discount_value) {
-      return Math.round((sub * selectedReward.discount_value) / 100 * 100) / 100
-    }
-    if (selectedReward.discount_type === 'fixed' && selectedReward.discount_value) {
-      return Math.min(selectedReward.discount_value, sub)
-    }
-    return 0
-  })()
+  const availableDoggo = Number(customerData?.customer.doggo_cash ?? 0)
+  const doggoToUse = useDoggoGash && availableDoggo > 0
+    ? Math.min(availableDoggo, Math.round((sub + deliveryFee) * 100) / 100)
+    : 0
 
-  const total = Math.max(0, sub + deliveryFee - discountAmount)
+  const total = Math.max(0, Math.round((sub + deliveryFee - doggoToUse) * 100) / 100)
 
   function selectSavedAddress(addr: SavedAddress) {
     setAddress(addr.address)
@@ -172,7 +156,7 @@ export default function CheckoutPage() {
             total: item.product.price * item.quantity,
             notes: item.notes ?? null,
           })),
-          reward_id: selectedRewardId ?? undefined,
+          doggo_cash_used: doggoToUse > 0 ? doggoToUse : undefined,
           customer_id: customerData?.customer.id ?? undefined,
         }),
       })
@@ -368,47 +352,36 @@ export default function CheckoutPage() {
           />
         </div>
 
-        {/* Premios de fidelización */}
-        {customerData && customerData.rewards.length > 0 && (
-          <div>
-            <label className="text-gray-900 text-sm font-bold block mb-2">
-              🎁 Tienes {customerData.customer.points} pts — canjea un premio
-            </label>
-            <div className="space-y-2">
-              {customerData.rewards.map((r) => {
-                const selected = selectedRewardId === r.id
-                return (
-                  <button
-                    key={r.id}
-                    type="button"
-                    onClick={() => setSelectedRewardId(selected ? null : r.id)}
-                    className={`w-full text-left rounded-xl px-4 py-3 border transition-colors ${
-                      selected ? 'border-doggo-yellow bg-doggo-yellow/10' : 'border-gray-200 bg-gray-50'
-                    }`}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="text-gray-900 font-semibold text-sm">{r.name}</p>
-                        {r.description && <p className="text-gray-500 text-xs mt-0.5">{r.description}</p>}
-                      </div>
-                      <span className={`text-xs font-black px-2 py-1 rounded-full shrink-0 ml-2 ${selected ? 'bg-doggo-yellow text-doggo-dark' : 'bg-gray-200 text-gray-500'}`}>
-                        {r.points_required} pts
-                      </span>
-                    </div>
-                  </button>
-                )
-              })}
+        {/* Doggo Cash */}
+        {customerData && availableDoggo > 0 && (
+          <div className={`rounded-2xl px-4 py-3.5 border transition-colors ${useDoggoGash ? 'bg-doggo-yellow/10 border-doggo-yellow/40' : 'bg-gray-50 border-gray-200'}`}>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-gray-900 font-bold text-sm">⭐ Doggo Cash</p>
+                <p className="text-gray-500 text-xs mt-0.5">
+                  {useDoggoGash
+                    ? `Ahorrando $${doggoToUse.toFixed(2)} en este pedido`
+                    : `Tienes $${availableDoggo.toFixed(2)} disponible`
+                  }
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setUseDoggoGash(!useDoggoGash)}
+                className={`shrink-0 px-4 py-2 rounded-xl text-xs font-black transition-colors ${
+                  useDoggoGash ? 'bg-doggo-yellow text-doggo-dark' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                }`}
+              >
+                {useDoggoGash ? '✓ Aplicado' : 'Aplicar'}
+              </button>
             </div>
-            {selectedRewardId && (
-              <p className="text-doggo-red text-xs mt-2 text-center">✅ Premio aplicado</p>
-            )}
           </div>
         )}
 
-        {customerData && customerData.rewards.length === 0 && (
+        {customerData && availableDoggo === 0 && (
           <div className="bg-gray-50 rounded-xl px-4 py-3 flex justify-between items-center border border-gray-200">
-            <p className="text-gray-500 text-sm">Tus puntos</p>
-            <p className="text-doggo-red font-black">{customerData.customer.points} pts</p>
+            <p className="text-gray-500 text-sm">⭐ {customerData.customer.estrellas} estrella{customerData.customer.estrellas !== 1 ? 's' : ''}</p>
+            <p className="text-gray-400 text-xs">Sin saldo aún</p>
           </div>
         )}
 
@@ -437,10 +410,10 @@ export default function CheckoutPage() {
                 <span className="text-gray-900">{formatPrice(deliveryFee)}</span>
               </div>
             )}
-            {discountAmount > 0 && (
+            {doggoToUse > 0 && (
               <div className="flex justify-between text-sm">
-                <span className="text-green-600">🎁 Descuento</span>
-                <span className="text-green-600">-{formatPrice(discountAmount)}</span>
+                <span className="text-green-600">⭐ Doggo Cash</span>
+                <span className="text-green-600">-{formatPrice(doggoToUse)}</span>
               </div>
             )}
             <div className="flex justify-between font-black">

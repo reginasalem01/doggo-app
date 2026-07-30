@@ -38,20 +38,24 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
           <p className="text-gray-400 text-[10px] font-semibold tracking-wide uppercase">Panel de Restaurante</p>
         </div>
 
-        <nav className="flex items-center gap-2">
+        <nav className="flex items-center gap-1.5">
           {NAV.map((item) => {
             const active = item.exact ? pathname === item.href : pathname.startsWith(item.href)
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-1.5 text-sm font-bold px-4 py-1.5 rounded-full transition-colors ${
-                  active
+                title={item.label}
+                className={`flex items-center gap-1.5 font-bold rounded-full transition-colors
+                  px-3 py-1.5 text-sm
+                  md:px-4
+                  ${active
                     ? 'bg-doggo-yellow text-doggo-dark'
                     : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
-                }`}
+                  }`}
               >
-                {item.icon} {item.label}
+                <span>{item.icon}</span>
+                <span className="hidden md:inline">{item.label}</span>
               </Link>
             )
           })}

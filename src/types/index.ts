@@ -89,6 +89,8 @@ export interface Customer {
   phone: string | null
   email: string | null
   points: number
+  estrellas: number
+  doggo_cash: number
   created_at: string
 }
 

@@ -1,12 +1,21 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
 
 interface Category { id: string; name: string; sort_order: number }
 interface Product  { id: string; name: string; price: number; category_id: string | null; image_url: string | null }
 interface OrderItem { product: Product; qty: number }
-interface LinkedCustomer { id: string; name: string; points: number }
+interface LinkedCustomer { id: string; name: string; estrellas: number; doggo_cash: number }
+
+interface TicketData {
+  orderId: string
+  items: OrderItem[]
+  subtotal: number
+  doggoUsed: number
+  total: number
+  paymentMethod: 'cash' | 'card'
+  customerName: string | null
+}
 
 export default function NuevoPedidoClient({
   categories,
@@ -15,21 +24,42 @@ export default function NuevoPedidoClient({
   categories: Category[]
   products: Product[]
 }) {
-  const router = useRouter()
   const [activeCat, setActiveCat] = useState<string | null>(null)
   const [items, setItems] = useState<OrderItem[]>([])
   const [linkedCustomer, setLinkedCustomer] = useState<LinkedCustomer | null>(null)
+  const [useDoggoGash, setUseDoggoGash] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash')
   const [scanning, setScanning] = useState(false)
   const [scanError, setScanError] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
 
+  // Ticket state: shown after order is created, before confirming delivery
+  const [ticket, setTicket] = useState<TicketData | null>(null)
+  const [delivering, setDelivering] = useState(false)
+  const [done, setDone] = useState(false)
+
   const filtered = activeCat
     ? products.filter((p) => p.category_id === activeCat)
     : products
 
-  const total = items.reduce((sum, i) => sum + i.product.price * i.qty, 0)
+  const subtotal = items.reduce((sum, i) => sum + i.product.price * i.qty, 0)
+  const availableDoggo = Number(linkedCustomer?.doggo_cash ?? 0)
+  const doggoToUse = useDoggoGash && availableDoggo > 0
+    ? Math.min(availableDoggo, subtotal)
+    : 0
+  const total = Math.max(0, Math.round((subtotal - doggoToUse) * 100) / 100)
   const itemCount = items.reduce((sum, i) => sum + i.qty, 0)
+
+  function resetForm() {
+    setItems([])
+    setLinkedCustomer(null)
+    setUseDoggoGash(false)
+    setPaymentMethod('cash')
+    setCreateError(null)
+    setTicket(null)
+    setDone(false)
+  }
 
   function addItem(product: Product) {
     setItems((prev) => {
@@ -40,11 +70,11 @@ export default function NuevoPedidoClient({
   }
 
   function changeQty(productId: string, delta: number) {
-    setItems((prev) => {
-      return prev
+    setItems((prev) =>
+      prev
         .map((i) => i.product.id === productId ? { ...i, qty: i.qty + delta } : i)
         .filter((i) => i.qty > 0)
-    })
+    )
   }
 
   async function handleCreate() {
@@ -58,11 +88,23 @@ export default function NuevoPedidoClient({
         body: JSON.stringify({
           items: items.map((i) => ({ product_id: i.product.id, quantity: i.qty })),
           linked_customer_id: linkedCustomer?.id ?? null,
+          doggo_cash_used: doggoToUse > 0 ? doggoToUse : undefined,
+          payment_method: paymentMethod,
         }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Error')
-      router.push('/admin')
+
+      const doggoUsed = Number(data.doggo_cash_used ?? 0)
+      setTicket({
+        orderId: data.id,
+        items: [...items],
+        subtotal,
+        doggoUsed,
+        total: Math.max(0, Math.round((subtotal - doggoUsed) * 100) / 100),
+        paymentMethod,
+        customerName: linkedCustomer?.name ?? null,
+      })
     } catch (e: unknown) {
       setCreateError(e instanceof Error ? e.message : 'Error al crear pedido')
     } finally {
@@ -70,6 +112,126 @@ export default function NuevoPedidoClient({
     }
   }
 
+  async function handleDeliver() {
+    if (!ticket) return
+    setDelivering(true)
+    try {
+      await fetch(`/api/admin/orders/${ticket.orderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'delivered' }),
+      })
+    } catch {
+      // Non-blocking — order was already created, loyalty/Contífico will retry
+    } finally {
+      setDelivering(false)
+      setDone(true)
+      setTimeout(() => resetForm(), 2200)
+    }
+  }
+
+  // ── Ticket view (shown after order creation) ──────────────────────────────
+  if (ticket) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-gray-50 p-6">
+        <div className="bg-white rounded-3xl shadow-lg border border-gray-200 w-full max-w-sm overflow-hidden">
+
+          {done ? (
+            // Success state — auto-resets after 2.2s
+            <div className="p-10 flex flex-col items-center gap-4 text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                <span className="text-3xl">✓</span>
+              </div>
+              <p className="text-gray-900 font-black text-xl">¡Pedido completado!</p>
+              {ticket.customerName && (
+                <p className="text-green-600 text-sm font-semibold">
+                  ⭐ Estrellas otorgadas a {ticket.customerName.split(' ')[0]}
+                </p>
+              )}
+              <p className="text-gray-400 text-xs">Listo para el siguiente…</p>
+            </div>
+          ) : (
+            <>
+              {/* Header */}
+              <div className="bg-doggo-yellow px-5 py-4 flex items-center justify-between">
+                <div>
+                  <p className="text-doggo-dark font-black text-lg">Ticket</p>
+                  <p className="text-doggo-dark/60 text-xs font-mono">
+                    #{ticket.orderId.slice(0, 8).toUpperCase()}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-doggo-dark text-sm font-bold">
+                    {ticket.paymentMethod === 'card' ? '💳 Tarjeta' : '💵 Efectivo'}
+                  </p>
+                  {ticket.customerName && (
+                    <p className="text-doggo-dark/70 text-xs mt-0.5">
+                      {ticket.customerName.split(' ')[0]}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Items */}
+              <div className="px-5 py-4 space-y-2 border-b border-dashed border-gray-200">
+                {ticket.items.map((item) => (
+                  <div key={item.product.id} className="flex justify-between text-sm">
+                    <span className="text-gray-600">
+                      {item.qty}× {item.product.name}
+                    </span>
+                    <span className="text-gray-900 font-semibold">
+                      ${(item.product.price * item.qty).toFixed(2)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Totals */}
+              <div className="px-5 py-4 space-y-2 border-b border-dashed border-gray-200">
+                {ticket.doggoUsed > 0 && (
+                  <>
+                    <div className="flex justify-between text-sm text-gray-400">
+                      <span>Subtotal</span>
+                      <span>${ticket.subtotal.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm font-semibold text-green-600">
+                      <span>⭐ Doggo Cash</span>
+                      <span>-${ticket.doggoUsed.toFixed(2)}</span>
+                    </div>
+                  </>
+                )}
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-900 font-black text-sm">TOTAL COBRADO</span>
+                  <span className="text-doggo-red font-black text-2xl">
+                    ${ticket.total.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Confirm */}
+              <div className="px-5 py-4 space-y-2">
+                <button
+                  onClick={handleDeliver}
+                  disabled={delivering}
+                  className="w-full bg-green-500 hover:bg-green-600 text-white font-black py-4 rounded-2xl text-base disabled:opacity-50 transition-colors"
+                >
+                  {delivering ? 'Procesando…' : '✓ ENTREGADO — Confirmar'}
+                </button>
+                <button
+                  onClick={resetForm}
+                  className="w-full text-gray-400 text-xs py-1 text-center"
+                >
+                  Cancelar y volver
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // ── POS view ──────────────────────────────────────────────────────────────
   return (
     <div className="flex h-full overflow-hidden">
 
@@ -181,15 +343,40 @@ export default function NuevoPedidoClient({
         {/* Customer QR link */}
         <div className="px-4 py-3 border-t border-gray-100">
           {linkedCustomer ? (
-            <div className="bg-green-50 border border-green-200 rounded-xl px-3 py-2.5 flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-sm font-black text-green-700 shrink-0">
-                {linkedCustomer.name[0].toUpperCase()}
+            <div className="space-y-2">
+              <div className="bg-green-50 border border-green-200 rounded-xl px-3 py-2.5 flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-sm font-black text-green-700 shrink-0">
+                  {linkedCustomer.name[0].toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-gray-900 font-bold text-sm truncate">{linkedCustomer.name}</p>
+                  <p className="text-green-600 text-xs">
+                    {linkedCustomer.estrellas} ⭐
+                    {linkedCustomer.doggo_cash > 0 && ` · $${Number(linkedCustomer.doggo_cash).toFixed(2)} Doggo Cash`}
+                  </p>
+                </div>
+                <button
+                  onClick={() => { setLinkedCustomer(null); setUseDoggoGash(false) }}
+                  className="text-gray-400 text-lg leading-none"
+                >×</button>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-gray-900 font-bold text-sm truncate">{linkedCustomer.name}</p>
-                <p className="text-green-600 text-xs">{linkedCustomer.points} pts actuales</p>
-              </div>
-              <button onClick={() => setLinkedCustomer(null)} className="text-gray-400 text-lg leading-none">×</button>
+
+              {/* Doggo Cash toggle */}
+              {linkedCustomer.doggo_cash > 0 && (
+                <button
+                  onClick={() => setUseDoggoGash(!useDoggoGash)}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl border text-sm font-bold transition-colors ${
+                    useDoggoGash
+                      ? 'bg-doggo-yellow/20 border-doggo-yellow text-doggo-dark'
+                      : 'bg-gray-50 border-gray-200 text-gray-500'
+                  }`}
+                >
+                  <span>⭐ Usar Doggo Cash</span>
+                  <span className={useDoggoGash ? 'text-doggo-dark font-black' : 'text-gray-400'}>
+                    {useDoggoGash ? `✓ -$${doggoToUse.toFixed(2)}` : `$${Number(linkedCustomer.doggo_cash).toFixed(2)}`}
+                  </span>
+                </button>
+              )}
             </div>
           ) : (
             <button
@@ -200,14 +387,53 @@ export default function NuevoPedidoClient({
             </button>
           )}
           {!linkedCustomer && (
-            <p className="text-gray-400 text-xs mt-1.5 text-center">Opcional — para otorgarle puntos</p>
+            <p className="text-gray-400 text-xs mt-1.5 text-center">Opcional — para otorgarle estrellas</p>
           )}
+        </div>
+
+        {/* Método de pago */}
+        <div className="px-4 py-3 border-t border-gray-100">
+          <p className="text-gray-500 text-xs font-semibold mb-2">MÉTODO DE PAGO</p>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => setPaymentMethod('cash')}
+              className={`py-2.5 rounded-xl text-sm font-black transition-colors ${
+                paymentMethod === 'cash'
+                  ? 'bg-doggo-dark text-white'
+                  : 'bg-gray-100 text-gray-400'
+              }`}
+            >
+              💵 Efectivo
+            </button>
+            <button
+              onClick={() => setPaymentMethod('card')}
+              className={`py-2.5 rounded-xl text-sm font-black transition-colors ${
+                paymentMethod === 'card'
+                  ? 'bg-doggo-dark text-white'
+                  : 'bg-gray-100 text-gray-400'
+              }`}
+            >
+              💳 Tarjeta
+            </button>
+          </div>
         </div>
 
         {/* Total + create */}
         <div className="px-4 pb-4 pt-2 border-t border-gray-100 space-y-2">
+          {doggoToUse > 0 && (
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-gray-400">Subtotal</span>
+              <span className="text-gray-400">${subtotal.toFixed(2)}</span>
+            </div>
+          )}
+          {doggoToUse > 0 && (
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-green-600 font-semibold">⭐ Doggo Cash</span>
+              <span className="text-green-600 font-semibold">-${doggoToUse.toFixed(2)}</span>
+            </div>
+          )}
           <div className="flex justify-between items-center">
-            <span className="text-gray-500 font-semibold text-sm">Total</span>
+            <span className="text-gray-500 font-semibold text-sm">Total a cobrar</span>
             <span className="text-doggo-red font-black text-xl">${total.toFixed(2)}</span>
           </div>
           {createError && <p className="text-doggo-red text-xs text-center">{createError}</p>}
@@ -216,10 +442,15 @@ export default function NuevoPedidoClient({
             disabled={creating || items.length === 0}
             className="w-full bg-doggo-yellow text-doggo-dark font-black py-3 rounded-full text-sm disabled:opacity-50 transition-opacity"
           >
-            {creating ? 'Creando pedido…' : linkedCustomer ? `Crear pedido + puntos para ${linkedCustomer.name.split(' ')[0]}` : 'Crear pedido'}
+            {creating
+              ? 'Creando pedido…'
+              : linkedCustomer
+                ? `Cobrar a ${linkedCustomer.name.split(' ')[0]}`
+                : 'Cobrar'
+            }
           </button>
           <button
-            onClick={() => { setItems([]); setLinkedCustomer(null) }}
+            onClick={resetForm}
             className="w-full text-gray-400 text-xs py-1"
           >
             Limpiar
@@ -238,7 +469,13 @@ export default function NuevoPedidoClient({
               return false
             }
             const data = await res.json()
-            setLinkedCustomer(data.customer)
+            setLinkedCustomer({
+              id: data.customer.id,
+              name: data.customer.name,
+              estrellas: data.customer.estrellas ?? 0,
+              doggo_cash: Number(data.customer.doggo_cash ?? 0),
+            })
+            setUseDoggoGash(false)
             setScanning(false)
             return true
           }}
@@ -289,15 +526,21 @@ function QRScanOverlay({
             if (!ok) {
               stoppedRef.current = false
               setLoading(false)
-              // restart scanner
-              try { await qr.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 220, height: 220 } }, async (d: string) => {
-                if (stoppedRef.current) return
-                stoppedRef.current = true
-                try { await qr.stop() } catch { /* ok */ }
-                setLoading(true)
-                await onFound(d)
-                setLoading(false)
-              }, () => {}) } catch { /* ok */ }
+              try {
+                await qr.start(
+                  { facingMode: 'environment' },
+                  { fps: 10, qrbox: { width: 220, height: 220 } },
+                  async (d: string) => {
+                    if (stoppedRef.current) return
+                    stoppedRef.current = true
+                    try { await qr.stop() } catch { /* ok */ }
+                    setLoading(true)
+                    await onFound(d)
+                    setLoading(false)
+                  },
+                  () => {}
+                )
+              } catch { /* ok */ }
             }
           },
           () => {}

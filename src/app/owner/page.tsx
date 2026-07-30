@@ -17,7 +17,7 @@ export default async function OwnerPage() {
     admin.from('reservations').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
     admin.from('customers').select('*', { count: 'exact', head: true }),
     admin.from('products').select('*', { count: 'exact', head: true }).eq('available', true),
-    admin.from('orders').select('total').gte('created_at', `${today}T00:00:00`).eq('payment_status', 'paid'),
+    admin.from('orders').select('total').gte('created_at', `${today}T00:00:00`).eq('status', 'delivered'),
     admin.from('orders').select('id, customer_name, total, status, created_at').order('created_at', { ascending: false }).limit(8),
   ])
 
@@ -49,7 +49,7 @@ export default async function OwnerPage() {
       {/* Stats — 2x2 grid */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="bg-gray-50 rounded-2xl p-5">
-          <p className="text-gray-500 text-xs mb-1">Ventas hoy (pagadas)</p>
+          <p className="text-gray-500 text-xs mb-1">Ventas hoy (entregadas)</p>
           <p className="text-doggo-red text-3xl font-black">${totalVentas.toFixed(2)}</p>
         </div>
         <div className="bg-gray-50 rounded-2xl p-5">

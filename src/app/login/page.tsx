@@ -6,7 +6,6 @@ import { createClient } from '@/lib/supabase/client'
 
 type Mode = 'login' | 'register' | 'forgot'
 
-const LOGO_URL = 'https://rasmalxjusrwpwbtoavs.supabase.co/storage/v1/object/public/images/brand/logo-transparent.png'
 
 export default function LoginPage() {
   const [mode, setMode] = useState<Mode>('login')
@@ -97,14 +96,7 @@ export default function LoginPage() {
       <div className="flex-1 px-4 py-6">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-24 h-24 rounded-full bg-doggo-yellow flex items-center justify-center mx-auto mb-2">
-            <img
-              src={LOGO_URL}
-              alt="Doggo"
-              width={80}
-              height={80}
-            />
-          </div>
+          <img src="/logo-round.png" alt="Doggo" width={96} height={96} className="mx-auto mb-2" />
           <p className="text-gray-500 text-sm">
             {mode === 'login' ? 'Accede para ver tus puntos y pedidos'
               : mode === 'register' ? 'Únete y empieza a acumular puntos'

@@ -43,6 +43,7 @@ function OrderCard({ order, onOptimisticUpdate, onRefresh }: {
   onRefresh: () => void
 }) {
   const [busy, setBusy] = useState(false)
+  const [confirming, setConfirming] = useState(false)
 
   // Para pedidos en local (dine_in) en estado 'new': botón directo a entregado
   const isDineInNew = order.delivery_type === 'dine_in' && order.status === 'new'
@@ -57,6 +58,14 @@ function OrderCard({ order, onOptimisticUpdate, onRefresh }: {
   async function advance(e: React.MouseEvent) {
     e.preventDefault()
     if (!action || busy) return
+
+    // Pedidos en local: pedir confirmación antes de marcar entregado
+    if (isDineInNew && !confirming) {
+      setConfirming(true)
+      return
+    }
+
+    setConfirming(false)
     setBusy(true)
     // Actualizar UI inmediatamente sin esperar la BD
     onOptimisticUpdate(order.id, action.next)
@@ -109,13 +118,31 @@ function OrderCard({ order, onOptimisticUpdate, onRefresh }: {
 
       {/* Botón de acción rápida */}
       {action && (
-        <button
-          onClick={(e) => advance(e)}
-          disabled={busy}
-          className={`w-full py-2.5 text-xs font-black tracking-wider transition-all ${action.cls} disabled:opacity-40`}
-        >
-          {busy ? '…' : action.label}
-        </button>
+        confirming ? (
+          <div className="flex border-t border-gray-200">
+            <button
+              onClick={() => setConfirming(false)}
+              className="flex-1 py-2.5 text-xs font-black bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+            >
+              CANCELAR
+            </button>
+            <button
+              onClick={(e) => advance(e)}
+              disabled={busy}
+              className={`flex-1 py-2.5 text-xs font-black transition-all ${action.cls} disabled:opacity-40`}
+            >
+              {busy ? '…' : '✓ CONFIRMAR'}
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={(e) => advance(e)}
+            disabled={busy}
+            className={`w-full py-2.5 text-xs font-black tracking-wider transition-all ${action.cls} disabled:opacity-40`}
+          >
+            {busy ? '…' : action.label}
+          </button>
+        )
       )}
     </div>
   )
@@ -136,7 +163,7 @@ function KanbanColumn({ col, onOptimisticUpdate, onRefresh }: {
   onRefresh: () => void
 }) {
   return (
-    <div className="flex flex-col flex-1 min-w-0 min-h-0 bg-gray-100 rounded-xl overflow-hidden">
+    <div className="flex flex-col flex-1 min-w-[270px] min-h-0 bg-gray-100 rounded-xl overflow-hidden">
       <div className={`flex items-center justify-between px-4 py-2.5 shrink-0 ${col.headerCls}`}>
         <p className="font-black text-sm tracking-widest text-white">{col.title}</p>
         <span className="bg-black/40 text-white text-xs font-black w-6 h-6 rounded-full flex items-center justify-center">
@@ -185,7 +212,7 @@ export default function KanbanBoard({ orders, onOptimisticUpdate, onRefresh }: {
   ]
 
   return (
-    <div className="flex gap-2.5 h-full p-3 bg-gray-50">
+    <div className="flex gap-2.5 h-full p-3 bg-gray-50 overflow-x-auto">
       {cols.map((col) => (
         <KanbanColumn key={col.id} col={col} onOptimisticUpdate={onOptimisticUpdate} onRefresh={onRefresh} />
       ))}

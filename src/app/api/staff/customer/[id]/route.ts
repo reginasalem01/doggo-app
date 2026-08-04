@@ -17,5 +17,13 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: 'Cliente no encontrado' }, { status: 404 })
   }
 
-  return NextResponse.json({ customer })
+  // Return rewards the customer can currently redeem (points >= points_required)
+  const { data: rewards } = await admin
+    .from('rewards')
+    .select('id, name, description, points_required, discount_type, discount_value')
+    .eq('active', true)
+    .lte('points_required', customer.points)
+    .order('points_required', { ascending: true })
+
+  return NextResponse.json({ customer, rewards: rewards ?? [] })
 }

@@ -1,9 +1,9 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import Link from 'next/link'
 
-const LEVEL = (pts: number) =>
-  pts >= 500 ? { label: 'Oro 🥇', color: 'text-yellow-600' }
-  : pts >= 200 ? { label: 'Plata 🥈', color: 'text-gray-500' }
+const LEVEL = (estrellas: number) =>
+  estrellas >= 26 ? { label: 'Oro 🥇', color: 'text-yellow-600' }
+  : estrellas >= 11 ? { label: 'Plata 🥈', color: 'text-gray-500' }
   : { label: 'Bronce 🥉', color: 'text-orange-700' }
 
 export default async function OwnerClientesPage() {
@@ -11,7 +11,7 @@ export default async function OwnerClientesPage() {
   const { data: customers } = await admin
     .from('customers')
     .select('*')
-    .order('points', { ascending: false })
+    .order('estrellas', { ascending: false })
 
   return (
     <div className="p-6">
@@ -31,7 +31,7 @@ export default async function OwnerClientesPage() {
           <table className="w-full min-w-[600px]">
             <thead>
               <tr className="border-b border-gray-200">
-                {['Cliente', 'Email', 'Teléfono', 'Nivel', 'Puntos', 'Desde'].map((h) => (
+                {['Cliente', 'Email', 'Teléfono', 'Nivel', 'Estrellas', 'Desde'].map((h) => (
                   <th key={h} className="text-left text-gray-500 text-xs uppercase tracking-wide px-4 py-3 first:pl-6 last:pr-6">
                     {h}
                   </th>
@@ -41,7 +41,7 @@ export default async function OwnerClientesPage() {
             <tbody>
               {customers.map((c) => {
                 const initials = c.name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase()
-                const lvl = LEVEL(c.points)
+                const lvl = LEVEL(c.estrellas ?? 0)
                 return (
                   <tr key={c.id} className="border-b border-gray-100 hover:bg-gray-100 transition-colors">
                     <td className="px-6 py-3">
@@ -57,7 +57,7 @@ export default async function OwnerClientesPage() {
                     <td className="px-4 py-3">
                       <span className={`text-xs font-bold ${lvl.color}`}>{lvl.label}</span>
                     </td>
-                    <td className="px-4 py-3 text-doggo-red font-black text-sm">{c.points}</td>
+                    <td className="px-4 py-3 text-doggo-red font-black text-sm">{c.estrellas ?? 0} ⭐</td>
                     <td className="px-6 py-3 text-gray-500 text-xs">
                       {new Date(c.created_at).toLocaleDateString('es-EC', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </td>

@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DOGGO — Sistema Completo</title>
+<style>
+/* ══ RESET ══════════════════════════════════════════════ */
+* { margin:0; padding:0; box-sizing:border-box; }
+
+/* ══ FONTS ══════════════════════════════════════════════ */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial,
+               sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji';
+  color: #1A1A1A;
+  font-size: 10pt;
+  line-height: 1;
+}
+
+/* ══ SCREEN MODE — document viewer ════════════════════════ */
+@media screen {
+  html {
+    background: #3a3a3a;
+    min-height: 100vh;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    padding: 28px 16px;
+    background: transparent;
+  }
+  .page {
+    width: 210mm;
+    max-width: calc(100vw - 32px);
+    height: auto !important;
+    overflow: visible !important;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.55);
+    border-radius: 3px;
+    page-break-after: unset !important;
+  }
+  .pg { height: auto !important; overflow: visible !important; }
+  .cover { min-height: 500px; }
+}
+
+/* ══ PRINT MODE ══════════════════════════════════════════ */
+@page { size: A4; margin: 0; }
+@media print {
+  html, body { background: #fff; display: block; padding: 0; }
+  .page {
+    width: 210mm; height: 297mm;
+    overflow: hidden; page-break-after: always;
+  }
+  .page:last-child { page-break-after: avoid; }
+  .pg { height: 297mm; overflow: hidden; }
+}
+
+/* ══ PAGE BASE ════════════════════════════════════════════ */
+.page { position: relative; background: #fff; }
+
+/* ══ EMOJI ICONS ══════════════════════════════════════════ */
+.em {
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%; flex-shrink: 0; line-height: 1;
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+}
+.em-sm  { width: 8mm;  height: 8mm;  font-size: 13px; }
+.em-md  { width: 12mm; height: 12mm; font-size: 20px; }
+.em-lg  { width: 18mm; height: 18mm; font-size: 30px; }
+.em-y   { background: #FDC423; }
+.em-r   { background: #FEE2E0; }
+.em-g   { background: #DCFCE7; }
+.em-b   { background: #DBEAFE; }
+.em-p   { background: #F3E8FF; }
+.em-or  { background: #FFEDD5; }
+.em-dk  { background: #F0F0F0; }
+.em-sq  { border-radius: 8px; }
+
+/* number circles for steps */
+.num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 8mm; height: 8mm; border-radius: 50%; flex-shrink: 0;
+  background: #FDC423; color: #1A1A1A;
+  font-weight: 700; font-size: 9pt; line-height: 1;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+.num-g { background: #27AE60; color: #fff; }
+
+/* ══ PORTADA ══════════════════════════════════════════════ */
+.cover {
+  background: #1A1A1A;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 16mm 20mm;
+  gap: 0;
+}
+.glow-tr {
+  position:absolute; top:-70mm; right:-50mm;
+  width:160mm; height:160mm; border-radius:50%;
+  background: radial-gradient(circle, rgba(253,196,35,.18) 0%, transparent 70%);
+  pointer-events:none;
+}
+.glow-bl {
+  position:absolute; bottom:-50mm; left:-40mm;
+  width:130mm; height:130mm; border-radius:50%;
+  background: radial-gradient(circle, rgba(253,196,35,.08) 0%, transparent 70%);
+  pointer-events:none;
+}
+.cov-badge {
+  display: flex; align-items: center; gap: 3mm;
+  background: rgba(253,196,35,.12); border: 1px solid rgba(253,196,35,.28);
+  border-radius: 99px; padding: 2.5mm 6mm;
+  color: #FDC423; font-size: 8.5pt; font-weight: 700; letter-spacing: .5pt;
+  margin-bottom: 10mm;
+}
+.cov-dot { width: 4mm; height: 4mm; background: #FDC423; border-radius: 50%; }
+.cov-name { font-size: 62pt; font-weight: 700; color: #FDC423; line-height: 1; letter-spacing: -2pt; margin-bottom: 3mm; }
+.cov-sub  { font-size: 10pt; color: rgba(255,255,255,.32); margin-bottom: 14mm; }
+.cov-line { width: 40mm; height: 3px; background: #FDC423; border-radius: 2px; margin-bottom: 14mm; }
+.cov-title { font-size: 24pt; font-weight: 700; color: #fff; text-align: center; line-height: 1.2; margin-bottom: 5mm; }
+.cov-desc  { font-size: 10pt; color: rgba(255,255,255,.36); text-align: center; line-height: 1.7; margin-bottom: 14mm; }
+.cov-chips { display: flex; gap: 3mm; flex-wrap: wrap; justify-content: center; }
+.cov-chip  {
+  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.14);
+  color: rgba(255,255,255,.5); padding: 2mm 4.5mm; border-radius: 99px;
+  font-size: 7.5pt; font-weight: 700;
+}
+
+/* ══ PÁGINA INTERIOR BASE ═════════════════════════════════ */
+.pg { padding: 12mm 14mm 10mm; }
+.lbl  { font-size: 7pt; font-weight: 700; letter-spacing: 2pt; color: #999; text-transform: uppercase; margin-bottom: 2mm; }
+.ttl  { font-size: 20pt; font-weight: 700; color: #1A1A1A; margin-bottom: 3mm; line-height: 1.1; }
+.sub  { font-size: 9pt; color: #666; line-height: 1.55; margin-bottom: 7mm; max-width: 160mm; }
+.sep  { height: 1px; background: #E8E8E8; margin: 6mm 0; }
+
+/* ══ PERSONAS ════════════════════════════════════════════ */
+.personas { display: flex; gap: 5mm; margin-bottom: 8mm; }
+.persona  {
+  flex: 1; border-radius: 12px; padding: 7mm;
+  break-inside: avoid; page-break-inside: avoid;
+}
+.pers-top { display: flex; align-items: center; gap: 3mm; margin-bottom: 4mm; }
+.pers-tag {
+  font-size: 6.5pt; font-weight: 700; letter-spacing: 1pt;
+  text-transform: uppercase; padding: 1mm 2.5mm; border-radius: 4px;
+}
+.pers-name { font-size: 13pt; font-weight: 700; color: #1A1A1A; margin-bottom: 2mm; }
+.pers-desc { font-size: 8pt; color: #555; line-height: 1.5; margin-bottom: 4mm; }
+.pers-tool {
+  font-size: 7.5pt; font-weight: 700; background: rgba(0,0,0,.08);
+  display: inline-block; padding: 1.5mm 3mm; border-radius: 5px;
+}
+.pc { background: #FFF9E6; border: 2px solid #FDC423; }
+.pc .pers-tag { background: #FDC423; color: #1A1A1A; }
+.ps { background: #FFF1F0; border: 2px solid #E8524A; }
+.ps .pers-tag { background: #E8524A; color: #fff; }
+.po { background: #F0FFF4; border: 2px solid #27AE60; }
+.po .pers-tag { background: #27AE60; color: #fff; }
+
+/* ══ CONN BOXES ══════════════════════════════════════════ */
+.conn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+.cbox {
+  border-radius: 8px; padding: 5mm;
+  display: flex; gap: 3.5mm; align-items: flex-start;
+  break-inside: avoid;
+}
+.cbox.b { background: #EEF4FF; border-left: 3px solid #2980B9; }
+.cbox.p { background: #F8F0FF; border-left: 3px solid #8E44AD; }
+.cbox.y { background: #FFF9E6; border-left: 3px solid #FDC423; }
+.cbox.g { background: #F0FFF4; border-left: 3px solid #27AE60; }
+.cbox.r { background: #FFF1F0; border-left: 3px solid #E8524A; }
+.cbox-body .h { font-size: 9.5pt; font-weight: 700; color: #1A1A1A; margin-bottom: 1.5mm; }
+.cbox-body .t { font-size: 8pt; color: #555; line-height: 1.45; }
+
+/* ══ JOURNEY HEADER ══════════════════════════════════════ */
+.jhead { padding: 6mm 14mm; display: flex; align-items: center; gap: 5mm; }
+.jhead.y { background: #FFF9E6; }
+.jhead.r { background: #FFF1F0; }
+.jhead.g { background: #F0FFF4; }
+.jh-text .t { font-size: 13pt; font-weight: 700; color: #1A1A1A; }
+.jh-text .s { font-size: 8pt; color: #888; margin-top: 1mm; }
+
+/* ══ MINI CARDS ══════════════════════════════════════════ */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4mm; }
+.mcard {
+  background: #F7F7F7; border-radius: 10px; padding: 5mm;
+  break-inside: avoid; page-break-inside: avoid;
+  display: flex; flex-direction: column; gap: 2mm;
+}
+.mcard .icon-row { display: flex; align-items: center; gap: 3mm; margin-bottom: 1mm; }
+.mcard .ttl2 { font-size: 9.5pt; font-weight: 700; color: #1A1A1A; }
+.mcard .dsc  { font-size: 8pt; color: #666; line-height: 1.42; }
+
+/* ══ CALLOUT DARK ════════════════════════════════════════ */
+.callout {
+  background: #1A1A1A; border-radius: 10px; padding: 5mm 6mm;
+  break-inside: avoid; display: flex; gap: 4mm; align-items: flex-start;
+}
+.callout .ct { font-size: 9.5pt; font-weight: 700; color: #FDC423; margin-bottom: 2mm; }
+.callout .cd { font-size: 8pt; color: rgba(255,255,255,.62); line-height: 1.5; }
+
+/* ══ STEP FLOW ════════════════════════════════════════════ */
+.stepflow { display: flex; flex-direction: column; }
+.step { display: flex; gap: 3.5mm; align-items: flex-start; break-inside: avoid; }
+.step-col { display: flex; flex-direction: column; align-items: center; width: 9mm; flex-shrink: 0; }
+.step-con { width: 2px; flex: 1; background: #E8E8E8; min-height: 5mm; margin-top: 1mm; }
+.step-body { padding-bottom: 5mm; flex: 1; }
+.step-body .h { font-size: 9.5pt; font-weight: 700; color: #1A1A1A; margin-bottom: 1mm; }
+.step-body .d { font-size: 8pt; color: #555; line-height: 1.42; }
+.step-badge {
+  display: inline-block; background: #FFF9E6; color: #8a6000;
+  border: 1px solid #FDC423; font-size: 7pt; font-weight: 700;
+  padding: 1mm 2.5mm; border-radius: 4px; margin-top: 2mm;
+}
+
+/* ══ KANBAN ══════════════════════════════════════════════ */
+.kanban-row { display: flex; gap: 2.5mm; }
+.kc { flex: 1; border-radius: 8px; overflow: hidden; break-inside: avoid; }
+.kc-h { padding: 2.5mm 3mm; font-size: 8pt; font-weight: 700; color: #fff; }
+.kc-h.new  { background: #E8524A; }
+.kc-h.prep { background: #E67E22; }
+.kc-h.done { background: #27AE60; }
+.kc-body { background: #F5F5F5; padding: 3mm; }
+.kc-item { font-size: 7.5pt; color: #666; padding: 1.5mm 0; border-bottom: 1px solid #E8E8E8; line-height: 1.3; }
+.kc-item:last-child { border-bottom: none; }
+
+/* ══ LEVELS ══════════════════════════════════════════════ */
+.levels { display: flex; gap: 4mm; }
+.lev {
+  flex: 1; border-radius: 12px; padding: 6mm; text-align: center;
+  break-inside: avoid;
+}
+.lev.br { background: linear-gradient(160deg,#CD7F32,#A0522D); color:#fff; }
+.lev.si { background: linear-gradient(160deg,#A8A9AD,#6F7176); color:#fff; }
+.lev.go { background: linear-gradient(160deg,#FDC423,#E6A817); color:#1A1A1A; }
+.lev .n  { font-size: 14pt; font-weight: 700; margin-bottom: 2mm; }
+.lev .r  { font-size: 8pt; opacity: .85; margin-bottom: 3mm; }
+.lev .c  { font-size: 10.5pt; font-weight: 700; }
+
+/* ══ FLOW HORIZONTAL ══════════════════════════════════════ */
+.hflow { display: flex; align-items: stretch; gap: 0; margin-bottom: 8mm; }
+.hf-node {
+  flex: 1; border-radius: 10px; padding: 5mm; text-align: center;
+  break-inside: avoid; display: flex; flex-direction: column;
+  align-items: center; gap: 2mm;
+}
+.hf-node .label { font-size: 9pt; font-weight: 700; color: #1A1A1A; }
+.hf-node .smol  { font-size: 7.5pt; color: #777; line-height: 1.3; }
+.hf-arrow {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18pt; color: #CCC; flex-shrink: 0; padding: 0 3mm;
+  font-weight: 700;
+}
+
+/* ══ OUTCOMES ════════════════════════════════════════════ */
+.outcome { border-radius: 10px; padding: 5.5mm; break-inside: avoid; }
+.outcome.y { background: #FFF9E6; border-top: 3px solid #FDC423; }
+.outcome.p { background: #F8F0FF; border-top: 3px solid #8E44AD; }
+.outcome.g { background: #F0FFF4; border-top: 3px solid #27AE60; }
+.outcome .ot { font-size: 9pt; font-weight: 700; color: #1A1A1A; margin-bottom: 2mm; display: flex; align-items: center; gap: 2.5mm; }
+.outcome .od { font-size: 7.5pt; color: #666; line-height: 1.45; }
+
+/* ══ INTEG CARD ══════════════════════════════════════════ */
+.integ { background: #F7F7F7; border-radius: 10px; padding: 5.5mm; break-inside: avoid; }
+.integ .name { font-size: 10.5pt; font-weight: 700; color: #1A1A1A; margin-bottom: 3.5mm; display: flex; align-items: center; gap: 3mm; }
+.integ-row { display: flex; gap: 2mm; margin-bottom: 2mm; align-items: flex-start; }
+.integ-row .k { font-size: 7.5pt; font-weight: 700; color: #1A1A1A; flex-shrink: 0; width: 24mm; }
+.integ-row .v { font-size: 7.5pt; color: #666; line-height: 1.4; }
+
+/* ══ SUMMARY TABLE ════════════════════════════════════════ */
+.sum-t { width: 100%; border-collapse: collapse; }
+.sum-t th {
+  background: #1A1A1A; color: #fff; font-size: 8.5pt; font-weight: 700;
+  padding: 4mm; text-align: left;
+}
+.sum-t td { font-size: 8pt; padding: 3mm 4mm; border-bottom: 1px solid #F0F0F0; vertical-align: middle; }
+.sum-t tr:nth-child(even) td { background: #FAFAFA; }
+.sum-t td:first-child { font-weight: 700; color: #1A1A1A; }
+.sum-t .yes  { text-align: center; color: #27AE60; font-weight: 700; font-size: 8pt; }
+.sum-t .no   { text-align: center; color: #CCC; font-size: 12pt; }
+.sum-t .auto { text-align: center; color: #8E44AD; font-weight: 700; font-size: 7.5pt; }
+
+/* ══ FOOTER BOXES ════════════════════════════════════════ */
+.fbx { background: #1A1A1A; border-radius: 10px; padding: 5mm; break-inside: avoid; }
+.fbx .ft { font-size: 9pt; font-weight: 700; color: #FDC423; margin-bottom: 2mm; }
+.fbx .fd { font-size: 7.5pt; color: rgba(255,255,255,.6); line-height: 1.5; }
+
+/* ══ TWO-COL LAYOUT ══════════════════════════════════════ */
+.tcol { display: flex; gap: 8mm; }
+.tcol > div { flex: 1; }
+.col-lbl { font-size: 7pt; font-weight: 700; letter-spacing: 1.5pt; color: #999; text-transform: uppercase; margin-bottom: 4mm; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════
+  P1 · PORTADA
+══════════════════════════════════ -->
+<div class="page cover">
+  <div class="glow-tr"></div>
+  <div class="glow-bl"></div>
+
+  <div class="cov-badge">
+    <div class="cov-dot"></div>
+    SISTEMA DE PEDIDOS DOGGO
+  </div>
+  <div class="cov-name">DOGGO</div>
+  <div class="cov-sub">Hotdog sin dramas · Plaza Guayarte, Guayaquil</div>
+  <div class="cov-line"></div>
+  <div class="cov-title">Cómo funciona<br>el sistema completo</div>
+  <div class="cov-desc">
+    App del cliente · Panel del restaurante<br>
+    Panel de la dueña · Contifico · Doggo Cash
+  </div>
+  <div class="cov-chips">
+    <span class="cov-chip">📱 App móvil</span>
+    <span class="cov-chip">🖥 Panel restaurante</span>
+    <span class="cov-chip">💼 Panel dueña</span>
+    <span class="cov-chip">🧾 Contifico SRI</span>
+    <span class="cov-chip">⭐ Doggo Cash</span>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════
+  P2 · ECOSISTEMA
+══════════════════════════════════ -->
+<div class="page pg">
+  <div class="lbl">Visión general</div>
+  <div class="ttl">El ecosistema Doggo</div>
+  <div class="sub">Tres frentes, una sola base de datos. Todo en tiempo real — lo que pasa en un lugar se ve en los demás al instante.</div>
+
+  <!-- 3 personas -->
+  <div class="personas">
+    <div class="persona pc">
+      <div class="pers-top">
+        <div class="em em-md em-y" style="font-size:22px;">📱</div>
+        <span class="pers-tag">Frente 1</span>
+      </div>
+      <div class="pers-name">El cliente</div>
+      <div class="pers-desc">Pide hotdogs, reserva mesas y acumula estrellas — todo desde su celular.</div>
+      <div class="pers-tool">App móvil (sin descarga)</div>
+    </div>
+    <div class="persona ps">
+      <div class="pers-top">
+        <div class="em em-md em-r" style="font-size:22px;">👨‍🍳</div>
+        <span class="pers-tag">Frente 2</span>
+      </div>
+      <div class="pers-name">Staff del local</div>
+      <div class="pers-desc">Toma pedidos presenciales, los prepara y confirma la entrega desde el panel.</div>
+      <div class="pers-tool">Panel del restaurante</div>
+    </div>
+    <div class="persona po">
+      <div class="pers-top">
+        <div class="em em-md em-g" style="font-size:22px;">💼</div>
+        <span class="pers-tag">Frente 3</span>
+      </div>
+      <div class="pers-name">La dueña</div>
+      <div class="pers-desc">Controla el menú, precios, clientes, recompensas y toda la configuración.</div>
+      <div class="pers-tool">Panel de la dueña (acceso total)</div>
+    </div>
+  </div>
+
+  <div class="sep"></div>
+  <div class="lbl" style="margin-bottom:4mm;">Lo que conecta todo por detrás</div>
+
+  <div class="conn-grid">
+    <div class="cbox b">
+      <div class="em em-sm em-b em-sq" style="font-size:16px;">☁️</div>
+      <div class="cbox-body">
+        <div class="h">Base de datos en la nube</div>
+        <div class="t">Pedidos, clientes, menú, reservas y puntos en un solo lugar. Actualización instantánea en todos los paneles — sin recargar.</div>
+      </div>
+    </div>
+    <div class="cbox p">
+      <div class="em em-sm em-p em-sq" style="font-size:16px;">🧾</div>
+      <div class="cbox-body">
+        <div class="h">Contifico · Facturación SRI</div>
+        <div class="t">Al confirmar entrega, la factura electrónica se genera sola. Cero pasos manuales — queda en el sistema contable.</div>
+      </div>
+    </div>
+    <div class="cbox y">
+      <div class="em em-sm em-y em-sq" style="font-size:16px;">⭐</div>
+      <div class="cbox-body">
+        <div class="h">Doggo Cash · Fidelización</div>
+        <div class="t">$5 gastados = 1 estrella. Se acreditan solos al confirmar entrega y se convierten en saldo para el próximo pedido.</div>
+      </div>
+    </div>
+    <div class="cbox g">
+      <div class="em em-sm em-g em-sq" style="font-size:16px;">⚡</div>
+      <div class="cbox-body">
+        <div class="h">Tiempo real · Sin recargar</div>
+        <div class="t">Cuando llega un pedido, el Kanban suena y se actualiza solo. Los clientes ven el estado en vivo sin llamar.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════
+  P3 · EL CLIENTE
+══════════════════════════════════ -->
+<div class="page">
+  <div class="jhead y">
+    <div class="em em-lg em-y" style="font-size:32px;">📱</div>
+    <div class="jh-text">
+      <div class="t">El cliente — App desde el celular</div>
+      <div class="s">Entra por QR en la mesa o desde su celular · Sin descarga · Sin instalación</div>
+    </div>
+  </div>
+
+  <div style="padding: 7mm 14mm 10mm;">
+    <div class="grid2" style="margin-bottom:5mm;">
+      <div class="mcard">
+        <div class="icon-row">
+          <span style="font-size:22px;">📲</span>
+          <div class="ttl2">Entra sin instalación</div>
+        </div>
+        <div class="dsc">Funciona desde el navegador del celular. Se puede agregar al inicio como si fuera una app real — sin App Store.</div>
+      </div>
+      <div class="mcard">
+        <div class="icon-row">
+          <span style="font-size:22px;">🍽️</span>
+          <div class="ttl2">Ve y filtra el menú</div>
+        </div>
+        <div class="dsc">Hotdogs, especiales, extras, bebidas y combos con foto y precio. Filtra por categoría en un toque.</div>
+      </div>
+      <div class="mcard">
+        <div class="icon-row">
+          <span style="font-size:22px;">🌭</span>
+          <div class="ttl2">Personaliza su hotdog</div>
+        </div>
+        <div class="dsc">Salsas y extras gratis. Toppings especiales +$1.25 c/u. El precio se actualiza en vivo mientras elige.</div>
+      </div>
+      <div class="mcard">
+        <div class="icon-row">
+          <span style="font-size:22px;">🛒</span>
+          <div class="ttl2">Arma su carrito</div>
+        </div>
+        <div class="dsc">Varios productos, distintas cantidades. Ve el resumen con todas sus personalizaciones antes de pagar.</div>
+      </div>
+      <div class="mcard">
+        <div class="icon-row">
+          <span style="font-size:22px;">💳</span>
+          <div class="ttl2">Hace checkout</div>
+        </div>
+        <div class="dsc">Elige consumo en local, retiro o domicilio. Si tiene Doggo Cash, lo aplica como descuento directo.</div>
+      </div>
+      <div class="mcard">
+        <div class="icon-row">
+          <span style="font-size:22px;">📍</span>
+          <div class="ttl2">Sigue su pedido en vivo</div>
+        </div>
+        <div class="dsc">Recibido → Preparando → Listo → Entregado. Estado en tiempo real. Sin llamar.</div>
+      </div>
+      <div class="mcard">
+        <div class="icon-row">
+          <span style="font-size:22px;">📅</span>
+          <div class="ttl2">Reserva una mesa</div>
+        </div>
+        <div class="dsc">Fecha, hora y número de personas. El local confirma o cancela. Ve el estado actualizado desde la app.</div>
+      </div>
+      <div class="mcard">
+        <div class="icon-row">
+          <span style="font-size:22px;">⭐</span>
+          <div class="ttl2">Acumula Doggo Cash</div>
+        </div>
+        <div class="dsc">Cada $5 = 1 estrella. Se acreditan solos al recibir el pedido. Tarjeta virtual con QR para el local.</div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <span style="font-size:26px; flex-shrink:0;">❓</span>
+      <div>
+        <div class="ct">¿Necesita cuenta para pedir?</div>
+        <div class="cd">No. Cualquier persona puede ver el menú y pedir sin registrarse. La cuenta solo se necesita para acumular estrellas y usar Doggo Cash. Gratis · Menos de 1 minuto.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════
+  P4 · EL STAFF
+══════════════════════════════════ -->
+<div class="page">
+  <div class="jhead r">
+    <div class="em em-lg em-r" style="font-size:32px;">👨‍🍳</div>
+    <div class="jh-text">
+      <div class="t">El staff del local — Panel del restaurante</div>
+      <div class="s">La caja registradora digital · Desde tablet o computadora en el local</div>
+    </div>
+  </div>
+
+  <div style="padding: 7mm 14mm 10mm;">
+    <div class="tcol">
+
+      <!-- POS -->
+      <div>
+        <div class="col-lbl">Crear pedidos presenciales (POS)</div>
+        <div class="stepflow">
+
+          <div class="step">
+            <div class="step-col">
+              <div class="num">1</div>
+              <div class="step-con"></div>
+            </div>
+            <div class="step-body">
+              <div class="h">Cliente llega al local</div>
+              <div class="d">El staff abre "Nuevo pedido" y ve el menú completo con fotos y precios.</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-col">
+              <div class="num">2</div>
+              <div class="step-con"></div>
+            </div>
+            <div class="step-body">
+              <div class="h">Agrega los productos</div>
+              <div class="d">Toca cada producto. Los hotdogs abren el selector de salsas, extras y toppings. Total automático.</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-col">
+              <div class="num">3</div>
+              <div class="step-con"></div>
+            </div>
+            <div class="step-body">
+              <div class="h">Escanea el QR del cliente</div>
+              <div class="d">Si tiene cuenta, escanea su QR con la cámara. Aparece su saldo de Doggo Cash.</div>
+              <div class="step-badge">⭐ Opcional — para dar estrellas</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-col">
+              <div class="num">4</div>
+              <div class="step-con"></div>
+            </div>
+            <div class="step-body">
+              <div class="h">Selecciona método de pago</div>
+              <div class="d">Efectivo o tarjeta. Toca "Cobrar".</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-col">
+              <div class="num">5</div>
+              <div class="step-con"></div>
+            </div>
+            <div class="step-body">
+              <div class="h">Aparece el ticket</div>
+              <div class="d">Resumen con total cobrado. Cuando el cliente recibe su pedido, el staff toca "Entregado".</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-col">
+              <div class="num num-g">✓</div>
+            </div>
+            <div class="step-body">
+              <div class="h">Sistema actúa automático</div>
+              <div class="d">Estrellas al cliente · Factura en Contifico · Formulario reseteado para el siguiente pedido.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Kanban -->
+      <div>
+        <div class="col-lbl">Gestionar pedidos online (Kanban)</div>
+
+        <div class="cbox r" style="border-radius:8px; margin-bottom:4mm;">
+          <span style="font-size:20px; flex-shrink:0;">📌</span>
+          <div class="cbox-body">
+            <div class="h">¿Qué es el Kanban?</div>
+            <div class="t">Tablero con 3 columnas que muestra todos los pedidos de la app. Se actualiza solo y suena una alerta cuando llega uno nuevo.</div>
+          </div>
+        </div>
+
+        <div class="kanban-row" style="margin-bottom:5mm;">
+          <div class="kc">
+            <div class="kc-h new">🔴 NUEVOS</div>
+            <div class="kc-body">
+              <div class="kc-item">Recién llegados</div>
+              <div class="kc-item">Sin aceptar</div>
+            </div>
+          </div>
+          <div class="kc">
+            <div class="kc-h prep">🟠 PREPARANDO</div>
+            <div class="kc-body">
+              <div class="kc-item">En cocina</div>
+              <div class="kc-item">En proceso</div>
+            </div>
+          </div>
+          <div class="kc">
+            <div class="kc-h done">🟢 LISTOS</div>
+            <div class="kc-body">
+              <div class="kc-item">Para entregar</div>
+              <div class="kc-item">Para despachar</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lbl" style="margin-bottom:4mm;">También puede:</div>
+
+        <div class="stepflow">
+          <div class="step">
+            <div class="step-col">
+              <span style="font-size:18px;">🔍</span>
+              <div class="step-con"></div>
+            </div>
+            <div class="step-body">
+              <div class="h">Ver detalle del pedido</div>
+              <div class="d">Items, personalizaciones, dirección y notas del cliente.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-col">
+              <span style="font-size:18px;">📅</span>
+              <div class="step-con"></div>
+            </div>
+            <div class="step-body">
+              <div class="h">Gestionar reservas</div>
+              <div class="d">Ver, confirmar o cancelar reservas del día directamente.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-col">
+              <span style="font-size:18px;">🍽️</span>
+            </div>
+            <div class="step-body">
+              <div class="h">Activar / desactivar productos</div>
+              <div class="d">Si algo se acaba o hay cambios temporales en el menú.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════
+  P5 · LA DUEÑA
+══════════════════════════════════ -->
+<div class="page">
+  <div class="jhead g">
+    <div class="em em-lg em-g" style="font-size:32px;">💼</div>
+    <div class="jh-text">
+      <div class="t">La dueña — Panel de control total</div>
+      <div class="s">Acceso completo desde cualquier dispositivo · Solo Pamela tiene este panel</div>
+    </div>
+  </div>
+
+  <div style="padding: 7mm 14mm 10mm;">
+    <div class="grid2" style="margin-bottom:6mm;">
+      <div class="mcard">
+        <div class="icon-row"><span style="font-size:22px;">📊</span><div class="ttl2">Dashboard</div></div>
+        <div class="dsc">Pedidos del día, ventas, reservas pendientes, productos activos y clientes — todo de un vistazo al entrar.</div>
+      </div>
+      <div class="mcard">
+        <div class="icon-row"><span style="font-size:22px;">🍽️</span><div class="ttl2">Gestionar el menú</div></div>
+        <div class="dsc">Crear productos, editar precios, subir fotos, activar/desactivar y cambiar el orden en que aparecen.</div>
+      </div>
+      <div class="mcard">
+        <div class="icon-row"><span style="font-size:22px;">👥</span><div class="ttl2">Ver base de clientes</div></div>
+        <div class="dsc">Lista completa con estrellas, saldo Doggo Cash, nivel e historial de pedidos de cada cliente.</div>
+      </div>
+      <div class="mcard">
+        <div class="icon-row"><span style="font-size:22px;">🎁</span><div class="ttl2">Crear recompensas</div></div>
+        <div class="dsc">Define qué pueden canjear con estrellas: hotdog gratis, descuento, bebida. Tú decides cuántas estrellas cuesta.</div>
+      </div>
+      <div class="mcard">
+        <div class="icon-row"><span style="font-size:22px;">🎯</span><div class="ttl2">Publicar promociones</div></div>
+        <div class="dsc">Banners en la home de la app: 2x1, combos, descuentos con fecha de inicio y vencimiento.</div>
+      </div>
+      <div class="mcard">
+        <div class="icon-row"><span style="font-size:22px;">📜</span><div class="ttl2">Historial de pedidos</div></div>
+        <div class="dsc">Todos los pedidos con filtros por estado, fecha y cliente. Detalle completo de cada uno.</div>
+      </div>
+      <div class="mcard">
+        <div class="icon-row"><span style="font-size:22px;">📅</span><div class="ttl2">Gestionar reservas</div></div>
+        <div class="dsc">Ver, confirmar o cancelar reservas. El cliente recibe notificación automática al cambiar el estado.</div>
+      </div>
+      <div class="mcard">
+        <div class="icon-row"><span style="font-size:22px;">⚙️</span><div class="ttl2">Configuración</div></div>
+        <div class="dsc">Horario de atención, activar o pausar pedidos online — sin tocar código, todo desde el panel.</div>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+    <div class="lbl" style="margin-bottom:4mm;">Sistema de fidelización — niveles</div>
+
+    <div class="levels">
+      <div class="lev br">
+        <div class="n">🥉 BRONCE</div>
+        <div class="r">0 – 10 estrellas</div>
+        <div class="c">$0.50 / estrella</div>
+      </div>
+      <div class="lev si">
+        <div class="n">🥈 PLATA</div>
+        <div class="r">11 – 25 estrellas</div>
+        <div class="c">$0.75 / estrella</div>
+      </div>
+      <div class="lev go">
+        <div class="n">🥇 ORO</div>
+        <div class="r">26+ estrellas</div>
+        <div class="c">$1.00 / estrella</div>
+      </div>
+    </div>
+
+    <div style="height:4mm;"></div>
+    <div class="cbox y" style="border-radius:8px;">
+      <span style="font-size:20px; flex-shrink:0;">⭐</span>
+      <div class="cbox-body">
+        <div class="h">Regla de estrellas</div>
+        <div class="t">Por cada $5 gastados = 1 estrella. Se suman solas al confirmar la entrega. El cliente usa Doggo Cash como descuento en la app o en el local escaneando su QR.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════
+  P6 · CÓMO SE CONECTA TODO
+══════════════════════════════════ -->
+<div class="page pg">
+  <div class="lbl">Arquitectura simplificada</div>
+  <div class="ttl">Cómo se conecta todo</div>
+  <div class="sub">Un pedido recorre este camino — desde que el cliente lo hace hasta que queda en contabilidad, sin que nadie haga nada extra.</div>
+
+  <!-- Flujo horizontal de 4 nodos -->
+  <div class="hflow">
+    <div class="hf-node" style="background:#FFF9E6; border:2px solid #FDC423;">
+      <span style="font-size:28px;">📱</span>
+      <div class="label">Cliente pide</div>
+      <div class="smol">App o POS del staff</div>
+    </div>
+    <div class="hf-arrow">›</div>
+    <div class="hf-node" style="background:#FFF3E8; border:2px solid #E67E22;">
+      <span style="font-size:28px;">🔔</span>
+      <div class="label">Staff recibe alerta</div>
+      <div class="smol">Kanban suena solo</div>
+    </div>
+    <div class="hf-arrow">›</div>
+    <div class="hf-node" style="background:#FFFDE7; border:2px solid #EAB308;">
+      <span style="font-size:28px;">👨‍🍳</span>
+      <div class="label">Cocina prepara</div>
+      <div class="smol">Ve todos los detalles</div>
+    </div>
+    <div class="hf-arrow">›</div>
+    <div class="hf-node" style="background:#F0FFF4; border:2px solid #27AE60;">
+      <span style="font-size:28px;">✅</span>
+      <div class="label">Staff entrega</div>
+      <div class="smol">1 botón — 3 cosas pasan</div>
+    </div>
+  </div>
+
+  <!-- 3 outcomes automáticos -->
+  <div class="lbl" style="margin-bottom:3mm;">Al confirmar entrega — todo pasa automáticamente</div>
+  <div class="grid3" style="margin-bottom:6mm;">
+    <div class="outcome y">
+      <div class="ot">⭐ Estrellas sumadas</div>
+      <div class="od">Se calculan según el total del pedido y se acreditan al cliente al instante. Sin hacer nada.</div>
+    </div>
+    <div class="outcome p">
+      <div class="ot">🧾 Factura en Contifico</div>
+      <div class="od">Factura electrónica generada con todos los items y forma de pago. TC = tarjeta, EF = efectivo.</div>
+    </div>
+    <div class="outcome g">
+      <div class="ot">📊 Dashboard actualizado</div>
+      <div class="od">Las ventas del día y el historial del cliente se reflejan al instante en el panel de la dueña.</div>
+    </div>
+  </div>
+
+  <div class="sep"></div>
+  <div class="lbl" style="margin-bottom:3mm;">Integraciones externas</div>
+
+  <div class="grid2">
+    <div class="integ">
+      <div class="name">
+        🧾 Contifico · SRI Ecuador
+      </div>
+      <div class="integ-row"><span class="k">¿Cuándo actúa?</span><span class="v">Al confirmar la entrega de cualquier pedido.</span></div>
+      <div class="integ-row"><span class="k">¿Qué hace?</span><span class="v">Crea la factura electrónica con items, precios y forma de pago.</span></div>
+      <div class="integ-row"><span class="k">¿Acción manual?</span><span class="v">Ninguna — completamente automático.</span></div>
+    </div>
+    <div class="integ">
+      <div class="name">
+        💬 WhatsApp · Contacto directo
+      </div>
+      <div class="integ-row"><span class="k">¿Cuándo actúa?</span><span class="v">Cuando el cliente toca el botón de ayuda o contacto.</span></div>
+      <div class="integ-row"><span class="k">¿Qué hace?</span><span class="v">Abre WhatsApp con el número del local y un mensaje predefinido.</span></div>
+      <div class="integ-row"><span class="k">¿Acción manual?</span><span class="v">Solo responder desde el teléfono del local.</span></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════
+  P7 · TABLA RESUMEN
+══════════════════════════════════ -->
+<div class="page pg">
+  <div class="lbl">Resumen ejecutivo</div>
+  <div class="ttl">¿Quién hace qué?</div>
+  <div class="sub" style="margin-bottom:6mm;">Referencia rápida de acciones por frente del sistema.</div>
+
+  <table class="sum-t">
+    <thead>
+      <tr>
+        <th style="width:42%; border-radius:8px 0 0 0;">Acción</th>
+        <th style="width:19%; text-align:center;">📱 Cliente</th>
+        <th style="width:19%; text-align:center;">👨‍🍳 Staff</th>
+        <th style="width:20%; text-align:center; border-radius:0 8px 0 0;">💼 Dueña</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Ver el menú</td><td class="yes">Siempre</td><td class="yes">Para pedidos</td><td class="yes">Para editar</td></tr>
+      <tr><td>Hacer un pedido</td><td class="yes">App</td><td class="yes">POS local</td><td class="no">—</td></tr>
+      <tr><td>Ver estado del pedido en vivo</td><td class="yes">Tiempo real</td><td class="yes">Kanban</td><td class="yes">Historial</td></tr>
+      <tr><td>Marcar pedido como entregado</td><td class="no">—</td><td class="yes">✓</td><td class="no">—</td></tr>
+      <tr><td>Crear y editar productos del menú</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
+      <tr><td>Subir fotos al menú</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
+      <tr><td>Reservar mesa</td><td class="yes">✓</td><td class="no">—</td><td class="yes">Ver/gestionar</td></tr>
+      <tr><td>Confirmar y cancelar reservas</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+      <tr><td>Acumular estrellas Doggo Cash</td><td class="auto">Automático</td><td class="no">—</td><td class="no">—</td></tr>
+      <tr><td>Ver y usar Doggo Cash</td><td class="yes">Al checkout</td><td class="yes">Con QR</td><td class="yes">Ver saldos</td></tr>
+      <tr><td>Crear recompensas</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
+      <tr><td>Publicar promociones</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
+      <tr><td>Ver base de clientes</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
+      <tr><td>Configurar horarios y pausas</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
+      <tr><td>Facturación Contifico (SRI)</td><td class="no">—</td><td class="auto">Automático</td><td class="auto">Automático</td></tr>
+    </tbody>
+  </table>
+
+  <div style="height:6mm;"></div>
+
+  <div class="grid3">
+    <div class="fbx">
+      <div class="ft">🔒 Seguridad</div>
+      <div class="fd">Cada panel tiene su propio acceso. El staff solo gestiona pedidos y reservas. Solo la dueña tiene control total.</div>
+    </div>
+    <div class="fbx">
+      <div class="ft">⚡ Sin recargar</div>
+      <div class="fd">El panel del staff se actualiza solo con alerta sonora. No hay que mirar la pantalla constantemente.</div>
+    </div>
+    <div class="fbx">
+      <div class="ft">📲 Sin descargar</div>
+      <div class="fd">La app funciona desde cualquier celular con internet. Se agrega al inicio como acceso directo igual que una app.</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

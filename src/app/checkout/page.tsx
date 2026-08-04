@@ -43,6 +43,7 @@ export default function CheckoutPage() {
   const [notes, setNotes]   = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError]   = useState('')
+  const [acceptedPolicies, setAcceptedPolicies] = useState(false)
 
   // Mapa
   const [lat, setLat] = useState<number | null>(null)
@@ -447,6 +448,22 @@ export default function CheckoutPage() {
           </div>
         </div>
 
+        {/* Aceptación de políticas — requerido por Datafast */}
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={acceptedPolicies}
+            onChange={(e) => setAcceptedPolicies(e.target.checked)}
+            className="accent-doggo-yellow w-4 h-4 mt-0.5 flex-shrink-0"
+          />
+          <span className="text-gray-500 text-sm leading-relaxed">
+            He leído y acepto las{' '}
+            <Link href="/politicas-cancelacion" target="_blank" className="text-doggo-red underline font-semibold">
+              políticas de cancelación y devolución
+            </Link>
+          </span>
+        </label>
+
         {error && <p className="text-red-400 text-sm text-center">{error}</p>}
 
         {/* Closed banner */}
@@ -464,7 +481,7 @@ export default function CheckoutPage() {
 
         <button
           type="submit"
-          disabled={loading || (businessHours !== null && !businessHours.isOpen)}
+          disabled={loading || !acceptedPolicies || (businessHours !== null && !businessHours.isOpen)}
           className="w-full bg-doggo-yellow text-doggo-dark font-black py-4 rounded-full text-base disabled:opacity-60"
         >
           {loading ? 'Enviando pedido…' : `Hacer pedido · ${formatPrice(total)}`}

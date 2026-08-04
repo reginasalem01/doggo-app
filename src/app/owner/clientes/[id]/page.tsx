@@ -2,9 +2,9 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
-const LEVEL = (pts: number) =>
-  pts >= 500 ? { label: 'Oro 🥇', color: 'text-yellow-600' }
-  : pts >= 200 ? { label: 'Plata 🥈', color: 'text-gray-500' }
+const LEVEL = (estrellas: number) =>
+  estrellas >= 26 ? { label: 'Oro 🥇', color: 'text-yellow-600' }
+  : estrellas >= 11 ? { label: 'Plata 🥈', color: 'text-gray-500' }
   : { label: 'Bronce 🥉', color: 'text-orange-700' }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -28,17 +28,32 @@ export default async function OwnerClienteDetailPage({
 
   if (!customer) notFound()
 
-  const { data: customerOrders } = customer.email
-    ? await admin.from('orders')
-        .select('id, created_at, total, status')
-        .eq('customer_email', customer.email)
-        .order('created_at', { ascending: false })
-        .limit(50)
-    : { data: [] }
+  // Fetch orders via linked_customer_id (POS/walk-in) AND customer_email (online orders)
+  // then merge + deduplicate so both walk-in and app orders appear
+  const [{ data: ordersByIdData }, { data: ordersByEmailData }] = await Promise.all([
+    admin.from('orders')
+      .select('id, created_at, total, status')
+      .eq('linked_customer_id', id)
+      .order('created_at', { ascending: false })
+      .limit(50),
+    customer.email
+      ? admin.from('orders')
+          .select('id, created_at, total, status')
+          .eq('customer_email', customer.email)
+          .order('created_at', { ascending: false })
+          .limit(50)
+      : Promise.resolve({ data: [] as { id: string; created_at: string; total: number; status: string }[], error: null }),
+  ])
+
+  const seenIds = new Set<string>()
+  const customerOrders = [...(ordersByIdData ?? []), ...(ordersByEmailData ?? [])]
+    .filter((o) => { if (seenIds.has(o.id)) return false; seenIds.add(o.id); return true })
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 50)
 
   const initials = customer.name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase()
-  const lvl = LEVEL(customer.points)
-  const totalSpent = customerOrders?.filter((o) => o.status === 'delivered').reduce((s, o) => s + Number(o.total), 0) ?? 0
+  const lvl = LEVEL(customer.estrellas ?? 0)
+  const totalSpent = customerOrders.filter((o) => o.status === 'delivered').reduce((s, o) => s + Number(o.total), 0)
 
   return (
     <div className="p-6">
@@ -86,13 +101,17 @@ export default async function OwnerClienteDetailPage({
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-4 gap-3">
             <div className="bg-gray-50 rounded-2xl p-4 text-center">
-              <p className="text-doggo-red text-2xl font-black">{customer.points}</p>
-              <p className="text-gray-500 text-xs mt-0.5">puntos</p>
+              <p className="text-doggo-red text-2xl font-black">{customer.estrellas ?? 0}</p>
+              <p className="text-gray-500 text-xs mt-0.5">⭐ estrellas</p>
             </div>
             <div className="bg-gray-50 rounded-2xl p-4 text-center">
-              <p className="text-gray-900 text-2xl font-black">{customerOrders?.length ?? 0}</p>
+              <p className="text-green-600 text-2xl font-black">${Number(customer.doggo_cash ?? 0).toFixed(0)}</p>
+              <p className="text-gray-500 text-xs mt-0.5">Doggo Cash</p>
+            </div>
+            <div className="bg-gray-50 rounded-2xl p-4 text-center">
+              <p className="text-gray-900 text-2xl font-black">{customerOrders.length}</p>
               <p className="text-gray-500 text-xs mt-0.5">pedidos</p>
             </div>
             <div className="bg-gray-50 rounded-2xl p-4 text-center">
@@ -103,8 +122,8 @@ export default async function OwnerClienteDetailPage({
 
           {/* Orders */}
           <div>
-            <p className="text-gray-500 text-xs uppercase tracking-wide mb-3">Pedidos ({customerOrders?.length ?? 0})</p>
-            {!customerOrders?.length ? (
+            <p className="text-gray-500 text-xs uppercase tracking-wide mb-3">Pedidos ({customerOrders.length})</p>
+            {!customerOrders.length ? (
               <p className="text-gray-500 text-sm">Sin pedidos registrados</p>
             ) : (
               <div className="space-y-2">

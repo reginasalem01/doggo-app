@@ -8,6 +8,8 @@ interface Customer {
   phone: string | null
   email: string | null
   points: number
+  estrellas: number
+  doggo_cash: number
 }
 
 interface Reward {
@@ -200,13 +202,21 @@ export default function QRScanner() {
               {customer.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
             </span>
           </div>
-          <div>
+          <div className="flex-1 min-w-0">
             <p className="text-gray-900 font-black text-base">{customer.name}</p>
             {customer.phone && <p className="text-gray-500 text-xs">{customer.phone}</p>}
           </div>
-          <div className="ml-auto text-right">
-            <p className="text-doggo-red font-black text-2xl">{customer.points}</p>
-            <p className="text-gray-400 text-[10px]">puntos</p>
+          <div className="text-right shrink-0 space-y-1">
+            <div>
+              <p className="text-doggo-red font-black text-xl leading-none">{customer.estrellas ?? 0} ⭐</p>
+              <p className="text-gray-400 text-[10px]">estrellas</p>
+            </div>
+            {Number(customer.doggo_cash ?? 0) > 0 && (
+              <div>
+                <p className="text-green-600 font-black text-base leading-none">${Number(customer.doggo_cash).toFixed(2)}</p>
+                <p className="text-gray-400 text-[10px]">Doggo Cash</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

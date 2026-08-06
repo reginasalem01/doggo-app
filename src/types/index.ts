@@ -25,11 +25,16 @@ export interface Category {
   created_at: string
 }
 
+export interface ProductOptionChoice {
+  label: string
+  extraPrice: number  // 0 = gratis
+}
+
 export interface ProductOption {
-  id: string        // unique slug/uuid within the product
+  id: string
   label: string     // "¿Qué hotdog quieres?"
   required: boolean
-  choices: string[] // ["Doggo", "Hawaiano", ...]
+  choices: ProductOptionChoice[]
 }
 
 export interface Product {

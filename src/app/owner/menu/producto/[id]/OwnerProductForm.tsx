@@ -7,11 +7,16 @@ import ImageUpload from '@/components/ui/ImageUpload'
 
 type Category = { id: string; name: string }
 
+interface ProductOptionChoice {
+  label: string
+  extraPrice: number
+}
+
 interface ProductOption {
   id: string
   label: string
   required: boolean
-  choices: string[]
+  choices: ProductOptionChoice[]
 }
 
 type Product = {
@@ -63,20 +68,20 @@ export default function OwnerProductForm({
     setOptions(options.filter(o => o.id !== id))
   }
 
-  function addChoice(groupId: string, choice: string) {
-    const trimmed = choice.trim()
+  function addChoice(groupId: string, choice: ProductOptionChoice) {
+    const trimmed = choice.label.trim()
     if (!trimmed) return
     setOptions(options.map(o =>
-      o.id === groupId && !o.choices.includes(trimmed)
-        ? { ...o, choices: [...o.choices, trimmed] }
+      o.id === groupId && !o.choices.find(c => c.label === trimmed)
+        ? { ...o, choices: [...o.choices, { label: trimmed, extraPrice: choice.extraPrice }] }
         : o
     ))
   }
 
-  function removeChoice(groupId: string, choice: string) {
+  function removeChoice(groupId: string, label: string) {
     setOptions(options.map(o =>
       o.id === groupId
-        ? { ...o, choices: o.choices.filter(c => c !== choice) }
+        ? { ...o, choices: o.choices.filter(c => c.label !== label) }
         : o
     ))
   }
@@ -248,19 +253,22 @@ function OptionGroupEditor({
   index: number
   onChange: (changes: Partial<ProductOption>) => void
   onRemove: () => void
-  onAddChoice: (choice: string) => void
-  onRemoveChoice: (choice: string) => void
+  onAddChoice: (choice: ProductOptionChoice) => void
+  onRemoveChoice: (label: string) => void
 }) {
-  const [newChoice, setNewChoice] = useState('')
+  const [newLabel, setNewLabel] = useState('')
+  const [newPrice, setNewPrice] = useState('0')
 
   function handleAddChoice() {
-    if (!newChoice.trim()) return
-    onAddChoice(newChoice.trim())
-    setNewChoice('')
+    if (!newLabel.trim()) return
+    onAddChoice({ label: newLabel.trim(), extraPrice: parseFloat(newPrice) || 0 })
+    setNewLabel('')
+    setNewPrice('0')
   }
 
   return (
     <div className="p-4 space-y-3">
+      {/* Group label */}
       <div className="flex items-center gap-2">
         <span className="text-gray-400 text-xs font-bold w-5">#{index + 1}</span>
         <input
@@ -285,34 +293,48 @@ function OptionGroupEditor({
         <span className="text-xs text-gray-500">{group.required ? 'Obligatorio' : 'Opcional'}</span>
       </div>
 
-      {/* Choices */}
+      {/* Existing choices */}
       <div className="pl-7 space-y-2">
-        <div className="flex flex-wrap gap-1.5">
+        {group.choices.length === 0 && (
+          <p className="text-gray-400 text-xs italic">Sin opciones aún</p>
+        )}
+        <div className="space-y-1">
           {group.choices.map((c) => (
-            <span key={c} className="flex items-center gap-1 bg-gray-100 text-gray-700 text-xs font-semibold px-2.5 py-1 rounded-full">
-              {c}
-              <button type="button" onClick={() => onRemoveChoice(c)} className="text-gray-400 hover:text-red-500 leading-none">×</button>
-            </span>
+            <div key={c.label} className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
+              <span className="flex-1 text-gray-800 text-xs font-semibold">{c.label}</span>
+              <span className={`text-xs font-bold ${c.extraPrice > 0 ? 'text-doggo-red' : 'text-gray-400'}`}>
+                {c.extraPrice > 0 ? `+$${c.extraPrice.toFixed(2)}` : 'Gratis'}
+              </span>
+              <button type="button" onClick={() => onRemoveChoice(c.label)} className="text-gray-400 hover:text-red-500 text-sm leading-none">×</button>
+            </div>
           ))}
-          {group.choices.length === 0 && (
-            <span className="text-gray-400 text-xs italic">Sin opciones aún</span>
-          )}
         </div>
 
-        {/* Add choice input */}
-        <div className="flex gap-2">
+        {/* Add new choice */}
+        <div className="flex gap-2 mt-2">
           <input
             type="text"
-            value={newChoice}
-            onChange={(e) => setNewChoice(e.target.value)}
+            value={newLabel}
+            onChange={(e) => setNewLabel(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddChoice() } }}
-            placeholder="Nueva opción · Enter para agregar"
-            className="flex-1 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-doggo-yellow"
+            placeholder="Nueva opción"
+            className="flex-1 bg-white border border-gray-200 text-gray-900 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-doggo-yellow"
           />
+          <div className="relative w-24">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">+$</span>
+            <input
+              type="number"
+              min="0"
+              step="0.25"
+              value={newPrice}
+              onChange={(e) => setNewPrice(e.target.value)}
+              className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl pl-7 pr-2 py-2 text-xs outline-none focus:ring-2 focus:ring-doggo-yellow"
+            />
+          </div>
           <button
             type="button"
             onClick={handleAddChoice}
-            className="bg-gray-100 text-gray-600 font-bold text-xs px-3 py-2 rounded-xl hover:bg-gray-200"
+            className="bg-gray-100 text-gray-600 font-bold text-xs px-3 py-2 rounded-xl hover:bg-gray-200 whitespace-nowrap"
           >
             + Agregar
           </button>

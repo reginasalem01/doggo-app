@@ -12,7 +12,7 @@ import {
   FREE_EXTRAS,
   PAID_TOPPINGS,
 } from '@/lib/hotdog-options'
-import type { ProductOption } from '@/types'
+import type { ProductOption, ProductOptionChoice } from '@/types'
 import CartIcon from '@/components/ui/CartIcon'
 
 interface Props {
@@ -228,14 +228,16 @@ function ProductModal({
 
   // Dynamic product options state: { [optionId]: selectedChoice }
   const productOptions: ProductOption[] = product.options ?? []
-  const [selections, setSelections] = useState<Record<string, string>>({})
+  const [selections, setSelections] = useState<Record<string, ProductOptionChoice>>({})
 
   useEffect(() => {
     openModal()
     return () => closeModal()
   }, [openModal, closeModal])
 
-  const extraPrice = parseFloat((paidToppings.length * 1.25).toFixed(2))
+  const hotdogExtraPrice = parseFloat((paidToppings.length * 1.25).toFixed(2))
+  const optionsExtraPrice = Object.values(selections).reduce((s, c) => s + (c.extraPrice ?? 0), 0)
+  const extraPrice = hotdogExtraPrice + optionsExtraPrice
   const unitTotal = product.price + extraPrice
   const lineTotal = unitTotal * qty
 
@@ -251,14 +253,18 @@ function ProductModal({
   function handleAdd() {
     if (!optionsReady) return
     if (isHotdog) {
-      onAdd({ salsas, extras, paidToppings, extraPrice, notes: removeNotes }, qty)
+      onAdd({ salsas, extras, paidToppings, extraPrice: hotdogExtraPrice, notes: removeNotes }, qty)
     } else if (productOptions.length > 0) {
       const parts = productOptions
         .filter(o => selections[o.id])
-        .map(o => `${o.label.replace('¿', '').replace('?', '').trim()}: ${selections[o.id]}`)
+        .map(o => {
+          const c = selections[o.id]
+          const label = o.label.replace('¿', '').replace('?', '').trim()
+          return `${label}: ${c.label}${c.extraPrice > 0 ? ` (+$${c.extraPrice.toFixed(2)})` : ''}`
+        })
       const extra = removeNotes.trim()
       const note = [...parts, ...(extra ? [extra] : [])].join(' · ')
-      onAdd({ salsas: [], extras: [], paidToppings: [], extraPrice: 0, notes: note }, qty)
+      onAdd({ salsas: [], extras: [], paidToppings: [], extraPrice: optionsExtraPrice, notes: note }, qty)
     } else {
       const notes = removeNotes.trim()
       onAdd(notes ? { salsas: [], extras: [], paidToppings: [], extraPrice: 0, notes } : null, qty)
@@ -316,20 +322,28 @@ function ProductModal({
                     )}
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {opt.choices.map((choice) => (
-                      <button
-                        key={choice}
-                        type="button"
-                        onClick={() => setSelections(s => ({ ...s, [opt.id]: choice }))}
-                        className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${
-                          selections[opt.id] === choice
-                            ? 'bg-doggo-yellow text-doggo-dark border-doggo-yellow'
-                            : 'bg-white text-gray-500 border-gray-200'
-                        }`}
-                      >
-                        {selections[opt.id] === choice ? '✓ ' : ''}{choice}
-                      </button>
-                    ))}
+                    {opt.choices.map((choice) => {
+                      const selected = selections[opt.id]?.label === choice.label
+                      return (
+                        <button
+                          key={choice.label}
+                          type="button"
+                          onClick={() => setSelections(s => ({ ...s, [opt.id]: choice }))}
+                          className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${
+                            selected
+                              ? 'bg-doggo-yellow text-doggo-dark border-doggo-yellow'
+                              : 'bg-white text-gray-500 border-gray-200'
+                          }`}
+                        >
+                          {selected ? '✓ ' : ''}{choice.label}
+                          {choice.extraPrice > 0 && (
+                            <span className={`ml-1 ${selected ? 'text-doggo-dark/70' : 'text-doggo-red'}`}>
+                              +${choice.extraPrice.toFixed(2)}
+                            </span>
+                          )}
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
               ))}

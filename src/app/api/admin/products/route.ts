@@ -17,6 +17,7 @@ export async function POST(request: Request) {
     image_url:   body.image_url ?? null,
     available:   body.available ?? true,
     sort_order:  body.sort_order ?? 0,
+    options:     body.options ?? [],
   }).select().single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data)

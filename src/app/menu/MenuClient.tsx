@@ -8,14 +8,11 @@ import { useUIStore } from '@/store/ui'
 import { formatPrice } from '@/lib/utils'
 import {
   HOTDOG_CATEGORY_NAMES,
-  COMBO_CHOICES_PRODUCT_NAMES,
-  COMBO_COLA_ONLY_NAMES,
-  ESPECIALES_OPTIONS,
-  COLA_OPTIONS,
   FREE_SALSAS,
   FREE_EXTRAS,
   PAID_TOPPINGS,
 } from '@/lib/hotdog-options'
+import type { ProductOption } from '@/types'
 import CartIcon from '@/components/ui/CartIcon'
 
 interface Props {
@@ -39,10 +36,6 @@ export default function MenuClient({ categories, products, isOpen, closedReason,
       .map((c) => c.id)
   )
 
-  // Products that need hotdog + cola selection
-  const isComboChoices = (p: Product) => COMBO_CHOICES_PRODUCT_NAMES.includes(p.name)
-  // Products that need cola selection only
-  const isColaOnly = (p: Product) => COMBO_COLA_ONLY_NAMES.includes(p.name)
 
   const filtered = activeCategory
     ? products.filter((p) => p.category_id === activeCategory)
@@ -114,8 +107,6 @@ export default function MenuClient({ categories, products, isOpen, closedReason,
         <ProductModal
           product={selectedProduct}
           isHotdog={hotdogCatIds.has(selectedProduct.category_id)}
-          hasComboChoices={isComboChoices(selectedProduct)}
-          hasColaOnly={isColaOnly(selectedProduct)}
           onClose={() => setSelectedProduct(null)}
           onAdd={(customizations, qty) => {
             if (customizations) {
@@ -217,15 +208,11 @@ function ProductCard({
 function ProductModal({
   product,
   isHotdog,
-  hasComboChoices,
-  hasColaOnly,
   onClose,
   onAdd,
 }: {
   product: Product
   isHotdog: boolean
-  hasComboChoices: boolean
-  hasColaOnly: boolean
   onClose: () => void
   onAdd: (customizations: ItemCustomization | null, qty: number) => void
 }) {
@@ -233,15 +220,15 @@ function ProductModal({
   const [added, setAdded] = useState(false)
   const { openModal, closeModal } = useUIStore()
 
-  // Customization state
+  // Hotdog customization state
   const [salsas, setSalsas] = useState<string[]>([])
   const [extras, setExtras] = useState<string[]>([])
   const [paidToppings, setPaidToppings] = useState<string[]>([])
   const [removeNotes, setRemoveNotes] = useState('')
 
-  // Combo choices state
-  const [comboHotdog, setComboHotdog] = useState('')
-  const [comboCola, setComboCola] = useState('')
+  // Dynamic product options state: { [optionId]: selectedChoice }
+  const productOptions: ProductOption[] = product.options ?? []
+  const [selections, setSelections] = useState<Record<string, string>>({})
 
   useEffect(() => {
     openModal()
@@ -256,20 +243,22 @@ function ProductModal({
     setList(list.includes(item) ? list.filter((x) => x !== item) : [...list, item])
   }
 
-  const comboReady =
-    (!hasComboChoices || (comboHotdog !== '' && comboCola !== '')) &&
-    (!hasColaOnly || comboCola !== '')
+  // All required options must have a selection
+  const optionsReady = productOptions
+    .filter(o => o.required)
+    .every(o => selections[o.id])
 
   function handleAdd() {
-    if (!comboReady) return
+    if (!optionsReady) return
     if (isHotdog) {
       onAdd({ salsas, extras, paidToppings, extraPrice, notes: removeNotes }, qty)
-    } else if (hasComboChoices) {
-      const choiceNote = `Hotdog: ${comboHotdog} · Cola: ${comboCola}${removeNotes.trim() ? ' · ' + removeNotes.trim() : ''}`
-      onAdd({ salsas: [], extras: [], paidToppings: [], extraPrice: 0, notes: choiceNote }, qty)
-    } else if (hasColaOnly) {
-      const choiceNote = `Cola: ${comboCola}${removeNotes.trim() ? ' · ' + removeNotes.trim() : ''}`
-      onAdd({ salsas: [], extras: [], paidToppings: [], extraPrice: 0, notes: choiceNote }, qty)
+    } else if (productOptions.length > 0) {
+      const parts = productOptions
+        .filter(o => selections[o.id])
+        .map(o => `${o.label.replace('¿', '').replace('?', '').trim()}: ${selections[o.id]}`)
+      const extra = removeNotes.trim()
+      const note = [...parts, ...(extra ? [extra] : [])].join(' · ')
+      onAdd({ salsas: [], extras: [], paidToppings: [], extraPrice: 0, notes: note }, qty)
     } else {
       const notes = removeNotes.trim()
       onAdd(notes ? { salsas: [], extras: [], paidToppings: [], extraPrice: 0, notes } : null, qty)
@@ -315,96 +304,35 @@ function ProductModal({
             <p className="text-gray-500 text-sm leading-relaxed -mt-3">{product.description}</p>
           )}
 
-          {/* Combo choices (hotdog + cola selection) */}
-          {hasComboChoices && (
+          {/* Dynamic product options (configured from owner panel) */}
+          {productOptions.length > 0 && (
             <>
-              {/* Elige tu hotdog */}
-              <div>
-                <div className="flex items-center gap-2 mb-2.5">
-                  <p className="text-gray-900 font-black text-sm">¿Qué hotdog quieres?</p>
-                  <span className="bg-doggo-red/10 text-doggo-red text-[10px] font-black px-2 py-0.5 rounded-full">REQUERIDO</span>
+              {productOptions.map((opt) => (
+                <div key={opt.id}>
+                  <div className="flex items-center gap-2 mb-2.5">
+                    <p className="text-gray-900 font-black text-sm">{opt.label}</p>
+                    {opt.required && (
+                      <span className="bg-doggo-red/10 text-doggo-red text-[10px] font-black px-2 py-0.5 rounded-full">REQUERIDO</span>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {opt.choices.map((choice) => (
+                      <button
+                        key={choice}
+                        type="button"
+                        onClick={() => setSelections(s => ({ ...s, [opt.id]: choice }))}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${
+                          selections[opt.id] === choice
+                            ? 'bg-doggo-yellow text-doggo-dark border-doggo-yellow'
+                            : 'bg-white text-gray-500 border-gray-200'
+                        }`}
+                      >
+                        {selections[opt.id] === choice ? '✓ ' : ''}{choice}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {ESPECIALES_OPTIONS.map((hd) => (
-                    <button
-                      key={hd}
-                      type="button"
-                      onClick={() => setComboHotdog(hd)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${
-                        comboHotdog === hd
-                          ? 'bg-doggo-yellow text-doggo-dark border-doggo-yellow'
-                          : 'bg-white text-gray-500 border-gray-200'
-                      }`}
-                    >
-                      {comboHotdog === hd ? '✓ ' : ''}{hd}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Elige tu cola */}
-              <div>
-                <div className="flex items-center gap-2 mb-2.5">
-                  <p className="text-gray-900 font-black text-sm">¿Qué cola quieres?</p>
-                  <span className="bg-doggo-red/10 text-doggo-red text-[10px] font-black px-2 py-0.5 rounded-full">REQUERIDO</span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {COLA_OPTIONS.map((cola) => (
-                    <button
-                      key={cola}
-                      type="button"
-                      onClick={() => setComboCola(cola)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${
-                        comboCola === cola
-                          ? 'bg-doggo-yellow text-doggo-dark border-doggo-yellow'
-                          : 'bg-white text-gray-500 border-gray-200'
-                      }`}
-                    >
-                      {comboCola === cola ? '✓ ' : ''}{cola}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Notas opcionales */}
-              <div>
-                <p className="text-gray-900 font-black text-sm mb-2">Notas <span className="text-gray-400 font-normal">(opcional)</span></p>
-                <textarea
-                  value={removeNotes}
-                  onChange={(e) => setRemoveNotes(e.target.value)}
-                  placeholder="Ej: sin cebolla..."
-                  rows={2}
-                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 resize-none"
-                />
-              </div>
-            </>
-          )}
-
-          {/* Cola-only choice (Combo Clásico, Combo Doggo + Cola) */}
-          {hasColaOnly && (
-            <>
-              <div>
-                <div className="flex items-center gap-2 mb-2.5">
-                  <p className="text-gray-900 font-black text-sm">¿Qué cola quieres?</p>
-                  <span className="bg-doggo-red/10 text-doggo-red text-[10px] font-black px-2 py-0.5 rounded-full">REQUERIDO</span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {COLA_OPTIONS.map((cola) => (
-                    <button
-                      key={cola}
-                      type="button"
-                      onClick={() => setComboCola(cola)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${
-                        comboCola === cola
-                          ? 'bg-doggo-yellow text-doggo-dark border-doggo-yellow'
-                          : 'bg-white text-gray-500 border-gray-200'
-                      }`}
-                    >
-                      {comboCola === cola ? '✓ ' : ''}{cola}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              ))}
               <div>
                 <p className="text-gray-900 font-black text-sm mb-2">Notas <span className="text-gray-400 font-normal">(opcional)</span></p>
                 <textarea
@@ -550,16 +478,15 @@ function ProductModal({
           </div>
           <button
             onClick={handleAdd}
-            disabled={added || !comboReady}
+            disabled={added || !optionsReady}
             className={`flex-1 py-3 rounded-full font-black text-sm transition-all ${
               added ? 'bg-green-500 text-white'
-              : !comboReady ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              : !optionsReady ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
               : 'bg-doggo-yellow text-doggo-dark'
             }`}
           >
             {added ? '✓ Agregado'
-              : !comboReady && hasComboChoices ? 'Elige hotdog y cola'
-              : !comboReady && hasColaOnly ? 'Elige tu cola'
+              : !optionsReady ? 'Completa las opciones'
               : `Agregar · ${formatPrice(lineTotal)}`}
           </button>
         </div>

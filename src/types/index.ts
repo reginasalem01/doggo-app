@@ -25,6 +25,13 @@ export interface Category {
   created_at: string
 }
 
+export interface ProductOption {
+  id: string        // unique slug/uuid within the product
+  label: string     // "¿Qué hotdog quieres?"
+  required: boolean
+  choices: string[] // ["Doggo", "Hawaiano", ...]
+}
+
 export interface Product {
   id: string
   category_id: string
@@ -34,6 +41,7 @@ export interface Product {
   image_url: string | null
   available: boolean
   sort_order: number
+  options: ProductOption[]
   created_at: string
   // joined
   category?: Category

@@ -18,6 +18,7 @@ export async function PATCH(
     ...(body.image_url   !== undefined && { image_url:   body.image_url }),
     ...(body.available   !== undefined && { available:   body.available }),
     ...(body.sort_order  !== undefined && { sort_order:  body.sort_order }),
+    ...(body.options     !== undefined && { options:     body.options }),
   }
   const { error } = await admin.from('products').update(allowed).eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

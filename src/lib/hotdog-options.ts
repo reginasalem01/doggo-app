@@ -1,6 +1,21 @@
-// Options that apply to all Hotdogs and Hotdogs Especiales
+// Options that apply to all Hotdogs
 
-export const HOTDOG_CATEGORY_NAMES = ['Hotdogs', 'Hotdogs Especiales']
+export const HOTDOG_CATEGORY_NAMES = ['Hotdogs']
+
+// Products that require combo choices (hotdog + cola selection)
+export const COMBO_CHOICES_PRODUCT_NAMES = ['Combo Especial']
+
+export const HOTDOG_OPTIONS = [
+  'Clásico',
+  'Doggo',
+  'Chilidoggo',
+  'Sweetdoggo',
+  'Hawaiano',
+  'Guayaco',
+  'Doggito',
+]
+
+export const COLA_OPTIONS = ['Coca Cola', 'Fanta', 'Sprite']
 
 export const FREE_SALSAS = [
   'Mayonesa',

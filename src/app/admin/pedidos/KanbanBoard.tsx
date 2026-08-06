@@ -61,7 +61,6 @@ function OrderCard({ order, onOptimisticUpdate, onRefresh }: {
 }) {
   const [busy, setBusy] = useState(false)
   const [confirming, setConfirming] = useState(false)
-  const [confirmingPayment, setConfirmingPayment] = useState(false)
   const [localPaid, setLocalPaid] = useState(order.payment_status === 'paid')
 
   const isCash = (order.payment_method ?? 'cash') !== 'card'
@@ -79,9 +78,8 @@ function OrderCard({ order, onOptimisticUpdate, onRefresh }: {
 
   async function confirmCashPayment(e: React.MouseEvent) {
     e.preventDefault()
-    if (!confirmingPayment) { setConfirmingPayment(true); return }
+    if (busy) return
     setBusy(true)
-    setConfirmingPayment(false)
     await fetch(`/api/admin/orders/${order.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -176,32 +174,13 @@ function OrderCard({ order, onOptimisticUpdate, onRefresh }: {
 
       {/* Botón de acción rápida */}
       {needsCashConfirm ? (
-        // Efectivo sin cobrar: mostrar "COBRAR" primero
-        confirmingPayment ? (
-          <div className="flex border-t border-gray-200">
-            <button
-              onClick={() => setConfirmingPayment(false)}
-              className="flex-1 py-2.5 text-xs font-black bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
-            >
-              CANCELAR
-            </button>
-            <button
-              onClick={(e) => confirmCashPayment(e)}
-              disabled={busy}
-              className="flex-1 py-2.5 text-xs font-black bg-doggo-yellow text-doggo-dark hover:brightness-110 transition-all disabled:opacity-40"
-            >
-              {busy ? '…' : '✓ COBRADO'}
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={(e) => confirmCashPayment(e)}
-            disabled={busy}
-            className="w-full py-2.5 text-xs font-black tracking-wider bg-doggo-yellow text-doggo-dark hover:brightness-110 transition-all"
-          >
-            {busy ? '…' : `💵 COBRAR $${Number(order.total).toFixed(2)}`}
-          </button>
-        )
+        <button
+          onClick={(e) => confirmCashPayment(e)}
+          disabled={busy}
+          className="w-full py-2.5 text-xs font-black tracking-wider bg-doggo-yellow text-doggo-dark hover:brightness-110 transition-all disabled:opacity-40"
+        >
+          {busy ? '…' : `💵 COBRAR $${Number(order.total).toFixed(2)}`}
+        </button>
       ) : action && (
         confirming ? (
           <div className="flex border-t border-gray-200">

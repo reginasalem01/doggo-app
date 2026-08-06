@@ -46,7 +46,16 @@ export default function OwnerProductForm({
   const [imageUrl, setImageUrl] = useState(product?.image_url ?? '')
   const [available, setAvailable] = useState(product?.available ?? true)
   const [categoryId, setCategoryId] = useState(product?.category_id ?? '')
-  const [options, setOptions] = useState<ProductOption[]>(product?.options ?? [])
+  // Normalize: old format stored choices as string[], new format as {label, extraPrice}[]
+  function normalizeOptions(raw: ProductOption[]): ProductOption[] {
+    return (raw ?? []).map(o => ({
+      ...o,
+      choices: (o.choices ?? []).map((c: ProductOptionChoice | string) =>
+        typeof c === 'string' ? { label: c, extraPrice: 0 } : c
+      ),
+    }))
+  }
+  const [options, setOptions] = useState<ProductOption[]>(normalizeOptions(product?.options ?? []))
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 

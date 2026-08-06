@@ -226,8 +226,13 @@ function ProductModal({
   const [paidToppings, setPaidToppings] = useState<string[]>([])
   const [removeNotes, setRemoveNotes] = useState('')
 
-  // Dynamic product options state: { [optionId]: selectedChoice }
-  const productOptions: ProductOption[] = product.options ?? []
+  // Normalize old string[] choices to {label, extraPrice}[] format
+  const productOptions: ProductOption[] = (product.options ?? []).map(o => ({
+    ...o,
+    choices: (o.choices ?? []).map((c: ProductOptionChoice | string) =>
+      typeof c === 'string' ? { label: c, extraPrice: 0 } : c
+    ),
+  }))
   const [selections, setSelections] = useState<Record<string, ProductOptionChoice>>({})
 
   useEffect(() => {

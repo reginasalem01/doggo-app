@@ -43,7 +43,7 @@ export default async function AdminPedidoDetailPage({
   const items = order.order_items as Item[]
 
   return (
-    <div className="h-full flex flex-col bg-white px-5 pt-4 pb-4 gap-2.5">
+    <div className="min-h-full bg-white px-5 pt-4 pb-6 space-y-3 overflow-y-auto">
 
       {/* Header */}
       <div className="flex items-center gap-3 shrink-0">
@@ -170,15 +170,13 @@ export default async function AdminPedidoDetailPage({
         </div>
       </div>
 
-      {/* Spacer */}
-      <div className="flex-1" />
-
       {/* Botones */}
-      <div className="shrink-0">
+      <div>
         <OrderStatusButtons
           orderId={order.id as string}
           currentStatus={order.status as string}
           paymentStatus={order.payment_status as string}
+          paymentMethod={(order as { payment_method?: string }).payment_method ?? 'cash'}
           deliveryType={order.delivery_type as string}
           customerPhone={order.customer_phone as string}
           customerName={order.customer_name as string}

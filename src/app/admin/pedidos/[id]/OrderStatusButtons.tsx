@@ -29,6 +29,7 @@ export default function OrderStatusButtons({
   orderId,
   currentStatus,
   paymentStatus,
+  paymentMethod,
   deliveryType,
   customerPhone,
   customerName,
@@ -39,6 +40,7 @@ export default function OrderStatusButtons({
   orderId: string
   currentStatus: string
   paymentStatus?: string
+  paymentMethod?: string
   deliveryType?: string
   customerPhone?: string
   customerName?: string
@@ -51,10 +53,11 @@ export default function OrderStatusButtons({
   const [confirmingPayment, setConfirmingPayment] = useState(false)
   const buttons = BUTTONS[currentStatus] ?? []
 
-  // Payment is confirmed if payment_status = 'paid'
   const isPaid = paymentStatus === 'paid'
-  // Show payment confirm when order is 'ready' and not yet paid
-  const needsPaymentConfirm = currentStatus === 'ready' && !isPaid
+  const isCash = (paymentMethod ?? 'cash') !== 'card'
+  // Only block delivery for cash orders that haven't been paid yet
+  // Card orders don't need confirmation — payment was processed online
+  const needsPaymentConfirm = currentStatus === 'ready' && isCash && !isPaid
 
   async function changeStatus(newStatus: string) {
     setLoading(true)

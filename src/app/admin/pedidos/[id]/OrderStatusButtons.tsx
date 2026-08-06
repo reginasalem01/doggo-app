@@ -15,7 +15,7 @@ const BUTTONS: Record<string, Btn[]> = {
     { label: 'X  CANCELAR PEDIDO',       value: 'cancelled', cls: 'bg-red-950 hover:bg-red-900 text-red-400' },
   ],
   preparing: [
-    { label: 'LISTO PARA RETIRAR / ENVIAR', value: 'ready',   cls: 'bg-green-600 hover:bg-green-500' },
+    { label: 'LISTO PARA RETIRAR / ENVIAR', value: 'ready',     cls: 'bg-green-600 hover:bg-green-500' },
     { label: 'X  CANCELAR PEDIDO',          value: 'cancelled', cls: 'bg-red-950 hover:bg-red-900 text-red-400' },
   ],
   ready: [
@@ -28,6 +28,7 @@ const BUTTONS: Record<string, Btn[]> = {
 export default function OrderStatusButtons({
   orderId,
   currentStatus,
+  paymentStatus,
   deliveryType,
   customerPhone,
   customerName,
@@ -37,6 +38,7 @@ export default function OrderStatusButtons({
 }: {
   orderId: string
   currentStatus: string
+  paymentStatus?: string
   deliveryType?: string
   customerPhone?: string
   customerName?: string
@@ -46,7 +48,13 @@ export default function OrderStatusButtons({
 }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [confirmingPayment, setConfirmingPayment] = useState(false)
   const buttons = BUTTONS[currentStatus] ?? []
+
+  // Payment is confirmed if payment_status = 'paid'
+  const isPaid = paymentStatus === 'paid'
+  // Show payment confirm when order is 'ready' and not yet paid
+  const needsPaymentConfirm = currentStatus === 'ready' && !isPaid
 
   async function changeStatus(newStatus: string) {
     setLoading(true)
@@ -57,6 +65,17 @@ export default function OrderStatusButtons({
     })
     router.refresh()
     setLoading(false)
+  }
+
+  async function confirmPayment() {
+    setConfirmingPayment(true)
+    await fetch(`/api/admin/orders/${orderId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ payment_status: 'paid' }),
+    })
+    router.refresh()
+    setConfirmingPayment(false)
   }
 
   if (buttons.length === 0 && !customerPhone) return null
@@ -106,17 +125,33 @@ export default function OrderStatusButtons({
         </a>
       )}
 
-      {/* Botones de cambio de estado */}
-      {buttons.map((btn) => (
+      {/* Confirmar pago (solo cuando el pedido está listo y no se ha cobrado) */}
+      {needsPaymentConfirm && (
         <button
-          key={btn.value}
-          onClick={() => changeStatus(btn.value)}
-          disabled={loading}
-          className={`w-full text-white font-black py-4 rounded-xl text-sm tracking-wide transition-all disabled:opacity-50 ${btn.cls}`}
+          onClick={confirmPayment}
+          disabled={confirmingPayment}
+          className="w-full bg-doggo-yellow text-doggo-dark font-black py-4 rounded-xl text-sm tracking-wide transition-all disabled:opacity-50"
         >
-          {loading ? '…' : btn.label}
+          {confirmingPayment ? '…' : '💵 CONFIRMAR PAGO RECIBIDO'}
         </button>
-      ))}
+      )}
+
+      {/* Botones de cambio de estado */}
+      {buttons.map((btn) => {
+        // Block "delivered" if payment not confirmed
+        const isDeliveryBlocked = btn.value === 'delivered' && needsPaymentConfirm
+        return (
+          <button
+            key={btn.value}
+            onClick={() => !isDeliveryBlocked && changeStatus(btn.value)}
+            disabled={loading || isDeliveryBlocked}
+            title={isDeliveryBlocked ? 'Confirma el pago primero' : undefined}
+            className={`w-full text-white font-black py-4 rounded-xl text-sm tracking-wide transition-all disabled:opacity-30 ${btn.cls} ${isDeliveryBlocked ? 'cursor-not-allowed' : ''}`}
+          >
+            {loading ? '…' : btn.label}
+          </button>
+        )
+      })}
     </div>
   )
 }

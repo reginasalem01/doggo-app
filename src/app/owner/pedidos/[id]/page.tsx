@@ -135,11 +135,32 @@ export default async function OwnerPedidoDetailPage({
           </div>
 
           {/* Payment */}
-          <div className="bg-gray-50 rounded-2xl px-5 py-4 flex justify-between items-center">
-            <p className="text-gray-500 text-sm">Estado del pago</p>
-            <span className={`font-bold text-sm ${order.payment_status === 'paid' ? 'text-green-700' : order.payment_status === 'failed' ? 'text-red-600' : 'text-yellow-700'}`}>
-              {order.payment_status === 'paid' ? '✅ Pagado' : order.payment_status === 'failed' ? '❌ Fallido' : '⏳ Pendiente'}
-            </span>
+          <div className="bg-gray-50 rounded-2xl px-5 py-4 space-y-2">
+            <p className="text-gray-500 text-xs uppercase tracking-wide mb-1">Pago</p>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-500 text-sm">Método</span>
+              <span className="text-gray-900 font-semibold text-sm">
+                {(order as { payment_method?: string }).payment_method === 'card' ? '💳 Tarjeta' : '💵 Efectivo'}
+              </span>
+            </div>
+            {(order as { payment_method?: string; cash_amount?: number }).payment_method !== 'card' &&
+             (order as { cash_amount?: number }).cash_amount && (
+              <div className="flex justify-between items-center">
+                <span className="text-gray-500 text-sm">Paga con</span>
+                <span className="text-gray-900 text-sm font-semibold">
+                  ${Number((order as { cash_amount?: number }).cash_amount).toFixed(2)}
+                  <span className="text-gray-500 font-normal ml-1.5 text-xs">
+                    → vuelto ${(Number((order as { cash_amount?: number }).cash_amount) - Number(order.total)).toFixed(2)}
+                  </span>
+                </span>
+              </div>
+            )}
+            <div className="flex justify-between items-center">
+              <span className="text-gray-500 text-sm">Estado</span>
+              <span className={`font-bold text-sm ${order.payment_status === 'paid' ? 'text-green-700' : order.payment_status === 'failed' ? 'text-red-600' : 'text-yellow-700'}`}>
+                {order.payment_status === 'paid' ? '✅ Pagado' : order.payment_status === 'failed' ? '❌ Fallido' : '⏳ Pendiente'}
+              </span>
+            </div>
           </div>
         </div>
       </div>

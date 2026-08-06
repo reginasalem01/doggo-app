@@ -28,7 +28,20 @@ export async function PATCH(
 ) {
   const auth = await requireRole(); if (auth) return auth
   const { id } = await params
-  const { status } = await request.json()
+  const body = await request.json()
+  const { status, payment_status } = body
+
+  // ── Payment status update (fast path — no loyalty/contifico logic) ────────
+  if (payment_status && !status) {
+    const VALID_PAYMENT = ['pending', 'paid', 'failed']
+    if (!VALID_PAYMENT.includes(payment_status)) {
+      return NextResponse.json({ error: 'Estado de pago inválido' }, { status: 400 })
+    }
+    const admin = createAdminClient()
+    const { error } = await admin.from('orders').update({ payment_status }).eq('id', id)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ ok: true })
+  }
 
   if (!VALID_STATUSES.includes(status)) {
     return NextResponse.json({ error: 'Estado inválido' }, { status: 400 })
@@ -73,7 +86,7 @@ export async function PATCH(
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
           <div style="background:#FFDD00;border-radius:16px;padding:24px;text-align:center;margin-bottom:24px">
-            <img src="https://rasmalxjusrwpwbtoavs.supabase.co/storage/v1/object/public/images/brand/logo-transparent.png" alt="Doggo" width="100" height="100" style="display:block;margin:0 auto 12px" />
+            <img src="https://doggo.com.ec/logo-round.png" alt="Doggo" width="100" height="100" style="display:block;margin:0 auto 12px" />
             <p style="margin:0;font-size:18px;font-weight:bold">¡Pedido confirmado!</p>
           </div>
 

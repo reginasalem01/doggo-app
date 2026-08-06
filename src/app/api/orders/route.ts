@@ -166,6 +166,8 @@ export async function POST(request: Request) {
       doggo_cash_used: doggoDiscount,
       status: 'new',
       payment_status: 'pending',
+      payment_method: order.payment_method ?? 'cash',
+      cash_amount: order.cash_amount ?? null,
       points_awarded: false,
     }
 

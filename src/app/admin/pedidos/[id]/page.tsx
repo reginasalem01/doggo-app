@@ -137,17 +137,37 @@ export default async function AdminPedidoDetailPage({
       </div>
 
       {/* Pago */}
-      <div className="bg-gray-50 rounded-2xl px-4 py-2.5 flex items-center justify-between shrink-0">
-        <p className="text-gray-500 text-sm">Pago</p>
-        <span className={`text-sm font-bold ${
-          order.payment_status === 'paid' ? 'text-green-700'
-          : order.payment_status === 'failed' ? 'text-red-600'
-          : 'text-yellow-700'
-        }`}>
-          {order.payment_status === 'paid' ? '✅ Pagado'
-           : order.payment_status === 'failed' ? '❌ Fallido'
-           : '⏳ Pendiente'}
-        </span>
+      <div className="bg-gray-50 rounded-2xl px-4 py-3 shrink-0 space-y-1.5">
+        <div className="flex items-center justify-between">
+          <p className="text-gray-500 text-sm">Método</p>
+          <span className="text-gray-900 text-sm font-semibold">
+            {(order as { payment_method?: string }).payment_method === 'card' ? '💳 Tarjeta' : '💵 Efectivo'}
+          </span>
+        </div>
+        {(order as { payment_method?: string; cash_amount?: number }).payment_method !== 'card' &&
+         (order as { cash_amount?: number }).cash_amount && (
+          <div className="flex items-center justify-between">
+            <p className="text-gray-500 text-sm">Paga con</p>
+            <span className="text-gray-900 text-sm font-semibold">
+              ${Number((order as { cash_amount?: number }).cash_amount).toFixed(2)}
+              <span className="text-gray-500 font-normal ml-1.5">
+                → vuelto ${(Number((order as { cash_amount?: number }).cash_amount) - Number(order.total)).toFixed(2)}
+              </span>
+            </span>
+          </div>
+        )}
+        <div className="flex items-center justify-between">
+          <p className="text-gray-500 text-sm">Estado</p>
+          <span className={`text-sm font-bold ${
+            order.payment_status === 'paid' ? 'text-green-700'
+            : order.payment_status === 'failed' ? 'text-red-600'
+            : 'text-yellow-700'
+          }`}>
+            {order.payment_status === 'paid' ? '✅ Pagado'
+             : order.payment_status === 'failed' ? '❌ Fallido'
+             : '⏳ Pendiente'}
+          </span>
+        </div>
       </div>
 
       {/* Spacer */}
@@ -158,6 +178,7 @@ export default async function AdminPedidoDetailPage({
         <OrderStatusButtons
           orderId={order.id as string}
           currentStatus={order.status as string}
+          paymentStatus={order.payment_status as string}
           deliveryType={order.delivery_type as string}
           customerPhone={order.customer_phone as string}
           customerName={order.customer_name as string}

@@ -54,6 +54,10 @@ export default function CheckoutPage() {
   const [saveThisAddress, setSaveThisAddress]   = useState(false)
   const [addressLabel, setAddressLabel]         = useState('Casa')
 
+  // Pago
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash')
+  const [cashAmount, setCashAmount] = useState<string>('')
+
   // Loyalty
   const [customerData, setCustomerData] = useState<CustomerData | null>(null)
   const [useDoggoGash, setUseDoggoGash] = useState(false)
@@ -96,7 +100,7 @@ export default function CheckoutPage() {
   function handleMapChange(newLat: number, newLng: number, geocodedAddress: string) {
     setLat(newLat)
     setLng(newLng)
-    if (geocodedAddress && !address) setAddress(geocodedAddress)
+    if (geocodedAddress) setAddress(geocodedAddress)
   }
 
   if (items.length === 0) {
@@ -146,6 +150,8 @@ export default function CheckoutPage() {
             total,
             status: 'new',
             payment_status: 'pending',
+            payment_method: paymentMethod,
+            cash_amount: paymentMethod === 'cash' && cashAmount ? parseFloat(cashAmount) : null,
             lat: lat ?? null,
             lng: lng ?? null,
           },
@@ -363,6 +369,84 @@ export default function CheckoutPage() {
             rows={2}
             className="w-full bg-white border border-gray-200 text-gray-900 placeholder-gray-400 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 resize-none"
           />
+        </div>
+
+        {/* Método de pago */}
+        <div className="space-y-3">
+          <label className="text-gray-900 text-sm font-bold block">💳 Método de pago</label>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setPaymentMethod('cash')}
+              className={`py-3 px-4 rounded-xl text-sm font-bold transition-colors ${paymentMethod === 'cash' ? 'bg-doggo-yellow text-doggo-dark' : 'bg-gray-100 text-gray-500'}`}
+            >
+              💵 Efectivo
+            </button>
+            <button
+              type="button"
+              onClick={() => setPaymentMethod('card')}
+              className={`py-3 px-4 rounded-xl text-sm font-bold transition-colors ${paymentMethod === 'card' ? 'bg-doggo-yellow text-doggo-dark' : 'bg-gray-100 text-gray-500'}`}
+            >
+              💳 Tarjeta
+            </button>
+          </div>
+
+          {paymentMethod === 'cash' && (
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
+              <p className="text-gray-700 text-sm font-semibold">¿Con cuánto vas a pagar?</p>
+              <div className="grid grid-cols-4 gap-2">
+                {['5', '10', '20', '50'].map((bill) => {
+                  const billNum = parseFloat(bill)
+                  const isEnough = billNum >= total
+                  return (
+                    <button
+                      key={bill}
+                      type="button"
+                      onClick={() => setCashAmount(bill)}
+                      disabled={!isEnough}
+                      className={`py-2.5 rounded-xl text-sm font-black transition-colors ${
+                        cashAmount === bill
+                          ? 'bg-doggo-yellow text-doggo-dark'
+                          : isEnough
+                          ? 'bg-white border border-gray-200 text-gray-900 hover:bg-gray-100'
+                          : 'bg-gray-100 text-gray-300 cursor-not-allowed'
+                      }`}
+                    >
+                      ${bill}
+                    </button>
+                  )
+                })}
+              </div>
+              <div className="flex gap-2 items-center">
+                <span className="text-gray-500 text-sm shrink-0">Otro valor:</span>
+                <div className="relative flex-1">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                  <input
+                    type="number"
+                    step="0.50"
+                    min={total}
+                    placeholder={total.toFixed(2)}
+                    value={cashAmount}
+                    onChange={(e) => setCashAmount(e.target.value)}
+                    className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl pl-7 pr-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40"
+                  />
+                </div>
+              </div>
+              {cashAmount && parseFloat(cashAmount) >= total && (
+                <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-2.5 flex justify-between">
+                  <span className="text-green-700 text-sm font-semibold">Vuelto estimado</span>
+                  <span className="text-green-700 text-sm font-black">${(parseFloat(cashAmount) - total).toFixed(2)}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {paymentMethod === 'card' && (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
+              <p className="text-blue-700 text-sm font-semibold">💳 Pago con tarjeta</p>
+              <p className="text-blue-500 text-xs mt-0.5">El pago se procesará al confirmar tu pedido.</p>
+            </div>
+          )}
         </div>
 
         {/* Doggo Cash */}

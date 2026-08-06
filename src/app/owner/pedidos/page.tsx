@@ -18,7 +18,7 @@ export default async function OwnerPedidosPage() {
   const admin = createAdminClient()
   const { data: orders } = await admin
     .from('orders')
-    .select('id, customer_name, customer_phone, delivery_type, total, status, payment_status, created_at')
+    .select('id, customer_name, customer_phone, delivery_type, total, status, payment_status, payment_method, cash_amount, created_at')
     .order('created_at', { ascending: false })
     .limit(200)
 
@@ -68,9 +68,20 @@ export default async function OwnerPedidosPage() {
                       <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${s.color}`}>{s.label}</span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`text-xs font-semibold ${o.payment_status === 'paid' ? 'text-green-700' : o.payment_status === 'failed' ? 'text-red-600' : 'text-yellow-700'}`}>
-                        {o.payment_status === 'paid' ? '✅ Pagado' : o.payment_status === 'failed' ? '❌ Fallido' : '⏳ Pendiente'}
-                      </span>
+                      <div className="space-y-0.5">
+                        <span className="text-xs font-semibold text-gray-700">
+                          {(o as { payment_method?: string }).payment_method === 'card' ? '💳 Tarjeta' : '💵 Efectivo'}
+                        </span>
+                        {(o as { payment_method?: string; cash_amount?: number }).payment_method !== 'card' &&
+                         (o as { cash_amount?: number }).cash_amount && (
+                          <p className="text-gray-400 text-xs">
+                            Da ${Number((o as { cash_amount?: number }).cash_amount).toFixed(2)}
+                          </p>
+                        )}
+                        <p className={`text-xs font-semibold ${o.payment_status === 'paid' ? 'text-green-700' : o.payment_status === 'failed' ? 'text-red-600' : 'text-yellow-600'}`}>
+                          {o.payment_status === 'paid' ? '✅ Cobrado' : o.payment_status === 'failed' ? '❌ Fallido' : '⏳ Pendiente'}
+                        </p>
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-gray-900 font-bold">${Number(o.total).toFixed(2)}</td>
                     <td className="px-6 py-3 text-right text-gray-500 text-xs whitespace-nowrap">

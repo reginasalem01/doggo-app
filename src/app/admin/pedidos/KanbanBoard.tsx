@@ -27,6 +27,9 @@ export type Order = {
   delivery_type: string
   total: number
   status: string
+  payment_status?: string
+  payment_method?: string
+  cash_amount?: number | null
   notes?: string | null
   order_items: OrderItem[]
 }
@@ -58,6 +61,11 @@ function OrderCard({ order, onOptimisticUpdate, onRefresh }: {
 }) {
   const [busy, setBusy] = useState(false)
   const [confirming, setConfirming] = useState(false)
+  const [confirmingPayment, setConfirmingPayment] = useState(false)
+  const [localPaid, setLocalPaid] = useState(order.payment_status === 'paid')
+
+  const isCash = (order.payment_method ?? 'cash') !== 'card'
+  const needsCashConfirm = order.status === 'ready' && isCash && !localPaid
 
   // Para pedidos en local (dine_in) en estado 'new': botón directo a entregado
   const isDineInNew = order.delivery_type === 'dine_in' && order.status === 'new'
@@ -68,6 +76,20 @@ function OrderCard({ order, onOptimisticUpdate, onRefresh }: {
   const shortId = '#' + order.id.slice(0, 4).toUpperCase()
   const nameParts = order.customer_name.trim().split(' ')
   const displayName = nameParts[0] + (nameParts[1] ? ' ' + nameParts[1][0] + '.' : '')
+
+  async function confirmCashPayment(e: React.MouseEvent) {
+    e.preventDefault()
+    if (!confirmingPayment) { setConfirmingPayment(true); return }
+    setBusy(true)
+    setConfirmingPayment(false)
+    await fetch(`/api/admin/orders/${order.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ payment_status: 'paid' }),
+    })
+    setLocalPaid(true)
+    setBusy(false)
+  }
 
   async function advance(e: React.MouseEvent) {
     e.preventDefault()
@@ -153,7 +175,34 @@ function OrderCard({ order, onOptimisticUpdate, onRefresh }: {
       </Link>
 
       {/* Botón de acción rápida */}
-      {action && (
+      {needsCashConfirm ? (
+        // Efectivo sin cobrar: mostrar "COBRAR" primero
+        confirmingPayment ? (
+          <div className="flex border-t border-gray-200">
+            <button
+              onClick={() => setConfirmingPayment(false)}
+              className="flex-1 py-2.5 text-xs font-black bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+            >
+              CANCELAR
+            </button>
+            <button
+              onClick={(e) => confirmCashPayment(e)}
+              disabled={busy}
+              className="flex-1 py-2.5 text-xs font-black bg-doggo-yellow text-doggo-dark hover:brightness-110 transition-all disabled:opacity-40"
+            >
+              {busy ? '…' : '✓ COBRADO'}
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={(e) => confirmCashPayment(e)}
+            disabled={busy}
+            className="w-full py-2.5 text-xs font-black tracking-wider bg-doggo-yellow text-doggo-dark hover:brightness-110 transition-all"
+          >
+            {busy ? '…' : `💵 COBRAR $${Number(order.total).toFixed(2)}`}
+          </button>
+        )
+      ) : action && (
         confirming ? (
           <div className="flex border-t border-gray-200">
             <button

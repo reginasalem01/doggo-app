@@ -43,7 +43,7 @@ export default async function AdminPedidoDetailPage({
   const items = order.order_items as Item[]
 
   return (
-    <div className="min-h-full bg-white px-5 pt-4 pb-6 space-y-3 overflow-y-auto">
+    <div className="h-full bg-white px-5 pt-4 pb-6 space-y-3 overflow-y-auto">
 
       {/* Header */}
       <div className="flex items-center gap-3">

@@ -151,30 +151,46 @@ export default async function OwnerClienteDetailPage({
         {/* Right column: loyalty transactions */}
         <div>
           <p className="text-gray-500 text-xs uppercase tracking-wide mb-3">
-            Movimientos de puntos ({transactions?.length ?? 0})
+            Transacciones de fidelización ({transactions?.length ?? 0})
           </p>
           {!transactions?.length ? (
             <div className="bg-gray-50 rounded-2xl p-8 text-center">
               <p className="text-gray-500 text-sm">Sin movimientos aún</p>
             </div>
           ) : (
-            <div className="bg-gray-50 rounded-2xl overflow-hidden">
+            <div className="bg-gray-50 rounded-2xl overflow-hidden border border-gray-100">
               {transactions.map((t, i) => {
-                const isPositive = t.points > 0
+                const pts  = t.points ?? 0
+                const cash = Number((t as { doggo_cash_amount?: number | null }).doggo_cash_amount ?? 0)
+                const isEarned = t.type === 'earned'
                 return (
                   <div
                     key={t.id}
-                    className={`flex justify-between items-center px-5 py-3 ${i < transactions.length - 1 ? 'border-b border-gray-200' : ''}`}
+                    className={`flex items-center gap-3 px-5 py-3 ${i < transactions.length - 1 ? 'border-b border-gray-100' : ''}`}
                   >
-                    <div>
-                      <p className="text-gray-900 text-sm">{t.description ?? t.type}</p>
-                      <p className="text-gray-500 text-xs">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-sm ${isEarned ? 'bg-green-50' : 'bg-red-50'}`}>
+                      {isEarned ? '⭐' : '💰'}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-gray-900 text-sm truncate">{t.description ?? t.type}</p>
+                      <p className="text-gray-400 text-xs">
                         {new Date(t.created_at).toLocaleDateString('es-EC', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        {' · '}
+                        {new Date(t.created_at).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
-                    <p className={`font-black text-sm ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
-                      {isPositive ? '+' : ''}{t.points} pts
-                    </p>
+                    <div className="text-right shrink-0 space-y-0.5">
+                      {pts !== 0 && (
+                        <p className={`font-black text-sm ${pts > 0 ? 'text-green-700' : 'text-red-400'}`}>
+                          {pts > 0 ? '+' : ''}{pts} ⭐
+                        </p>
+                      )}
+                      {cash !== 0 && (
+                        <p className={`font-black text-sm ${cash > 0 ? 'text-green-700' : 'text-red-400'}`}>
+                          {cash > 0 ? '+' : ''}${Math.abs(cash).toFixed(2)}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 )
               })}

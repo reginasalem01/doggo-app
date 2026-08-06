@@ -9,6 +9,7 @@ import { formatPrice } from '@/lib/utils'
 import {
   HOTDOG_CATEGORY_NAMES,
   COMBO_CHOICES_PRODUCT_NAMES,
+  COMBO_COLA_ONLY_NAMES,
   HOTDOG_OPTIONS,
   COLA_OPTIONS,
   FREE_SALSAS,
@@ -38,8 +39,10 @@ export default function MenuClient({ categories, products, isOpen, closedReason,
       .map((c) => c.id)
   )
 
-  // Products that need combo choices (hotdog + cola)
+  // Products that need hotdog + cola selection
   const isComboChoices = (p: Product) => COMBO_CHOICES_PRODUCT_NAMES.includes(p.name)
+  // Products that need cola selection only
+  const isColaOnly = (p: Product) => COMBO_COLA_ONLY_NAMES.includes(p.name)
 
   const filtered = activeCategory
     ? products.filter((p) => p.category_id === activeCategory)
@@ -122,6 +125,7 @@ export default function MenuClient({ categories, products, isOpen, closedReason,
           product={selectedProduct}
           isHotdog={hotdogCatIds.has(selectedProduct.category_id)}
           hasComboChoices={isComboChoices(selectedProduct)}
+          hasColaOnly={isColaOnly(selectedProduct)}
           onClose={() => setSelectedProduct(null)}
           onAdd={(customizations, qty) => {
             if (customizations) {
@@ -224,12 +228,14 @@ function ProductModal({
   product,
   isHotdog,
   hasComboChoices,
+  hasColaOnly,
   onClose,
   onAdd,
 }: {
   product: Product
   isHotdog: boolean
   hasComboChoices: boolean
+  hasColaOnly: boolean
   onClose: () => void
   onAdd: (customizations: ItemCustomization | null, qty: number) => void
 }) {
@@ -260,33 +266,23 @@ function ProductModal({
     setList(list.includes(item) ? list.filter((x) => x !== item) : [...list, item])
   }
 
-  const comboReady = !hasComboChoices || (comboHotdog !== '' && comboCola !== '')
+  const comboReady =
+    (!hasComboChoices || (comboHotdog !== '' && comboCola !== '')) &&
+    (!hasColaOnly || comboCola !== '')
 
   function handleAdd() {
     if (!comboReady) return
     if (isHotdog) {
-      const customizations: ItemCustomization = {
-        salsas,
-        extras,
-        paidToppings,
-        extraPrice,
-        notes: removeNotes,
-      }
-      onAdd(customizations, qty)
+      onAdd({ salsas, extras, paidToppings, extraPrice, notes: removeNotes }, qty)
     } else if (hasComboChoices) {
-      const choiceNote = `Hotdog: ${comboHotdog} · Cola: ${comboCola}`
-      onAdd(
-        { salsas: [], extras: [], paidToppings: [], extraPrice: 0, notes: choiceNote },
-        qty
-      )
+      const choiceNote = `Hotdog: ${comboHotdog} · Cola: ${comboCola}${removeNotes.trim() ? ' · ' + removeNotes.trim() : ''}`
+      onAdd({ salsas: [], extras: [], paidToppings: [], extraPrice: 0, notes: choiceNote }, qty)
+    } else if (hasColaOnly) {
+      const choiceNote = `Cola: ${comboCola}${removeNotes.trim() ? ' · ' + removeNotes.trim() : ''}`
+      onAdd({ salsas: [], extras: [], paidToppings: [], extraPrice: 0, notes: choiceNote }, qty)
     } else {
       const notes = removeNotes.trim()
-      onAdd(
-        notes
-          ? { salsas: [], extras: [], paidToppings: [], extraPrice: 0, notes }
-          : null,
-        qty
-      )
+      onAdd(notes ? { salsas: [], extras: [], paidToppings: [], extraPrice: 0, notes } : null, qty)
     }
     setAdded(true)
   }
@@ -381,6 +377,44 @@ function ProductModal({
               </div>
 
               {/* Notas opcionales */}
+              <div>
+                <p className="text-gray-900 font-black text-sm mb-2">Notas <span className="text-gray-400 font-normal">(opcional)</span></p>
+                <textarea
+                  value={removeNotes}
+                  onChange={(e) => setRemoveNotes(e.target.value)}
+                  placeholder="Ej: sin cebolla..."
+                  rows={2}
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40 resize-none"
+                />
+              </div>
+            </>
+          )}
+
+          {/* Cola-only choice (Combo Clásico, Combo Doggo + Cola) */}
+          {hasColaOnly && (
+            <>
+              <div>
+                <div className="flex items-center gap-2 mb-2.5">
+                  <p className="text-gray-900 font-black text-sm">¿Qué cola quieres?</p>
+                  <span className="bg-doggo-red/10 text-doggo-red text-[10px] font-black px-2 py-0.5 rounded-full">REQUERIDO</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {COLA_OPTIONS.map((cola) => (
+                    <button
+                      key={cola}
+                      type="button"
+                      onClick={() => setComboCola(cola)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${
+                        comboCola === cola
+                          ? 'bg-doggo-yellow text-doggo-dark border-doggo-yellow'
+                          : 'bg-white text-gray-500 border-gray-200'
+                      }`}
+                    >
+                      {comboCola === cola ? '✓ ' : ''}{cola}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div>
                 <p className="text-gray-900 font-black text-sm mb-2">Notas <span className="text-gray-400 font-normal">(opcional)</span></p>
                 <textarea
@@ -534,7 +568,8 @@ function ProductModal({
             }`}
           >
             {added ? '✓ Agregado'
-              : !comboReady ? 'Elige hotdog y cola'
+              : !comboReady && hasComboChoices ? 'Elige hotdog y cola'
+              : !comboReady && hasColaOnly ? 'Elige tu cola'
               : `Agregar · ${formatPrice(lineTotal)}`}
           </button>
         </div>

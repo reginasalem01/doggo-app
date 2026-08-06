@@ -2,8 +2,11 @@
 
 export const HOTDOG_CATEGORY_NAMES = ['Hotdogs']
 
-// Products that require combo choices (hotdog + cola selection)
+// Products that require BOTH hotdog + cola selection
 export const COMBO_CHOICES_PRODUCT_NAMES = ['Combo Especial']
+
+// Products that require ONLY cola selection (hotdog already defined by combo name)
+export const COMBO_COLA_ONLY_NAMES = ['Combo Clásico', 'Combo Doggo + Cola']
 
 export const HOTDOG_OPTIONS = [
   'Clásico',

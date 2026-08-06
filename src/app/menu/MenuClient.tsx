@@ -28,7 +28,7 @@ interface Props {
 }
 
 export default function MenuClient({ categories, products, isOpen, closedReason, openTime, closeTime }: Props) {
-  const [activeCategory, setActiveCategory] = useState<string | null>(null)
+  const [activeCategory, setActiveCategory] = useState<string | null>(categories[0]?.id ?? null)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const { addItem, addCustomizedItem } = useCartStore()
 
@@ -69,16 +69,6 @@ export default function MenuClient({ categories, products, isOpen, closedReason,
 
       {/* Category filter */}
       <div className="px-4 py-3 flex gap-2 overflow-x-auto no-scrollbar">
-        <button
-          onClick={() => setActiveCategory(null)}
-          className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-bold transition-colors ${
-            activeCategory === null
-              ? 'bg-doggo-yellow text-doggo-dark'
-              : 'bg-gray-100 text-gray-500'
-          }`}
-        >
-          Todo
-        </button>
         {categories.map((cat) => (
           <button
             key={cat.id}

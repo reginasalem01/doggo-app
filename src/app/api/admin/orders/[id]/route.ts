@@ -173,9 +173,14 @@ export async function PATCH(
   // ── Contífico sync ──────────────────────────────────────────────────────────
   // Fires when order reaches 'delivered' and hasn't been synced yet.
   // Non-blocking: failures are logged but don't prevent the status update.
+  const { data: contificoSetting } = await admin
+    .from('business_settings').select('value').eq('key', 'contifico_enabled').single()
+  const contificoEnabled = contificoSetting?.value !== 'false'
+
   const shouldSyncContifico =
     status === 'delivered' &&
     !order?.contifico_doc_id &&
+    contificoEnabled &&
     isContificoConfigured()
 
   if (shouldSyncContifico && order) {

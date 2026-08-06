@@ -6,6 +6,7 @@ type Settings = {
   orders_enabled: string
   orders_open_time: string
   orders_close_time: string
+  contifico_enabled: string
 }
 
 type ContificoTestResult = {
@@ -28,6 +29,7 @@ export default function ConfiguracionPage() {
     orders_enabled: 'true',
     orders_open_time: '11:00',
     orders_close_time: '19:00',
+    contifico_enabled: 'true',
   })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -174,8 +176,30 @@ export default function ConfiguracionPage() {
         <div>
           <p className="text-gray-900 font-black text-base">Contífico — Facturación electrónica</p>
           <p className="text-gray-400 text-xs mt-0.5">
-            Prueba la conexión con Contífico. Si funciona, las facturas se crearán automáticamente cuando marques un pedido como entregado.
+            Las facturas se crean automáticamente cuando marcas un pedido como entregado. Desactívalo si estás haciendo pruebas.
           </p>
+        </div>
+
+        {/* Contifico enabled toggle */}
+        <div className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
+          <div>
+            <p className="text-gray-900 font-semibold text-sm">Facturación activa</p>
+            <p className="text-gray-400 text-xs">
+              {settings.contifico_enabled === 'true'
+                ? 'Los pedidos entregados generan factura en Contífico'
+                : '⚠️ Pausado — los pedidos entregados NO generan factura'}
+            </p>
+          </div>
+          <button
+            onClick={() => toggle('contifico_enabled', settings.contifico_enabled === 'true' ? 'false' : 'true')}
+            className={`relative w-12 h-6 rounded-full transition-colors flex-shrink-0 ${
+              settings.contifico_enabled === 'true' ? 'bg-green-500' : 'bg-gray-300'
+            }`}
+          >
+            <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${
+              settings.contifico_enabled === 'true' ? 'left-7' : 'left-1'
+            }`} />
+          </button>
         </div>
 
         <button

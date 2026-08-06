@@ -11,9 +11,10 @@ export async function GET(request: Request) {
   const settings = Object.fromEntries((rows ?? []).map((r) => [r.key, r.value]))
 
   return NextResponse.json({
-    orders_enabled: settings['orders_enabled'] ?? 'true',
-    orders_open_time: settings['orders_open_time'] ?? '11:00',
-    orders_close_time: settings['orders_close_time'] ?? '19:00',
+    orders_enabled:      settings['orders_enabled']      ?? 'true',
+    orders_open_time:    settings['orders_open_time']    ?? '11:00',
+    orders_close_time:   settings['orders_close_time']   ?? '19:00',
+    contifico_enabled:   settings['contifico_enabled']   ?? 'true',
   })
 }
 
@@ -21,7 +22,7 @@ export async function PATCH(request: Request) {
   const auth = await requireRole('owner'); if (auth) return auth
 
   const body = await request.json()
-  const allowed = ['orders_enabled', 'orders_open_time', 'orders_close_time']
+  const allowed = ['orders_enabled', 'orders_open_time', 'orders_close_time', 'contifico_enabled']
   const updates = Object.entries(body).filter(([k]) => allowed.includes(k))
 
   if (!updates.length) {

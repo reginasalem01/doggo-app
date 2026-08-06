@@ -424,7 +424,7 @@ export default function CheckoutPage() {
                   <input
                     type="number"
                     step="0.50"
-                    min={total}
+                    min="0"
                     placeholder={total.toFixed(2)}
                     value={cashAmount}
                     onChange={(e) => setCashAmount(e.target.value)}

@@ -10,7 +10,7 @@ import {
   HOTDOG_CATEGORY_NAMES,
   COMBO_CHOICES_PRODUCT_NAMES,
   COMBO_COLA_ONLY_NAMES,
-  HOTDOG_OPTIONS,
+  ESPECIALES_OPTIONS,
   COLA_OPTIONS,
   FREE_SALSAS,
   FREE_EXTRAS,
@@ -325,7 +325,7 @@ function ProductModal({
                   <span className="bg-doggo-red/10 text-doggo-red text-[10px] font-black px-2 py-0.5 rounded-full">REQUERIDO</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {HOTDOG_OPTIONS.map((hd) => (
+                  {ESPECIALES_OPTIONS.map((hd) => (
                     <button
                       key={hd}
                       type="button"

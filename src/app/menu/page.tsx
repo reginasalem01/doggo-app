@@ -4,6 +4,8 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import MenuClient from './MenuClient'
 import type { Category, Product } from '@/types'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'Menú · Doggo',
   description: 'Explora nuestro menú de hot dogs, bebidas y más. Pide en línea y recibe en tu mesa o a domicilio.',

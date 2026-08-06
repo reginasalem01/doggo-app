@@ -46,7 +46,7 @@ export default async function AdminPedidoDetailPage({
     <div className="min-h-full bg-white px-5 pt-4 pb-6 space-y-3 overflow-y-auto">
 
       {/* Header */}
-      <div className="flex items-center gap-3 shrink-0">
+      <div className="flex items-center gap-3">
         <Link href="/admin" className="text-gray-500 hover:text-gray-900 text-2xl leading-none">‹</Link>
         <div className="flex-1">
           <h1 className="text-gray-900 text-lg font-black">Pedido #{shortId}</h1>
@@ -62,7 +62,7 @@ export default async function AdminPedidoDetailPage({
       </div>
 
       {/* Cliente */}
-      <div className="bg-gray-50 rounded-2xl px-4 py-3 shrink-0">
+      <div className="bg-gray-50 rounded-2xl px-4 py-3">
         <p className="text-gray-500 text-xs uppercase tracking-wide mb-2">Cliente</p>
         <div className="space-y-1.5">
           <div className="flex justify-between">
@@ -81,7 +81,7 @@ export default async function AdminPedidoDetailPage({
           </div>
           {order.address && (
             <div className="flex justify-between gap-4">
-              <span className="text-gray-500 text-sm shrink-0">Dirección</span>
+              <span className="text-gray-500 text-sm">Dirección</span>
               <span className="text-gray-900 text-sm text-right">{order.address}</span>
             </div>
           )}
@@ -105,7 +105,7 @@ export default async function AdminPedidoDetailPage({
       </div>
 
       {/* Productos */}
-      <div className="bg-gray-50 rounded-2xl px-4 py-3 shrink-0">
+      <div className="bg-gray-50 rounded-2xl px-4 py-3">
         <p className="text-gray-500 text-xs uppercase tracking-wide mb-2">Productos</p>
         <div className="space-y-1.5">
           {items?.map((item) => (
@@ -114,7 +114,7 @@ export default async function AdminPedidoDetailPage({
                 <p className="text-gray-900 text-sm font-semibold">{item.quantity}× {item.product_name}</p>
                 {item.notes && <p className="text-gray-500 text-xs">{item.notes}</p>}
               </div>
-              <p className="text-gray-900 text-sm font-bold shrink-0">${Number(item.total).toFixed(2)}</p>
+              <p className="text-gray-900 text-sm font-bold">${Number(item.total).toFixed(2)}</p>
             </div>
           ))}
         </div>
@@ -137,7 +137,7 @@ export default async function AdminPedidoDetailPage({
       </div>
 
       {/* Pago */}
-      <div className="bg-gray-50 rounded-2xl px-4 py-3 shrink-0 space-y-1.5">
+      <div className="bg-gray-50 rounded-2xl px-4 py-3 space-y-1.5">
         <div className="flex items-center justify-between">
           <p className="text-gray-500 text-sm">Método</p>
           <span className="text-gray-900 text-sm font-semibold">

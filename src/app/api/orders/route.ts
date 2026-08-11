@@ -169,6 +169,7 @@ export async function POST(request: Request) {
       payment_method: order.payment_method ?? 'cash',
       cash_amount: order.cash_amount ?? null,
       points_awarded: false,
+      linked_customer_id: customer_id ?? null,
     }
 
     // Create order

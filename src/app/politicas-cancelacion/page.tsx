@@ -1,13 +1,17 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { WHATSAPP_NUMBER } from '@/lib/utils'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export const metadata: Metadata = {
   title: 'Políticas de Cancelación y Devolución · Doggo',
   description: 'Políticas de cancelación, devolución y entrega de Doggo — Hotdog sin dramas, Plaza Guayarte, Guayaquil.',
 }
 
-export default function PoliticasPage() {
+export default async function PoliticasPage() {
+  const admin = createAdminClient()
+  const { data: row } = await admin.from('business_settings').select('value').eq('key', 'whatsapp_number').single()
+  const whatsappNumber = (row as { value?: string } | null)?.value ?? ''
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -116,7 +120,7 @@ export default function PoliticasPage() {
               <p>Disponible todos los días durante nuestro horario de operación a través de WhatsApp. Respondemos consultas, cambios de pedido y reclamaciones.</p>
             </div>
             <a
-              href={`https://wa.me/${WHATSAPP_NUMBER}?text=Hola%2C+necesito+ayuda+con+mi+pedido+en+Doggo`}
+              href={whatsappNumber ? `https://wa.me/${whatsappNumber}?text=Hola%2C+necesito+ayuda+con+mi+pedido+en+Doggo` : '#'}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-green-700 font-bold text-sm"

@@ -26,10 +26,8 @@ export function formatTime(timeStr: string): string {
   return `${h12}:${m} ${ampm}`
 }
 
-export const WHATSAPP_NUMBER = '593XXXXXXXXX' // reemplazar con número real
-
-export function buildWhatsAppLink(message: string): string {
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`
+export function buildWhatsAppLink(phone: string, message: string): string {
+  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
 }
 
 export const ORDER_STATUS_LABELS: Record<string, string> = {

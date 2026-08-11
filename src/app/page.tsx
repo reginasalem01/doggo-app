@@ -14,7 +14,6 @@ import SplashScreen from '@/components/ui/SplashScreen'
 import DoggoLogo from '@/components/ui/DoggoLogo'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
-import { WHATSAPP_NUMBER } from '@/lib/utils'
 
 export default async function Home() {
   const admin = createAdminClient()
@@ -24,13 +23,16 @@ export default async function Home() {
   // Ecuador is UTC-5 — use correct local date for promos filter
   const today = new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString().split('T')[0]
 
-  const [{ data: featured }, { data: promos }, { data: customer }] = await Promise.all([
+  const [{ data: featured }, { data: promos }, { data: customer }, { data: settingsRows }] = await Promise.all([
     admin.from('products').select('*').eq('available', true).order('sort_order').limit(6),
     admin.from('promotions').select('*').eq('active', true).or(`ends_at.is.null,ends_at.gte.${today}`).order('created_at', { ascending: false }).limit(3),
     user
       ? admin.from('customers').select('id, name, estrellas, doggo_cash').eq('auth_user_id', user.id).single()
       : Promise.resolve({ data: null }),
+    admin.from('business_settings').select('key, value').eq('key', 'whatsapp_number'),
   ])
+
+  const whatsappNumber = (settingsRows as { key: string; value: string }[] | null)?.find((r) => r.key === 'whatsapp_number')?.value ?? ''
 
   // Bronce 0-10 · Plata 11-25 · Oro 26+ (canonical, matches perfil + admin)
   function getLevel(stars: number) {
@@ -224,7 +226,7 @@ export default async function Home() {
           <p className="text-gray-900 font-black text-sm mb-3">¿Necesitas ayuda?</p>
           <div className="space-y-2">
             <a
-              href={`https://wa.me/${WHATSAPP_NUMBER}`}
+              href={whatsappNumber ? `https://wa.me/${whatsappNumber}` : '#'}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-3 bg-green-50 border border-green-100 rounded-xl px-4 py-3 active:bg-green-100 transition-colors"
@@ -237,7 +239,7 @@ export default async function Home() {
               <span className="ml-auto text-gray-400 text-lg">›</span>
             </a>
             <a
-              href={`tel:+${WHATSAPP_NUMBER}`}
+              href={whatsappNumber ? `tel:+${whatsappNumber}` : '#'}
               className="flex items-center gap-3 bg-gray-100 rounded-xl px-4 py-3 active:bg-gray-200 transition-colors"
             >
               <span className="text-xl">📞</span>

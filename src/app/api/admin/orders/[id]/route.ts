@@ -2,12 +2,6 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { resend } from '@/lib/resend'
 import { NextResponse } from 'next/server'
 import { requireRole } from '@/lib/supabase/auth-guard'
-import {
-  createDocument,
-  isContificoConfigured,
-  CONSUMIDOR_FINAL,
-  type FormaCobro,
-} from '@/lib/contifico'
 
 const VALID_STATUSES = ['new', 'accepted', 'preparing', 'ready', 'delivered', 'cancelled']
 
@@ -51,7 +45,7 @@ export async function PATCH(
   // Get order before updating (to check previous status)
   const { data: order } = await admin
     .from('orders')
-    .select('status, total, customer_name, customer_email, customer_phone, delivery_type, address, points_awarded, payment_status, linked_customer_id, contifico_doc_id, order_items(product_name, quantity, unit_price)')
+    .select('status, total, customer_name, customer_email, customer_phone, delivery_type, address, points_awarded, payment_status, linked_customer_id, order_items(product_name, quantity, unit_price)')
     .eq('id', id)
     .single()
 
@@ -181,95 +175,6 @@ export async function PATCH(
         }
       }
     }
-  }
-
-  // ── Contífico sync ──────────────────────────────────────────────────────────
-  // Fires when order reaches 'delivered' and hasn't been synced yet.
-  // Non-blocking: failures are logged but don't prevent the status update.
-  const { data: contificoSetting } = await admin
-    .from('business_settings').select('value').eq('key', 'contifico_enabled').single()
-  const contificoEnabled = contificoSetting?.value !== 'false'
-
-  const shouldSyncContifico =
-    status === 'delivered' &&
-    !order?.contifico_doc_id &&
-    contificoEnabled &&
-    isContificoConfigured()
-
-  if (shouldSyncContifico && order) {
-    const productoId = process.env.CONTIFICO_PRODUCTO_GENERICO_ID!
-
-    // Build line items from order_items; fall back to single generic line if no detail
-    type OItem = { product_name: string; quantity: number; unit_price: number }
-    const rawItems = (order.order_items as OItem[]) ?? []
-    const detalles =
-      rawItems.length > 0
-        ? rawItems.map((i) => ({
-            producto_id: productoId,
-            nombre: i.product_name,
-            cantidad: i.quantity,
-            precio_unitario: Number(i.unit_price),
-          }))
-        : [
-            {
-              producto_id: productoId,
-              nombre: 'Venta Doggo',
-              cantidad: 1,
-              precio_unitario: Number(order.total),
-            },
-          ]
-
-    // Payment method heuristic: online orders are 'paid' → card; in-person → cash
-    const formaCobro: FormaCobro = order.payment_status === 'paid' ? 'TC' : 'EF'
-
-    // Customer info: use real customer if present, else consumidor final
-    const cliente =
-      order.customer_email && order.customer_name !== 'Cliente en local'
-        ? {
-            cedula: '9999999999',
-            razon_social: order.customer_name.toUpperCase(),
-            tipo: 'I' as const,
-            email: order.customer_email,
-            telefonos: order.customer_phone ?? null,
-          }
-        : CONSUMIDOR_FINAL
-
-    // Atomic sequence counter — use RPC to avoid race conditions between concurrent deliveries
-    let seq = 1
-    const { data: seqData } = await admin.rpc('increment_contifico_sequence')
-    if (seqData !== null && seqData !== undefined) {
-      seq = Number(seqData)
-    } else {
-      // Fallback: non-atomic read (safe for low-volume, avoids breaking flow)
-      const { data: seqRow } = await admin
-        .from('business_settings').select('value').eq('key', 'contifico_sequence').single()
-      seq = parseInt(seqRow?.value ?? '0', 10) + 1
-      await admin.from('business_settings').upsert({ key: 'contifico_sequence', value: String(seq) })
-    }
-    const now = new Date()
-    const fecha = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`
-
-    createDocument(
-      {
-        numero: '',
-        fecha,
-        cliente,
-        detalles,
-        cobros: [{ forma_cobro: formaCobro, monto: Number(order.total) }],
-        referencia: `Doggo #${id.slice(0, 8).toUpperCase()}`,
-      },
-      seq
-    )
-      .then(async (doc) => {
-        await admin
-          .from('orders')
-          .update({ contifico_doc_id: doc.id || doc.documento })
-          .eq('id', id)
-        console.log(`[contifico] Factura creada: ${doc.documento} para pedido ${id}`)
-      })
-      .catch((err) => {
-        console.error(`[contifico] Error sincronizando pedido ${id}:`, err)
-      })
   }
 
   return NextResponse.json({ ok: true })

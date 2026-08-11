@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { WHATSAPP_NUMBER } from '@/lib/utils'
 
 export default function ConfiguracionPage() {
   const router = useRouter()
+  const [whatsappNumber, setWhatsappNumber] = useState('')
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
@@ -31,12 +31,17 @@ export default function ConfiguracionPage() {
       if (!user) { router.push('/login'); return }
       setEmail(user.email ?? '')
 
-      const res = await fetch('/api/customer/me')
-      const data = await res.json()
+      const [profileRes, settingsRes] = await Promise.all([
+        fetch('/api/customer/me'),
+        fetch('/api/public/settings'),
+      ])
+      const data = await profileRes.json()
       if (data?.customer) {
         setName(data.customer.name ?? '')
         setPhone(data.customer.phone ?? '')
       }
+      const settings = await settingsRes.json()
+      if (settings?.whatsapp_number) setWhatsappNumber(settings.whatsapp_number)
       setLoading(false)
     }
     load()
@@ -219,7 +224,7 @@ export default function ConfiguracionPage() {
         <div className="bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden">
           <p className="text-gray-500 text-xs font-semibold uppercase tracking-wide px-5 pt-4 pb-2">Contáctanos</p>
           <a
-            href={`https://wa.me/${WHATSAPP_NUMBER}`}
+            href={whatsappNumber ? `https://wa.me/${whatsappNumber}` : '#'}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-between px-5 py-4 border-t border-gray-200 active:bg-gray-100"
@@ -228,7 +233,7 @@ export default function ConfiguracionPage() {
             <span className="text-gray-400 text-lg">›</span>
           </a>
           <a
-            href={`tel:+${WHATSAPP_NUMBER}`}
+            href={whatsappNumber ? `tel:+${whatsappNumber}` : '#'}
             className="flex items-center justify-between px-5 py-4 border-t border-gray-200 active:bg-gray-100"
           >
             <span className="text-gray-900 text-sm font-semibold">📞 Llamar</span>

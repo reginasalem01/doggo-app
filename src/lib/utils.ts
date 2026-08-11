@@ -41,8 +41,16 @@ export const ORDER_STATUS_LABELS: Record<string, string> = {
   cancelled: 'Cancelado',
 }
 
+// Labels para el cliente (app)
 export const DELIVERY_LABELS: Record<string, string> = {
-  pickup: '🏪 Retiro en local',
   delivery: '🛵 A domicilio',
-  dine_in: '🪑 Consumo en local',
+  pickup:   '🏃 Retirar pedido',
+  dine_in:  '🪑 Consumo en local',
+}
+
+// Labels para el staff (admin/owner) — indica qué hacer con el pedido
+export const DELIVERY_LABELS_STAFF: Record<string, string> = {
+  delivery: '🛵 Para llevar (motorizado)',
+  pickup:   '🏃 Para llevar (cliente recoge)',
+  dine_in:  '🍽️ Servir en el local',
 }

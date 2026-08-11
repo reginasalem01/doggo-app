@@ -166,7 +166,7 @@ function OrderCard({ order, onOptimisticUpdate, onRefresh }: {
 
         <div className="flex items-center justify-between mt-1">
           <span className="text-gray-500 text-xs">
-            {order.delivery_type === 'delivery' ? '🛵 Domicilio' : order.delivery_type === 'pickup' ? '🏃 Retiro' : '🪑 Local'}
+            {order.delivery_type === 'delivery' ? '🛵 Motorizado' : order.delivery_type === 'pickup' ? '🏃 Cliente recoge' : '🍽️ Servir en local'}
           </span>
           <span className="text-gray-900 font-black text-base">${Number(order.total).toFixed(2)}</span>
         </div>

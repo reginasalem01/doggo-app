@@ -94,7 +94,7 @@ export async function POST(request: Request) {
   }
 
   const total = Math.max(0, Math.round((subtotal - doggoDiscount) * 100) / 100)
-  const notes = doggoDiscount > 0 ? `⭐ Doggo Cash: -$${doggoDiscount.toFixed(2)}` : null
+  const notes = doggoDiscount > 0 ? `💸 Doggo Cash: -$${doggoDiscount.toFixed(2)}` : null
 
   // Walk-in orders: no delivery fee, dine_in, cash payment pending
   const orderData: Record<string, unknown> = {
@@ -147,7 +147,7 @@ export async function POST(request: Request) {
       points: 0,
       doggo_cash_amount: -doggoDiscount,
       type: 'redeemed',
-      description: `⭐ Doggo Cash usado en caja: -$${doggoDiscount.toFixed(2)}`,
+      description: `💸 Doggo Cash usado en caja: -$${doggoDiscount.toFixed(2)}`,
     })
   }
 

@@ -12,7 +12,7 @@ const NAV = [
   { href: '/owner/menu',          label: 'Menú',         icon: '🌭' },
   { href: '/owner/promos',        label: 'Promos',       icon: '🎉' },
   { href: '/owner/clientes',      label: 'Clientes',     icon: '👥' },
-  { href: '/owner/fidelizacion',  label: 'Fidelización', icon: '⭐' },
+  { href: '/owner/fidelizacion',  label: 'Fidelización', icon: '🌭' },
   { href: '/owner/configuracion', label: 'Config.',      icon: '⚙️' },
 ]
 

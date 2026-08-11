@@ -59,7 +59,7 @@ export default async function OwnerClientesPage() {
                     <td className="px-4 py-3">
                       <span className={`text-xs font-bold ${lvl.color}`}>{lvl.label}</span>
                     </td>
-                    <td className="px-4 py-3 text-doggo-red font-black text-sm">{c.estrellas ?? 0} ⭐</td>
+                    <td className="px-4 py-3 text-doggo-red font-black text-sm">{c.estrellas ?? 0} 🌭</td>
                     <td className="px-6 py-3 text-gray-500 text-xs">
                       {new Date(c.created_at).toLocaleDateString('es-EC', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </td>

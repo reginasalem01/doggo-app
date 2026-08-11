@@ -6,10 +6,10 @@ import { requireRole } from '@/lib/supabase/auth-guard'
 const VALID_STATUSES = ['new', 'accepted', 'preparing', 'ready', 'delivered', 'cancelled']
 
 // ── Doggo loyalty helpers ───────────────────────────────────────────────────
-// $5 gastados → 1 estrella
-// Bronce (0-10 estrellas): $0.50/estrella
-// Plata (11-25 estrellas): $0.75/estrella
-// Oro (26+ estrellas): $1.00/estrella
+// $5 gastados → 1 🌭 (hot dog)
+// Bronce (0-10 🌭): $0.50/🌭
+// Plata  (11-25 🌭): $0.75/🌭
+// Oro    (26+  🌭): $1.00/🌭
 function getEstrellasRate(currentEstrellas: number): number {
   if (currentEstrellas < 11) return 0.50
   if (currentEstrellas < 26) return 0.75
@@ -150,7 +150,7 @@ export async function PATCH(
       }
 
       if (customer) {
-        // 1 estrella por cada $5 gastados (redondeado hacia abajo)
+        // 1 🌭 por cada $5 gastados (redondeado hacia abajo)
         const estrellasEarned = Math.floor(Number(order.total) / 5)
         if (estrellasEarned > 0) {
           const currentEstrellas = customer.estrellas ?? 0
@@ -169,7 +169,7 @@ export async function PATCH(
               points: estrellasEarned,
               doggo_cash_amount: doggoEarned,
               type: 'earned',
-              description: `+${estrellasEarned} ⭐ (${levelLabel}) → +$${doggoEarned.toFixed(2)} Doggo Cash`,
+              description: `+${estrellasEarned} 🌭 (${levelLabel}) → +$${doggoEarned.toFixed(2)} Doggo Cash`,
             }),
           ])
         }

@@ -71,71 +71,77 @@ export default async function Home() {
         const progress = level.next
           ? Math.min(((estrellas - level.prevAt) / (level.nextAt - level.prevAt)) * 100, 100)
           : 100
+        const LEVEL_COLOR: Record<string, string> = { Bronce: '#CD7F32', Plata: '#A8A9AD', Oro: '#F5C400' }
+        const barColor = LEVEL_COLOR[level.label] ?? '#FDC423'
         return (
           <div className="px-4 mb-6">
-            <div
-              className="rounded-3xl overflow-hidden relative"
-              style={{ background: 'linear-gradient(135deg, #1A1A1A 0%, #2d1a00 100%)' }}
-            >
-              {/* Glow decoration */}
-              <div className="absolute top-0 right-0 w-48 h-48 rounded-full opacity-10"
-                style={{ background: 'radial-gradient(circle, #FDC423 0%, transparent 70%)', transform: 'translate(30%, -30%)' }} />
-              <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full opacity-5"
-                style={{ background: 'radial-gradient(circle, #FDC423 0%, transparent 70%)', transform: 'translate(-30%, 30%)' }} />
+            <Link href="/perfil" className="block relative rounded-3xl overflow-hidden select-none"
+              style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #2d1800 55%, #0f0800 100%)' }}>
+
+              {/* Shine */}
+              <div className="absolute inset-0 pointer-events-none"
+                style={{ background: 'linear-gradient(115deg, transparent 0%, rgba(253,196,35,0.07) 45%, transparent 80%)' }} />
+              {/* Glow */}
+              <div className="absolute -top-12 -right-12 w-44 h-44 rounded-full opacity-20"
+                style={{ background: 'radial-gradient(circle, #FDC423 0%, transparent 70%)' }} />
 
               <div className="relative p-5">
-                {/* Top row: level + name */}
+                {/* Row 1: Chip + logo */}
                 <div className="flex items-center justify-between mb-4">
-                  <span className="bg-doggo-yellow/15 text-doggo-yellow text-[11px] font-black px-3 py-1 rounded-full tracking-wide uppercase">
-                    {level.emoji} Nivel {level.label}
-                  </span>
-                  <span className="text-white/50 text-xs font-medium">{customer.name.split(' ')[0]}</span>
+                  <svg width="34" height="26" viewBox="0 0 34 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="34" height="26" rx="4" fill="url(#hcg)"/>
+                    <rect x="13" y="0"  width="8" height="26" fill="rgba(0,0,0,0.18)"/>
+                    <rect x="0"  y="9"  width="34" height="8"  fill="rgba(0,0,0,0.18)"/>
+                    <rect x="13" y="9"  width="8"  height="8"  rx="1" fill="rgba(0,0,0,0.28)"/>
+                    <defs>
+                      <linearGradient id="hcg" x1="0" y1="0" x2="34" y2="26" gradientUnits="userSpaceOnUse">
+                        <stop stopColor="#C8960C"/>
+                        <stop offset="0.5" stopColor="#F5CB35"/>
+                        <stop offset="1" stopColor="#C8960C"/>
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  <span className="text-white font-black text-xs tracking-widest opacity-80">🌭 DOGGO</span>
                 </div>
 
-                {/* Stars + Doggo Cash */}
-                <div className="mb-4 flex items-end gap-4">
+                {/* Row 2: Balance + hot dogs */}
+                <div className="flex items-end justify-between mb-4">
                   <div>
-                    <p className="text-white/60 text-xs font-semibold uppercase tracking-widest mb-1">Estrellas</p>
-                    <p className="text-doggo-yellow font-black leading-none" style={{ fontSize: '3rem' }}>
-                      {estrellas}
-                      <span className="text-white/40 text-lg font-normal ml-2">⭐</span>
+                    <p className="text-white/40 text-[9px] font-bold tracking-widest uppercase mb-0.5">Doggo Cash</p>
+                    <p className="text-doggo-yellow font-black leading-none" style={{ fontSize: '2.6rem', letterSpacing: '-1px' }}>
+                      ${doggoCash.toFixed(2)}
                     </p>
                   </div>
-                  {doggoCash > 0 && (
-                    <div className="mb-1">
-                      <p className="text-white/60 text-xs font-semibold uppercase tracking-widest mb-1">Doggo Cash</p>
-                      <p className="text-green-400 font-black text-2xl">${doggoCash.toFixed(2)}</p>
-                    </div>
-                  )}
+                  <div className="text-right mb-1">
+                    <p className="text-white font-black text-2xl leading-none">{estrellas} 🌭</p>
+                    <p className="text-white/40 text-[10px] mt-0.5">hot dogs</p>
+                  </div>
                 </div>
 
-                {/* Progress bar */}
+                {/* Row 3: Progress */}
                 {level.next && (
-                  <div className="mb-5">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-white/40 text-[10px]">{level.label}</span>
-                      <span className="text-white/40 text-[10px]">{level.nextAt - estrellas} ⭐ para {level.next}</span>
+                  <div className="mb-4">
+                    <div className="h-1 bg-white/10 rounded-full overflow-hidden mb-1">
+                      <div className="h-full rounded-full transition-all duration-700"
+                        style={{ width: `${progress}%`, backgroundColor: barColor }} />
                     </div>
-                    <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-doggo-yellow rounded-full transition-all duration-700"
-                        style={{ width: `${progress}%` }}
-                      />
-                    </div>
+                    <p className="text-white/30 text-[9px]">
+                      {level.nextAt - estrellas} 🌭 más para {level.next}
+                    </p>
                   </div>
                 )}
 
-                {/* Buttons */}
-                <div className="flex gap-2.5">
-                  <Link href="/perfil" className="flex-1 bg-doggo-yellow text-doggo-dark font-black text-sm py-3 rounded-2xl text-center flex items-center justify-center gap-2">
-                    <span>📲</span> Mi QR
-                  </Link>
-                  <Link href="/perfil" className="flex-1 bg-white/10 text-white font-bold text-sm py-3 rounded-2xl text-center">
-                    Ver premios
-                  </Link>
+                {/* Row 4: Name + level */}
+                <div className="flex items-center justify-between">
+                  <p className="text-white/40 text-[10px] font-semibold tracking-widest uppercase">
+                    {customer.name.split(' ')[0].toUpperCase()}
+                  </p>
+                  <span className="bg-white/10 text-white text-[9px] font-black px-2.5 py-1 rounded-full tracking-wide">
+                    {level.emoji} {level.label.toUpperCase()}
+                  </span>
                 </div>
               </div>
-            </div>
+            </Link>
           </div>
         )
       })()}
@@ -210,8 +216,8 @@ export default async function Home() {
               style={{ background: 'radial-gradient(circle, #FDC423 0%, transparent 70%)', transform: 'translate(30%, -30%)' }} />
             <div className="p-5 relative">
               <p className="text-white/60 text-xs font-semibold uppercase tracking-widest mb-1">Club Doggo</p>
-              <p className="text-white font-black text-xl leading-tight mb-1">Gana estrellas con<br />cada pedido</p>
-              <p className="text-white/50 text-xs mb-4">$5 = 1 ⭐ · Acumula Doggo Cash y canjea premios</p>
+              <p className="text-white font-black text-xl leading-tight mb-1">Gana 🌭 con<br />cada pedido</p>
+              <p className="text-white/50 text-xs mb-4">$5 = 1 🌭 · Se convierte en Doggo Cash automáticamente</p>
               <Link href="/login" className="inline-block bg-doggo-yellow text-doggo-dark font-black text-sm px-5 py-2.5 rounded-2xl">
                 Unirme gratis →
               </Link>

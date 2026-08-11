@@ -106,7 +106,7 @@ export default async function OwnerClienteDetailPage({
           <div className="grid grid-cols-4 gap-3">
             <div className="bg-gray-50 rounded-2xl p-4 text-center">
               <p className="text-doggo-red text-2xl font-black">{customer.estrellas ?? 0}</p>
-              <p className="text-gray-500 text-xs mt-0.5">⭐ estrellas</p>
+              <p className="text-gray-500 text-xs mt-0.5">🌭 hot dogs</p>
             </div>
             <div className="bg-gray-50 rounded-2xl p-4 text-center">
               <p className="text-green-600 text-2xl font-black">${Number(customer.doggo_cash ?? 0).toFixed(0)}</p>
@@ -171,7 +171,7 @@ export default async function OwnerClienteDetailPage({
                     className={`flex items-center gap-3 px-5 py-3 ${i < transactions.length - 1 ? 'border-b border-gray-100' : ''}`}
                   >
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-sm ${isEarned ? 'bg-green-50' : 'bg-red-50'}`}>
-                      {isEarned ? '⭐' : '💰'}
+                      {isEarned ? '🌭' : '💰'}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-gray-900 text-sm truncate">{t.description ?? t.type}</p>
@@ -184,7 +184,7 @@ export default async function OwnerClienteDetailPage({
                     <div className="text-right shrink-0 space-y-0.5">
                       {pts !== 0 && (
                         <p className={`font-black text-sm ${pts > 0 ? 'text-green-700' : 'text-red-400'}`}>
-                          {pts > 0 ? '+' : ''}{pts} ⭐
+                          {pts > 0 ? '+' : ''}{pts} 🌭
                         </p>
                       )}
                       {cash !== 0 && (

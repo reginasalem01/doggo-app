@@ -201,7 +201,7 @@ export default function NuevoPedidoClient({
               <p className="text-gray-900 font-black text-xl">¡Pedido completado!</p>
               {ticket.customerName && (
                 <p className="text-green-600 text-sm font-semibold">
-                  ⭐ Estrellas otorgadas a {ticket.customerName.split(' ')[0]}
+                  🌭 Hot dogs otorgadas a {ticket.customerName.split(' ')[0]}
                 </p>
               )}
               <p className="text-gray-400 text-xs">Listo para el siguiente…</p>
@@ -261,7 +261,7 @@ export default function NuevoPedidoClient({
                       <span>${ticket.subtotal.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-sm font-semibold text-green-600">
-                      <span>⭐ Doggo Cash</span>
+                      <span>🌭 Doggo Cash</span>
                       <span>-${ticket.doggoUsed.toFixed(2)}</span>
                     </div>
                   </>
@@ -447,7 +447,7 @@ export default function NuevoPedidoClient({
                 <div className="flex-1 min-w-0">
                   <p className="text-gray-900 font-bold text-sm truncate">{linkedCustomer.name}</p>
                   <p className="text-green-600 text-xs">
-                    {linkedCustomer.estrellas} ⭐
+                    {linkedCustomer.estrellas} 🌭
                     {linkedCustomer.doggo_cash > 0 && ` · $${Number(linkedCustomer.doggo_cash).toFixed(2)} Doggo Cash`}
                   </p>
                 </div>
@@ -467,7 +467,7 @@ export default function NuevoPedidoClient({
                       : 'bg-gray-50 border-gray-200 text-gray-500'
                   }`}
                 >
-                  <span>⭐ Usar Doggo Cash</span>
+                  <span>🌭 Usar Doggo Cash</span>
                   <span className={useDoggoGash ? 'text-doggo-dark font-black' : 'text-gray-400'}>
                     {useDoggoGash ? `✓ -$${doggoToUse.toFixed(2)}` : `$${Number(linkedCustomer.doggo_cash).toFixed(2)}`}
                   </span>
@@ -524,7 +524,7 @@ export default function NuevoPedidoClient({
           )}
           {doggoToUse > 0 && (
             <div className="flex justify-between items-center text-sm">
-              <span className="text-green-600 font-semibold">⭐ Doggo Cash</span>
+              <span className="text-green-600 font-semibold">🌭 Doggo Cash</span>
               <span className="text-green-600 font-semibold">-${doggoToUse.toFixed(2)}</span>
             </div>
           )}

@@ -19,7 +19,14 @@ async function reverseGeocode(lat: number, lng: number): Promise<string> {
       { headers: { 'Accept-Language': 'es' } }
     )
     const data = await res.json()
-    return data.display_name ?? ''
+    const a = data.address ?? {}
+    // Build a clean address: "Calle 123, Barrio, Ciudad"
+    const parts = [
+      [a.road, a.house_number].filter(Boolean).join(' '),
+      a.suburb ?? a.neighbourhood ?? a.quarter ?? '',
+      a.city ?? a.town ?? a.village ?? '',
+    ].filter(Boolean)
+    return parts.length > 0 ? parts.join(', ') : (data.display_name ?? '')
   } catch {
     return ''
   }

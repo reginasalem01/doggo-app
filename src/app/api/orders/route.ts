@@ -148,7 +148,7 @@ export async function POST(request: Request) {
 
     const baseNotes = order.notes ?? null
     const notes = doggoDiscount > 0
-      ? (baseNotes ? `${baseNotes} | ⭐ Doggo Cash: -$${doggoDiscount.toFixed(2)}` : `⭐ Doggo Cash: -$${doggoDiscount.toFixed(2)}`)
+      ? (baseNotes ? `${baseNotes} | 💸 Doggo Cash: -$${doggoDiscount.toFixed(2)}` : `💸 Doggo Cash: -$${doggoDiscount.toFixed(2)}`)
       : baseNotes
 
     const orderData = {
@@ -212,7 +212,7 @@ export async function POST(request: Request) {
         points: 0,
         doggo_cash_amount: -doggoDiscount,
         type: 'redeemed',
-        description: `⭐ Doggo Cash usado: -$${doggoDiscount.toFixed(2)}`,
+        description: `💸 Doggo Cash usado: -$${doggoDiscount.toFixed(2)}`,
       })
     }
 

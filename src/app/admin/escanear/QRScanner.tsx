@@ -208,7 +208,7 @@ export default function QRScanner() {
           </div>
           <div className="text-right shrink-0 space-y-1">
             <div>
-              <p className="text-doggo-red font-black text-xl leading-none">{customer.estrellas ?? 0} ⭐</p>
+              <p className="text-doggo-red font-black text-xl leading-none">{customer.estrellas ?? 0} 🌭</p>
               <p className="text-gray-400 text-[10px]">estrellas</p>
             </div>
             {Number(customer.doggo_cash ?? 0) > 0 && (

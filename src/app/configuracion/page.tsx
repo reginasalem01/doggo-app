@@ -207,7 +207,7 @@ export default function ConfiguracionPage() {
         {/* Links útiles */}
         <div className="bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden">
           <Link href="/perfil" className="flex items-center justify-between px-5 py-4 border-b border-gray-200 active:bg-gray-100">
-            <span className="text-gray-900 text-sm font-semibold">⭐ Mis puntos</span>
+            <span className="text-gray-900 text-sm font-semibold">🌭 Mis hot dogs</span>
             <span className="text-gray-400 text-lg">›</span>
           </Link>
           <Link href="/reservas" className="flex items-center justify-between px-5 py-4 border-b border-gray-200 active:bg-gray-100">

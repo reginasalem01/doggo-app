@@ -454,7 +454,7 @@ export default function CheckoutPage() {
           <div className={`rounded-2xl px-4 py-3.5 border transition-colors ${useDoggoGash ? 'bg-doggo-yellow/10 border-doggo-yellow/40' : 'bg-gray-50 border-gray-200'}`}>
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-gray-900 font-bold text-sm">⭐ Doggo Cash</p>
+                <p className="text-gray-900 font-bold text-sm">🌭 Doggo Cash</p>
                 <p className="text-gray-500 text-xs mt-0.5">
                   {useDoggoGash
                     ? `Ahorrando $${doggoToUse.toFixed(2)} en este pedido`
@@ -477,7 +477,7 @@ export default function CheckoutPage() {
 
         {customerData && availableDoggo === 0 && (
           <div className="bg-gray-50 rounded-xl px-4 py-3 flex justify-between items-center border border-gray-200">
-            <p className="text-gray-500 text-sm">⭐ {customerData.customer.estrellas} estrella{customerData.customer.estrellas !== 1 ? 's' : ''}</p>
+            <p className="text-gray-500 text-sm">🌭 {customerData.customer.estrellas} hot dog{customerData.customer.estrellas !== 1 ? 's' : ''}</p>
             <p className="text-gray-400 text-xs">Sin saldo aún</p>
           </div>
         )}
@@ -521,7 +521,7 @@ export default function CheckoutPage() {
             )}
             {doggoToUse > 0 && (
               <div className="flex justify-between text-sm">
-                <span className="text-green-600">⭐ Doggo Cash</span>
+                <span className="text-green-600">🌭 Doggo Cash</span>
                 <span className="text-green-600">-{formatPrice(doggoToUse)}</span>
               </div>
             )}

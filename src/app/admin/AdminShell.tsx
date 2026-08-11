@@ -6,9 +6,8 @@ import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 
 const NAV = [
-  { href: '/admin',              label: 'Cola de Pedidos', icon: '📋', exact: true },
-  { href: '/admin/reservas',     label: 'Reservas',        icon: '📅' },
-  { href: '/admin/nuevo-pedido', label: 'Nuevo pedido',    icon: '➕' },
+  { href: '/admin',          label: 'Cola de Pedidos', icon: '📋', exact: true },
+  { href: '/admin/reservas', label: 'Reservas',        icon: '📅' },
 ]
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {

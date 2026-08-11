@@ -1,8 +1,10 @@
+export const dynamic = 'force-dynamic'
+
 import { createAdminClient } from '@/lib/supabase/admin'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import OrderStatusButtons from './OrderStatusButtons'
-import { DELIVERY_LABELS } from '@/lib/utils'
+import { DELIVERY_LABELS_STAFF } from '@/lib/utils'
 
 const STATUS_LABEL: Record<string, string> = {
   new:       'Nuevo',
@@ -77,7 +79,7 @@ export default async function AdminPedidoDetailPage({
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500 text-sm">Tipo</span>
-            <span className="text-gray-900 text-sm">{DELIVERY_LABELS[order.delivery_type as string] ?? order.delivery_type}</span>
+            <span className="text-gray-900 text-sm">{DELIVERY_LABELS_STAFF[order.delivery_type as string] ?? order.delivery_type}</span>
           </div>
           {order.address && (
             <div className="flex justify-between gap-4">

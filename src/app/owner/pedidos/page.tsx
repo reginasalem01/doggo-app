@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { createAdminClient } from '@/lib/supabase/admin'
 import Link from 'next/link'
-import { DELIVERY_LABELS } from '@/lib/utils'
+import { DELIVERY_LABELS_STAFF } from '@/lib/utils'
 import AutoRefresher from './AutoRefresher'
 
 const STATUS: Record<string, { label: string; color: string }> = {
@@ -63,7 +63,7 @@ export default async function OwnerPedidosPage() {
                     </td>
                     <td className="px-4 py-3 text-gray-900 text-sm font-medium">{o.customer_name}</td>
                     <td className="px-4 py-3 text-gray-500 text-sm">{o.customer_phone}</td>
-                    <td className="px-4 py-3 text-gray-500 text-xs">{DELIVERY_LABELS[o.delivery_type] ?? o.delivery_type}</td>
+                    <td className="px-4 py-3 text-gray-500 text-xs">{DELIVERY_LABELS_STAFF[o.delivery_type] ?? o.delivery_type}</td>
                     <td className="px-4 py-3">
                       <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${s.color}`}>{s.label}</span>
                     </td>

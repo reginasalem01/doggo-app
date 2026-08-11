@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { WHATSAPP_NUMBER } from '@/lib/utils'
 
 export const metadata: Metadata = {
   title: 'Políticas de Cancelación y Devolución · Doggo',
@@ -115,7 +116,7 @@ export default function PoliticasPage() {
               <p>Disponible todos los días durante nuestro horario de operación a través de WhatsApp. Respondemos consultas, cambios de pedido y reclamaciones.</p>
             </div>
             <a
-              href="https://wa.me/593XXXXXXXXX?text=Hola%2C+necesito+ayuda+con+mi+pedido+en+Doggo"
+              href={`https://wa.me/${WHATSAPP_NUMBER}?text=Hola%2C+necesito+ayuda+con+mi+pedido+en+Doggo`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-green-700 font-bold text-sm"

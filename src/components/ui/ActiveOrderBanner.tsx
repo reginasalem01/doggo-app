@@ -26,6 +26,13 @@ const STEPS_PICKUP = [
   { key: 'delivered', label: 'Entregado',  icon: '✅' },
 ]
 
+const STEPS_DINE_IN = [
+  { key: 'new',       label: 'Recibido',   icon: '📋' },
+  { key: 'preparing', label: 'Preparando', icon: '🍳' },
+  { key: 'ready',     label: 'Sirviendo',  icon: '🍽️' },
+  { key: 'delivered', label: 'Servido',    icon: '✅' },
+]
+
 function stepIndex(status: string) {
   if (status === 'new')       return 0
   if (status === 'accepted')  return 1
@@ -102,7 +109,7 @@ export default function ActiveOrderBanner() {
     <div className="px-4 mb-4 space-y-3">
       {orders.map((order) => {
         const isDelivery = order.delivery_type === 'delivery'
-        const steps = isDelivery ? STEPS : STEPS_PICKUP
+        const steps = isDelivery ? STEPS : order.delivery_type === 'dine_in' ? STEPS_DINE_IN : STEPS_PICKUP
         const current = stepIndex(order.status)
         const shortId = order.id.slice(0, 8).toUpperCase()
         const isDelivered = order.status === 'delivered'

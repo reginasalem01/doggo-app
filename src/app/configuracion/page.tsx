@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { WHATSAPP_NUMBER } from '@/lib/utils'
 
 export default function ConfiguracionPage() {
   const router = useRouter()
@@ -218,7 +219,7 @@ export default function ConfiguracionPage() {
         <div className="bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden">
           <p className="text-gray-500 text-xs font-semibold uppercase tracking-wide px-5 pt-4 pb-2">Contáctanos</p>
           <a
-            href="https://wa.me/593XXXXXXXXX"
+            href={`https://wa.me/${WHATSAPP_NUMBER}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-between px-5 py-4 border-t border-gray-200 active:bg-gray-100"
@@ -227,7 +228,7 @@ export default function ConfiguracionPage() {
             <span className="text-gray-400 text-lg">›</span>
           </a>
           <a
-            href="tel:+593XXXXXXXXX"
+            href={`tel:+${WHATSAPP_NUMBER}`}
             className="flex items-center justify-between px-5 py-4 border-t border-gray-200 active:bg-gray-100"
           >
             <span className="text-gray-900 text-sm font-semibold">📞 Llamar</span>

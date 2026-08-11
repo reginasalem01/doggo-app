@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { createAdminClient } from '@/lib/supabase/admin'
 import RealtimeKanban from './pedidos/RealtimeKanban'
 
@@ -8,7 +10,7 @@ export default async function AdminPage() {
 
   const { data: orders } = await admin
     .from('orders')
-    .select('*, order_items(product_name, quantity, notes)')
+    .select('*, order_items(product_name, quantity, notes, customizations)')
     .in('status', ['new', 'accepted', 'preparing', 'ready'])
     .order('created_at', { ascending: true })
 

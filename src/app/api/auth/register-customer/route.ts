@@ -32,6 +32,8 @@ export async function POST(request: Request) {
         email: user.email,
         phone: phone || null,
         points: 0,
+        estrellas: 0,
+        doggo_cash: 0,
       })
     }
 

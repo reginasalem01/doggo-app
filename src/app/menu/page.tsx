@@ -1,10 +1,10 @@
+export const dynamic = 'force-dynamic'
+
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import MenuClient from './MenuClient'
 import type { Category, Product } from '@/types'
-
-export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Menú · Doggo',

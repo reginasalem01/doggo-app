@@ -54,8 +54,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Faltan campos obligatorios' }, { status: 400 })
     }
 
-    // Validar fecha futura
-    const today = new Date().toISOString().split('T')[0]
+    // Validar fecha futura — Ecuador is UTC-5
+    const today = new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString().split('T')[0]
     if (reservation_date < today) {
       return NextResponse.json({ error: 'La fecha debe ser futura' }, { status: 400 })
     }

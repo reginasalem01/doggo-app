@@ -1,7 +1,9 @@
+export const dynamic = 'force-dynamic'
+
 import { createAdminClient } from '@/lib/supabase/admin'
 import Link from 'next/link'
 import PedidosRefresher from './PedidosRefresher'
-import { DELIVERY_LABELS } from '@/lib/utils'
+import { DELIVERY_LABELS_STAFF } from '@/lib/utils'
 
 const STATUS_LABEL: Record<string, string> = {
   new: '🆕 Nuevo',
@@ -101,7 +103,7 @@ function OrderCard({ order, highlight = false }: { order: Record<string, unknown
           <div className="flex items-center gap-2 mb-0.5">
             <p className="text-white font-bold truncate">{customerName}</p>
           </div>
-          <p className="text-gray-400 text-xs">{customerPhone} · {DELIVERY_LABELS[deliveryType] ?? deliveryType}</p>
+          <p className="text-gray-400 text-xs">{customerPhone} · {DELIVERY_LABELS_STAFF[deliveryType] ?? deliveryType}</p>
           <p className="text-gray-600 text-xs mt-1">
             {new Date(createdAt).toLocaleString('es-EC', {
               day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',

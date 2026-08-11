@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
@@ -12,13 +14,15 @@ import SplashScreen from '@/components/ui/SplashScreen'
 import DoggoLogo from '@/components/ui/DoggoLogo'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
+import { WHATSAPP_NUMBER } from '@/lib/utils'
 
 export default async function Home() {
   const admin = createAdminClient()
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const today = new Date().toISOString().split('T')[0]
+  // Ecuador is UTC-5 — use correct local date for promos filter
+  const today = new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString().split('T')[0]
 
   const [{ data: featured }, { data: promos }, { data: customer }] = await Promise.all([
     admin.from('products').select('*').eq('available', true).order('sort_order').limit(6),
@@ -28,10 +32,11 @@ export default async function Home() {
       : Promise.resolve({ data: null }),
   ])
 
+  // Bronce 0-10 · Plata 11-25 · Oro 26+ (canonical, matches perfil + admin)
   function getLevel(stars: number) {
-    if (stars >= 50) return { label: 'Oro', emoji: '🥇', next: null, nextAt: 50, prevAt: 50 }
-    if (stars >= 20) return { label: 'Plata', emoji: '🥈', next: 'Oro', nextAt: 50, prevAt: 20 }
-    return { label: 'Bronce', emoji: '🥉', next: 'Plata', nextAt: 20, prevAt: 0 }
+    if (stars >= 26) return { label: 'Oro',   emoji: '🥇', next: null,    nextAt: 26, prevAt: 26 }
+    if (stars >= 11) return { label: 'Plata', emoji: '🥈', next: 'Oro',   nextAt: 26, prevAt: 11 }
+    return                  { label: 'Bronce',emoji: '🥉', next: 'Plata', nextAt: 11, prevAt: 0  }
   }
 
   const level = customer ? getLevel(customer.estrellas ?? 0) : null
@@ -219,7 +224,7 @@ export default async function Home() {
           <p className="text-gray-900 font-black text-sm mb-3">¿Necesitas ayuda?</p>
           <div className="space-y-2">
             <a
-              href="https://wa.me/593XXXXXXXXX"
+              href={`https://wa.me/${WHATSAPP_NUMBER}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-3 bg-green-50 border border-green-100 rounded-xl px-4 py-3 active:bg-green-100 transition-colors"
@@ -232,7 +237,7 @@ export default async function Home() {
               <span className="ml-auto text-gray-400 text-lg">›</span>
             </a>
             <a
-              href="tel:+593XXXXXXXXX"
+              href={`tel:+${WHATSAPP_NUMBER}`}
               className="flex items-center gap-3 bg-gray-100 rounded-xl px-4 py-3 active:bg-gray-200 transition-colors"
             >
               <span className="text-xl">📞</span>

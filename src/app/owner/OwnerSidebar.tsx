@@ -6,15 +6,14 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 const NAV = [
-  { href: '/owner',            label: 'Dashboard',     icon: '📊', exact: true },
-  { href: '/owner/pedidos',    label: 'Pedidos',        icon: '📋' },
-  { href: '/owner/reservas',   label: 'Reservas',       icon: '📅' },
-  { href: '/owner/menu',       label: 'Menú',           icon: '🌭' },
-  { href: '/owner/promos',     label: 'Promos',         icon: '🎉' },
-  { href: '/owner/clientes',   label: 'Clientes',       icon: '👥' },
-  { href: '/owner/fidelizacion', label: 'Fidelización', icon: '⭐' },
-  { href: '/owner/auditoria',   label: 'Auditoría',    icon: '🔍' },
-  { href: '/owner/configuracion', label: 'Config.',    icon: '⚙️' },
+  { href: '/owner',               label: 'Dashboard',    icon: '📊', exact: true },
+  { href: '/owner/pedidos',       label: 'Pedidos',      icon: '📋' },
+  { href: '/owner/reservas',      label: 'Reservas',     icon: '📅' },
+  { href: '/owner/menu',          label: 'Menú',         icon: '🌭' },
+  { href: '/owner/promos',        label: 'Promos',       icon: '🎉' },
+  { href: '/owner/clientes',      label: 'Clientes',     icon: '👥' },
+  { href: '/owner/fidelizacion',  label: 'Fidelización', icon: '⭐' },
+  { href: '/owner/configuracion', label: 'Config.',      icon: '⚙️' },
 ]
 
 export default function OwnerSidebar() {

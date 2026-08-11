@@ -1,9 +1,14 @@
+export const dynamic = 'force-dynamic'
+
 import { createAdminClient } from '@/lib/supabase/admin'
 import Link from 'next/link'
+import { DELIVERY_LABELS_STAFF } from '@/lib/utils'
 
 export default async function OwnerPage() {
   const admin = createAdminClient()
-  const today = new Date().toISOString().split('T')[0]
+  // Ecuador is UTC-5 — calculate local date correctly
+  const nowEC = new Date(Date.now() - 5 * 60 * 60 * 1000)
+  const today = nowEC.toISOString().split('T')[0]
 
   const [
     { count: pedidosHoy },
@@ -18,7 +23,7 @@ export default async function OwnerPage() {
     admin.from('customers').select('*', { count: 'exact', head: true }),
     admin.from('products').select('*', { count: 'exact', head: true }).eq('available', true),
     admin.from('orders').select('total').gte('created_at', `${today}T00:00:00`).eq('status', 'delivered'),
-    admin.from('orders').select('id, customer_name, total, status, created_at').order('created_at', { ascending: false }).limit(8),
+    admin.from('orders').select('id, customer_name, total, status, delivery_type, created_at').order('created_at', { ascending: false }).limit(8),
   ])
 
   const totalVentas = ventasHoy?.reduce((s, o) => s + Number(o.total), 0) ?? 0
@@ -80,6 +85,7 @@ export default async function OwnerPage() {
               <tr className="border-b border-gray-200">
                 <th className="text-left text-gray-500 text-xs uppercase tracking-wide pl-5 pr-3 py-3">ID</th>
                 <th className="text-left text-gray-500 text-xs uppercase tracking-wide px-3 py-3">Cliente</th>
+                <th className="text-left text-gray-500 text-xs uppercase tracking-wide px-3 py-3">Tipo</th>
                 <th className="text-left text-gray-500 text-xs uppercase tracking-wide px-3 py-3">Hora</th>
                 <th className="text-left text-gray-500 text-xs uppercase tracking-wide px-3 py-3">Estado</th>
                 <th className="text-right text-gray-500 text-xs uppercase tracking-wide px-5 py-3">Total</th>
@@ -90,6 +96,7 @@ export default async function OwnerPage() {
                 <tr key={o.id} className="border-b border-gray-100 hover:bg-gray-100 transition-colors">
                   <td className="pl-5 pr-3 py-3 text-doggo-red font-mono text-xs font-bold">{o.id.slice(0, 8).toUpperCase()}</td>
                   <td className="px-3 py-3 text-gray-900 text-sm">{o.customer_name}</td>
+                  <td className="px-3 py-3 text-gray-500 text-xs">{DELIVERY_LABELS_STAFF[(o as { delivery_type?: string }).delivery_type ?? ''] ?? '—'}</td>
                   <td className="px-3 py-3 text-gray-500 text-xs whitespace-nowrap">
                     {new Date(o.created_at).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })}
                   </td>

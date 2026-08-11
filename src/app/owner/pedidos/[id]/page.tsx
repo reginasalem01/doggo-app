@@ -1,7 +1,9 @@
+export const dynamic = 'force-dynamic'
+
 import { createAdminClient } from '@/lib/supabase/admin'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { DELIVERY_LABELS } from '@/lib/utils'
+import { DELIVERY_LABELS_STAFF } from '@/lib/utils'
 
 const STATUS: Record<string, { label: string; color: string }> = {
   new:       { label: 'Nuevo',      color: 'bg-yellow-100 text-yellow-700 border border-yellow-200' },
@@ -76,13 +78,24 @@ export default async function OwnerPedidoDetailPage({
               )}
               <div className="flex justify-between">
                 <span className="text-gray-500 text-sm">Entrega</span>
-                <span className="text-gray-900 text-sm">{DELIVERY_LABELS[order.delivery_type as string] ?? order.delivery_type}</span>
+                <span className="text-gray-900 text-sm">{DELIVERY_LABELS_STAFF[order.delivery_type as string] ?? order.delivery_type}</span>
               </div>
               {order.address && (
                 <div className="flex justify-between gap-6">
                   <span className="text-gray-500 text-sm shrink-0">Dirección</span>
                   <span className="text-gray-900 text-sm text-right">{order.address}</span>
                 </div>
+              )}
+              {(order as { lat?: number; lng?: number }).lat && (order as { lat?: number; lng?: number }).lng && (
+                <a
+                  href={`https://maps.google.com/?q=${(order as { lat?: number }).lat},${(order as { lng?: number }).lng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-xl px-3 py-2 hover:bg-blue-100 transition-colors mt-1"
+                >
+                  <span className="text-blue-500 text-xs font-semibold">📍 Ver en Maps</span>
+                  <span className="text-blue-400 text-xs">›</span>
+                </a>
               )}
               {order.notes && (
                 <div className="flex justify-between gap-6">

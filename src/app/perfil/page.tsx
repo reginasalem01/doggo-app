@@ -193,7 +193,7 @@ export default async function PerfilPage() {
             <div className="flex items-start gap-3">
               <span className="text-xl shrink-0 mt-0.5">🛒</span>
               <div>
-                <p className="text-gray-900 text-xs font-bold">Pides → ganás hot dogs</p>
+                <p className="text-gray-900 text-xs font-bold">Pides → ganas hot dogs</p>
                 <p className="text-gray-500 text-xs">Cada $5 de tu pedido = 1 🌭. Se acumulan solos, no hay que hacer nada.</p>
               </div>
             </div>
@@ -261,8 +261,8 @@ export default async function PerfilPage() {
         {(!transactions || transactions.length === 0) && (
           <div className="text-center py-10">
             <p className="text-4xl mb-3">🌭</p>
-            <p className="text-gray-900 font-bold">Aún no tenés hot dogs</p>
-            <p className="text-gray-500 text-sm mt-1">¡Hacé tu primer pedido y empezá a acumular!</p>
+            <p className="text-gray-900 font-bold">Aún no tienes hot dogs</p>
+            <p className="text-gray-500 text-sm mt-1">¡Haz tu primer pedido y empieza a acumular!</p>
             <Link href="/menu" className="inline-block mt-4 bg-doggo-yellow text-doggo-dark font-black px-6 py-2.5 rounded-full text-sm">
               Ver menú
             </Link>

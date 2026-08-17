@@ -202,7 +202,7 @@ export default async function PerfilPage() {
               <span className="text-xl shrink-0 mt-0.5">🎯</span>
               <div>
                 <p className="text-gray-900 text-xs font-bold">Junta {milestoneCount} 🌭 → ganas ${milestoneReward.toFixed(2)}</p>
-                <p className="text-gray-500 text-xs">Cuando llegás a {milestoneCount} hot dogs, te caen ${milestoneReward.toFixed(2)} de Doggo Cash automáticamente. El contador vuelve a cero.</p>
+                <p className="text-gray-500 text-xs">Cuando llegás a {milestoneCount} hot dogs, te caen ${milestoneReward.toFixed(2)} de Doggo Cash automáticamente. El ciclo se reinicia, pero tus hot dogs totales siguen acumulando.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">

@@ -10,6 +10,7 @@ type Customer = {
   phone: string | null
   estrellas: number | null
   doggo_cash: number | null
+  spend_accum: number | null
   created_at: string
 }
 
@@ -78,9 +79,11 @@ export default function ClientesTable({
                   const initials      = c.name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
                   const estrellas     = c.estrellas ?? 0
                   const doggoCash     = Number(c.doggo_cash ?? 0)
+                  const spendAccum    = Number(c.spend_accum ?? 0)
                   const cycleProgress = estrellas % milestoneCount
                   const cyclesTotal   = Math.floor(estrellas / milestoneCount)
-                  const totalSpent    = estrellas * spendPerHotDog
+                  // Real total: hot dogs × threshold + unspent carry-over
+                  const totalSpent    = estrellas * spendPerHotDog + spendAccum
 
                   return (
                     <tr key={c.id} className="border-b border-gray-100 hover:bg-gray-100 transition-colors">
@@ -107,16 +110,32 @@ export default function ClientesTable({
                       </td>
 
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-1.5">
-                          <div className="flex gap-0.5">
-                            {Array.from({ length: milestoneCount }).map((_, i) => (
-                              <span key={i} className="text-xs" style={{ opacity: i < cycleProgress ? 1 : 0.2 }}>🌭</span>
-                            ))}
-                          </div>
-                          <span className="text-gray-500 text-xs">{cycleProgress}/{milestoneCount}</span>
+                        <div className="flex items-center gap-0.5 mb-0.5">
+                          {Array.from({ length: milestoneCount }).map((_, i) => {
+                            const isFull  = i < cycleProgress
+                            const isNext  = i === cycleProgress
+                            const partial = isNext ? spendAccum / spendPerHotDog : 0
+                            return (
+                              <div
+                                key={i}
+                                className="relative w-5 h-5 rounded flex items-center justify-center text-xs overflow-hidden"
+                                style={{ background: isFull ? 'rgba(220,38,38,0.12)' : 'rgba(0,0,0,0.04)' }}
+                              >
+                                {isNext && partial > 0 && (
+                                  <div className="absolute left-0 top-0 bottom-0 rounded"
+                                    style={{ width: `${partial * 100}%`, background: 'rgba(220,38,38,0.18)' }} />
+                                )}
+                                <span className="relative" style={{ opacity: isFull ? 1 : isNext && partial > 0 ? 0.55 : 0.18 }}>🌭</span>
+                              </div>
+                            )
+                          })}
+                          <span className="text-gray-500 text-xs ml-1">{cycleProgress}/{milestoneCount}</span>
                         </div>
+                        {spendAccum > 0 && (
+                          <p className="text-amber-600 text-[10px]">Lleva ${spendAccum.toFixed(2)} de ${spendPerHotDog}</p>
+                        )}
                         {cyclesTotal > 0 && (
-                          <p className="text-gray-400 text-[10px] mt-0.5">{cyclesTotal} {cyclesTotal === 1 ? 'ciclo' : 'ciclos'} completados</p>
+                          <p className="text-gray-400 text-[10px]">{cyclesTotal} {cyclesTotal === 1 ? 'ciclo' : 'ciclos'} completados</p>
                         )}
                       </td>
 

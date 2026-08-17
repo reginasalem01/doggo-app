@@ -26,8 +26,9 @@ export default async function OwnerClienteDetailPage({
   ])
 
   const ls = Object.fromEntries((loyaltyRows ?? []).map((r) => [r.key, r.value]))
-  const milestoneCount  = Number(ls['loyalty_milestone_count']  ?? 5)
-  const milestoneReward = Number(ls['loyalty_milestone_reward'] ?? 2.50)
+  const spendPerHotDog  = Number(ls['loyalty_spend_per_hot_dog']  ?? 5)
+  const milestoneCount  = Number(ls['loyalty_milestone_count']    ?? 5)
+  const milestoneReward = Number(ls['loyalty_milestone_reward']   ?? 2.50)
 
   if (!customer) notFound()
 
@@ -56,6 +57,7 @@ export default async function OwnerClienteDetailPage({
 
   const initials      = customer.name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase()
   const estrellas     = customer.estrellas ?? 0
+  const spendAccum    = Number(customer.spend_accum ?? 0)
   const cycleProgress = estrellas % milestoneCount
   const cyclesTotal   = Math.floor(estrellas / milestoneCount)
   const totalSpent    = customerOrders.filter((o) => o.status === 'delivered').reduce((s, o) => s + Number(o.total), 0)
@@ -80,12 +82,30 @@ export default async function OwnerClienteDetailPage({
               </div>
               <div>
                 <p className="text-gray-900 text-lg font-black">{customer.name}</p>
-                <div className="flex items-center gap-1 mt-0.5">
-                  {Array.from({ length: milestoneCount }).map((_, i) => (
-                    <span key={i} className="text-xs" style={{ opacity: i < cycleProgress ? 1 : 0.2 }}>🌭</span>
-                  ))}
+                <div className="flex items-center gap-0.5 mt-0.5">
+                  {Array.from({ length: milestoneCount }).map((_, i) => {
+                    const isFull  = i < cycleProgress
+                    const isNext  = i === cycleProgress
+                    const partial = isNext ? spendAccum / spendPerHotDog : 0
+                    return (
+                      <div
+                        key={i}
+                        className="relative w-5 h-5 rounded flex items-center justify-center text-xs overflow-hidden"
+                        style={{ background: isFull ? 'rgba(220,38,38,0.12)' : 'rgba(0,0,0,0.04)' }}
+                      >
+                        {isNext && partial > 0 && (
+                          <div className="absolute left-0 top-0 bottom-0 rounded"
+                            style={{ width: `${partial * 100}%`, background: 'rgba(220,38,38,0.18)' }} />
+                        )}
+                        <span className="relative" style={{ opacity: isFull ? 1 : isNext && partial > 0 ? 0.55 : 0.18 }}>🌭</span>
+                      </div>
+                    )
+                  })}
                   <span className="text-gray-400 text-xs ml-1">{cycleProgress}/{milestoneCount}</span>
                 </div>
+                {spendAccum > 0 && (
+                  <p className="text-amber-600 text-[10px] mt-0.5">Lleva ${spendAccum.toFixed(2)} de ${spendPerHotDog} para el próximo 🌭</p>
+                )}
               </div>
             </div>
             <div className="space-y-1.5">

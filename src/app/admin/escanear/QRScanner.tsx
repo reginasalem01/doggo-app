@@ -7,32 +7,22 @@ interface Customer {
   name: string
   phone: string | null
   email: string | null
-  points: number
   estrellas: number
   doggo_cash: number
-}
-
-interface Reward {
-  id: string
-  name: string
-  description: string | null
-  points_required: number
-  discount_type: string | null
-  discount_value: number | null
 }
 
 type State =
   | { phase: 'scanning' }
   | { phase: 'loading' }
-  | { phase: 'found'; customer: Customer; rewards: Reward[] }
+  | { phase: 'found'; customer: Customer }
   | { phase: 'error'; message: string }
-  | { phase: 'success'; message: string; newPoints: number }
+  | { phase: 'success'; message: string; estrellasEarned: number; doggoEarned: number }
 
 export default function QRScanner() {
   const scannerRef = useRef<HTMLDivElement>(null)
   const html5QrRef = useRef<unknown>(null)
   const [state, setState] = useState<State>({ phase: 'scanning' })
-  const [pointsInput, setPointsInput] = useState('')
+  const [amountInput, setAmountInput] = useState('')
   const [invoiceRef, setInvoiceRef] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -59,7 +49,7 @@ export default function QRScanner() {
               const res = await fetch(`/api/staff/customer/${decodedText}`)
               if (!res.ok) throw new Error('Cliente no encontrado')
               const data = await res.json()
-              setState({ phase: 'found', customer: data.customer, rewards: data.rewards })
+              setState({ phase: 'found', customer: data.customer })
             } catch {
               setState({ phase: 'error', message: 'QR no válido o cliente no encontrado' })
             }
@@ -67,7 +57,6 @@ export default function QRScanner() {
           () => { /* ignore scan errors */ }
         )
       } catch {
-        // camera permission denied or not available
         setState({ phase: 'error', message: 'No se pudo acceder a la cámara. Verifica los permisos.' })
       }
     }
@@ -85,8 +74,8 @@ export default function QRScanner() {
 
   async function addPoints() {
     if (state.phase !== 'found') return
-    const pts = parseInt(pointsInput)
-    if (!pts || pts <= 0) return
+    const amount = parseFloat(amountInput)
+    if (!amount || amount <= 0) return
     if (!invoiceRef.trim()) return
     setLoading(true)
     try {
@@ -95,33 +84,19 @@ export default function QRScanner() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           customerId: state.customer.id,
-          points: pts,
+          amount,
           invoiceRef: invoiceRef.trim(),
           description: `Compra en local · Ref: ${invoiceRef.trim()}`,
         }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
-      setState({ phase: 'success', message: `+${pts} puntos agregados a ${state.customer.name.split(' ')[0]}`, newPoints: data.newPoints })
-    } catch (e: unknown) {
-      setState({ phase: 'error', message: e instanceof Error ? e.message : 'Error' })
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function redeemReward(reward: Reward) {
-    if (state.phase !== 'found') return
-    setLoading(true)
-    try {
-      const res = await fetch('/api/staff/redeem', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customerId: state.customer.id, rewardId: reward.id }),
+      setState({
+        phase: 'success',
+        message: `¡Listo! ${state.customer.name.split(' ')[0]} acumuló hot dogs`,
+        estrellasEarned: data.estrellasEarned,
+        doggoEarned: data.doggoEarned,
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error)
-      setState({ phase: 'success', message: `Premio "${reward.name}" canjeado para ${state.customer.name.split(' ')[0]}`, newPoints: data.newPoints })
     } catch (e: unknown) {
       setState({ phase: 'error', message: e instanceof Error ? e.message : 'Error' })
     } finally {
@@ -130,7 +105,7 @@ export default function QRScanner() {
   }
 
   function reset() {
-    setPointsInput('')
+    setAmountInput('')
     setInvoiceRef('')
     setState({ phase: 'scanning' })
   }
@@ -164,8 +139,13 @@ export default function QRScanner() {
         <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
           <span className="text-3xl">✅</span>
         </div>
-        <p className="text-gray-900 font-black text-lg mb-1">{state.message}</p>
-        <p className="text-gray-500 text-sm">Total acumulado: <span className="font-black text-doggo-red">{state.newPoints} pts</span></p>
+        <p className="text-gray-900 font-black text-lg mb-2">{state.message}</p>
+        <p className="text-doggo-red font-black text-2xl">+{state.estrellasEarned} 🌭</p>
+        {state.doggoEarned > 0 && (
+          <p className="text-green-600 font-black text-base mt-1">
+            🎯 ¡Ciclo completo! +${state.doggoEarned.toFixed(2)} Doggo Cash
+          </p>
+        )}
         <button onClick={reset} className="mt-6 bg-doggo-yellow text-doggo-dark font-black px-6 py-3 rounded-full text-sm">
           Escanear otro
         </button>
@@ -190,7 +170,7 @@ export default function QRScanner() {
   }
 
   // ── FOUND ─────────────────────────────────────────────────
-  const { customer, rewards } = state
+  const { customer } = state
 
   return (
     <div className="space-y-4 max-w-sm mx-auto">
@@ -209,7 +189,7 @@ export default function QRScanner() {
           <div className="text-right shrink-0 space-y-1">
             <div>
               <p className="text-doggo-red font-black text-xl leading-none">{customer.estrellas ?? 0} 🌭</p>
-              <p className="text-gray-400 text-[10px]">estrellas</p>
+              <p className="text-gray-400 text-[10px]">hot dogs</p>
             </div>
             {Number(customer.doggo_cash ?? 0) > 0 && (
               <div>
@@ -221,9 +201,9 @@ export default function QRScanner() {
         </div>
       </div>
 
-      {/* Add points */}
+      {/* Add hot dogs */}
       <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200 space-y-3">
-        <p className="text-gray-900 font-black text-sm">Sumar puntos por compra</p>
+        <p className="text-gray-900 font-black text-sm">Sumar 🌭 por compra</p>
 
         {/* Invoice ref — required */}
         <input
@@ -240,19 +220,20 @@ export default function QRScanner() {
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
             <input
               type="number"
-              min="1"
+              min="0.01"
+              step="0.01"
               placeholder="Monto cobrado"
-              value={pointsInput}
-              onChange={(e) => setPointsInput(e.target.value)}
+              value={amountInput}
+              onChange={(e) => setAmountInput(e.target.value)}
               className="w-full pl-7 pr-3 py-2.5 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:border-doggo-yellow bg-white"
             />
           </div>
           <button
             onClick={addPoints}
-            disabled={loading || !pointsInput || !invoiceRef.trim()}
+            disabled={loading || !amountInput || !invoiceRef.trim()}
             className="bg-doggo-yellow text-doggo-dark font-black px-4 py-2.5 rounded-xl text-sm disabled:opacity-50"
           >
-            {loading ? '…' : '+Pts'}
+            {loading ? '…' : '+🌭'}
           </button>
         </div>
 
@@ -261,36 +242,8 @@ export default function QRScanner() {
             🔒 Esta transacción queda registrada con tu usuario y la referencia de pago para auditoría del dueño.
           </p>
         </div>
-        <p className="text-gray-400 text-xs">1 punto por cada $1 gastado · Requiere referencia de pago</p>
+        <p className="text-gray-400 text-xs">Cada $5 = 1 🌭 · Requiere referencia de pago</p>
       </div>
-
-      {/* Rewards to redeem */}
-      {rewards.length > 0 && (
-        <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
-          <p className="text-gray-900 font-black text-sm mb-3">Premios disponibles para canjear</p>
-          <div className="space-y-2">
-            {rewards.map((r) => (
-              <div key={r.id} className="flex items-center justify-between bg-white rounded-xl px-3 py-2.5 border border-doggo-yellow/30">
-                <div>
-                  <p className="text-gray-900 font-semibold text-sm">{r.name}</p>
-                  <p className="text-doggo-red font-bold text-xs">{r.points_required} pts</p>
-                </div>
-                <button
-                  onClick={() => redeemReward(r)}
-                  disabled={loading}
-                  className="bg-doggo-red text-white font-black text-xs px-3 py-1.5 rounded-lg disabled:opacity-50"
-                >
-                  Canjear
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {rewards.length === 0 && (
-        <p className="text-gray-400 text-xs text-center">El cliente no tiene premios disponibles aún</p>
-      )}
 
       <button onClick={reset} className="w-full text-gray-400 text-sm font-semibold py-2">
         ← Escanear otro cliente

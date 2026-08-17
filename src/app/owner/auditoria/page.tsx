@@ -39,9 +39,9 @@ export default async function AuditoriaPage() {
   return (
     <div className="p-6 max-w-4xl space-y-6">
       <div>
-        <h1 className="text-gray-900 text-2xl font-black">Auditoría de puntos</h1>
+        <h1 className="text-gray-900 text-2xl font-black">Auditoría de 🌭 hot dogs</h1>
         <p className="text-gray-400 text-sm mt-1">
-          Registro de puntos otorgados en local por cada empleado. Solo aparecen transacciones presenciales.
+          Registro de hot dogs otorgados en local por cada empleado. Solo aparecen transacciones presenciales.
         </p>
       </div>
 
@@ -59,7 +59,7 @@ export default async function AuditoriaPage() {
                 <tr className="bg-gray-50 border-b border-gray-200">
                   <th className="text-left text-gray-500 text-xs font-semibold uppercase tracking-wide px-4 py-3">Fecha</th>
                   <th className="text-left text-gray-500 text-xs font-semibold uppercase tracking-wide px-4 py-3">Cliente</th>
-                  <th className="text-left text-gray-500 text-xs font-semibold uppercase tracking-wide px-4 py-3">Puntos</th>
+                  <th className="text-left text-gray-500 text-xs font-semibold uppercase tracking-wide px-4 py-3">🌭 Hot dogs</th>
                   <th className="text-left text-gray-500 text-xs font-semibold uppercase tracking-wide px-4 py-3">Ref. pago</th>
                   <th className="text-left text-gray-500 text-xs font-semibold uppercase tracking-wide px-4 py-3">Empleado</th>
                 </tr>
@@ -87,7 +87,7 @@ export default async function AuditoriaPage() {
                           tx.points > 0 ? 'text-green-600' : 'text-doggo-red'
                         }`}>
                           {tx.points > 0 ? '+' : ''}{tx.points}
-                          <span className="text-xs font-normal text-gray-400">pts</span>
+                          <span className="text-xs font-normal text-gray-400">🌭</span>
                         </span>
                       </td>
                       <td className="px-4 py-3">
@@ -117,7 +117,7 @@ export default async function AuditoriaPage() {
         <p className="text-amber-800 font-black text-sm mb-1">¿Cómo revisar por empleado?</p>
         <p className="text-amber-700 text-xs leading-relaxed">
           Busca el nombre del empleado en la columna Empleado. Si ves muchas transacciones sin referencia de pago clara,
-          o montos inusuales, investiga con ese staff. Cada transacción presencial requiere número de factura o referencia.
+          o montos inusuales, investiga con ese staff. Cada transacción presencial requiere número de factura o referencia de pago.
         </p>
       </div>
     </div>

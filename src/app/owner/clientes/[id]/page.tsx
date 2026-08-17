@@ -4,11 +4,6 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
-const LEVEL = (estrellas: number) =>
-  estrellas >= 26 ? { label: 'Oro 🥇', color: 'text-yellow-600' }
-  : estrellas >= 11 ? { label: 'Plata 🥈', color: 'text-gray-500' }
-  : { label: 'Bronce 🥉', color: 'text-orange-700' }
-
 const STATUS_LABEL: Record<string, string> = {
   new: 'Nuevo', accepted: 'Aceptado', preparing: 'Preparando',
   ready: 'Listo', delivered: 'Entregado', cancelled: 'Cancelado',
@@ -22,11 +17,17 @@ export default async function OwnerClienteDetailPage({
   const { id } = await params
   const admin = createAdminClient()
 
-  const [{ data: customer }, { data: transactions }] = await Promise.all([
+  const [{ data: customer }, { data: transactions }, { data: loyaltyRows }] = await Promise.all([
     admin.from('customers').select('*').eq('id', id).single(),
     admin.from('loyalty_transactions').select('*').eq('customer_id', id)
       .order('created_at', { ascending: false }).limit(50),
+    admin.from('business_settings').select('key, value')
+      .in('key', ['loyalty_spend_per_hot_dog', 'loyalty_milestone_count', 'loyalty_milestone_reward']),
   ])
+
+  const ls = Object.fromEntries((loyaltyRows ?? []).map((r) => [r.key, r.value]))
+  const milestoneCount  = Number(ls['loyalty_milestone_count']  ?? 5)
+  const milestoneReward = Number(ls['loyalty_milestone_reward'] ?? 2.50)
 
   if (!customer) notFound()
 
@@ -53,9 +54,11 @@ export default async function OwnerClienteDetailPage({
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 50)
 
-  const initials = customer.name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase()
-  const lvl = LEVEL(customer.estrellas ?? 0)
-  const totalSpent = customerOrders.filter((o) => o.status === 'delivered').reduce((s, o) => s + Number(o.total), 0)
+  const initials      = customer.name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase()
+  const estrellas     = customer.estrellas ?? 0
+  const cycleProgress = estrellas % milestoneCount
+  const cyclesTotal   = Math.floor(estrellas / milestoneCount)
+  const totalSpent    = customerOrders.filter((o) => o.status === 'delivered').reduce((s, o) => s + Number(o.total), 0)
 
   return (
     <div className="p-6">
@@ -77,7 +80,12 @@ export default async function OwnerClienteDetailPage({
               </div>
               <div>
                 <p className="text-gray-900 text-lg font-black">{customer.name}</p>
-                <p className={`text-sm font-bold ${lvl.color}`}>{lvl.label}</p>
+                <div className="flex items-center gap-1 mt-0.5">
+                  {Array.from({ length: milestoneCount }).map((_, i) => (
+                    <span key={i} className="text-xs" style={{ opacity: i < cycleProgress ? 1 : 0.2 }}>🌭</span>
+                  ))}
+                  <span className="text-gray-400 text-xs ml-1">{cycleProgress}/{milestoneCount}</span>
+                </div>
               </div>
             </div>
             <div className="space-y-1.5">
@@ -105,20 +113,20 @@ export default async function OwnerClienteDetailPage({
           {/* Stats */}
           <div className="grid grid-cols-4 gap-3">
             <div className="bg-gray-50 rounded-2xl p-4 text-center">
-              <p className="text-doggo-red text-2xl font-black">{customer.estrellas ?? 0}</p>
-              <p className="text-gray-500 text-xs mt-0.5">🌭 hot dogs</p>
+              <p className="text-doggo-red text-2xl font-black">{estrellas}</p>
+              <p className="text-gray-500 text-xs mt-0.5">🌭 total</p>
             </div>
             <div className="bg-gray-50 rounded-2xl p-4 text-center">
-              <p className="text-green-600 text-2xl font-black">${Number(customer.doggo_cash ?? 0).toFixed(0)}</p>
+              <p className="text-doggo-yellow text-2xl font-black">{cyclesTotal}</p>
+              <p className="text-gray-500 text-xs mt-0.5">ciclos (+${(cyclesTotal * milestoneReward).toFixed(2)})</p>
+            </div>
+            <div className="bg-gray-50 rounded-2xl p-4 text-center">
+              <p className="text-green-600 text-2xl font-black">${Number(customer.doggo_cash ?? 0).toFixed(2)}</p>
               <p className="text-gray-500 text-xs mt-0.5">Doggo Cash</p>
             </div>
             <div className="bg-gray-50 rounded-2xl p-4 text-center">
-              <p className="text-gray-900 text-2xl font-black">{customerOrders.length}</p>
-              <p className="text-gray-500 text-xs mt-0.5">pedidos</p>
-            </div>
-            <div className="bg-gray-50 rounded-2xl p-4 text-center">
               <p className="text-gray-900 text-2xl font-black">${totalSpent.toFixed(0)}</p>
-              <p className="text-gray-500 text-xs mt-0.5">gastado</p>
+              <p className="text-gray-500 text-xs mt-0.5">{customerOrders.length} pedidos</p>
             </div>
           </div>
 

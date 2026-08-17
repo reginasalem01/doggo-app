@@ -131,7 +131,7 @@ export default function ConfiguracionPage() {
   const isOpen = settings.orders_enabled === 'true'
 
   return (
-    <div className="p-6 max-w-2xl space-y-6">
+    <div className="p-6 space-y-6 max-w-3xl">
       <h1 className="text-gray-900 text-2xl font-black">Configuración</h1>
 
       {/* ── Pedidos en línea ─────────────────────────────── */}

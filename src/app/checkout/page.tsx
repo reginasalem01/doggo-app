@@ -444,7 +444,7 @@ export default function CheckoutPage() {
           {paymentMethod === 'card' && (
             <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
               <p className="text-blue-700 text-sm font-semibold">💳 Pago con tarjeta</p>
-              <p className="text-blue-500 text-xs mt-0.5">El pago se procesará al confirmar tu pedido.</p>
+              <p className="text-blue-500 text-xs mt-0.5">Pagas con tarjeta en el local al recibir tu pedido.</p>
             </div>
           )}
         </div>

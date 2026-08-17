@@ -11,7 +11,7 @@ const tabs = [
   { href: '/',         emoji: '🏠', label: 'Inicio'   },
   { href: '/menu',     emoji: '🌭', label: 'Ordenar'  },
   { href: '/reservas', emoji: '📅', label: 'Reservar' },
-  { href: '/perfil',   emoji: '🌭', label: 'Hot Dogs'   },
+  { href: '/perfil',   emoji: '👤', label: 'Perfil'    },
 ]
 
 // Rutas del carrito → activan el tab "Ordenar"

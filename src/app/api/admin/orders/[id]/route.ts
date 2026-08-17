@@ -133,19 +133,19 @@ export async function PATCH(
 
     if (!claimError && claimed) {
       // Lookup customer — linked_customer_id (walk-in QR) takes priority
-      let customer: { id: string; estrellas: number; doggo_cash: number } | null = null
+      let customer: { id: string; estrellas: number; doggo_cash: number; spend_accum: number } | null = null
 
       if (order?.linked_customer_id) {
         const { data: c } = await admin
           .from('customers')
-          .select('id, estrellas, doggo_cash')
+          .select('id, estrellas, doggo_cash, spend_accum')
           .eq('id', order.linked_customer_id)
           .single()
         customer = c
       } else if (order?.customer_email) {
         const { data: c } = await admin
           .from('customers')
-          .select('id, estrellas, doggo_cash')
+          .select('id, estrellas, doggo_cash, spend_accum')
           .eq('email', order.customer_email)
           .single()
         if (!c) {
@@ -157,36 +157,44 @@ export async function PATCH(
       if (customer) {
         // Read loyalty rules from DB (owner-configurable)
         const loyalty = await fetchLoyaltySettings(admin)
-        const estrellasEarned = Math.floor(Number(order.total) / loyalty.spendPerHotDog)
+
+        // Accumulator logic: carry over unspent dollars between orders
+        const prevAccum       = Number(customer.spend_accum ?? 0)
+        const totalAccum      = prevAccum + Number(order.total)
+        const estrellasEarned = Math.floor(totalAccum / loyalty.spendPerHotDog)
+        const newAccum        = parseFloat((totalAccum - estrellasEarned * loyalty.spendPerHotDog).toFixed(2))
+
+        const prevEstrellas   = customer.estrellas ?? 0
+        const newEstrellas    = prevEstrellas + estrellasEarned
+
+        // Milestone / cycle logic
+        const prevCycles      = Math.floor(prevEstrellas / loyalty.milestoneCount)
+        const newCycles       = Math.floor(newEstrellas  / loyalty.milestoneCount)
+        const cyclesCompleted = newCycles - prevCycles
+        const doggoEarned     = cyclesCompleted > 0
+          ? parseFloat((cyclesCompleted * loyalty.milestoneReward).toFixed(2))
+          : 0
+
+        // Always persist the updated accumulator; only update estrellas/cash if earned
+        const customerUpdate: Record<string, number> = { spend_accum: newAccum }
+        if (estrellasEarned > 0) {
+          customerUpdate.estrellas  = newEstrellas
+          customerUpdate.doggo_cash = parseFloat(((customer.doggo_cash ?? 0) + doggoEarned).toFixed(2))
+        }
+
+        await admin.from('customers').update(customerUpdate).eq('id', customer.id)
 
         if (estrellasEarned > 0) {
-          const prevTotal = customer.estrellas ?? 0
-          const newTotal  = prevTotal + estrellasEarned
-
-          // Count how many milestones are crossed with this purchase
-          const prevCycles = Math.floor(prevTotal / loyalty.milestoneCount)
-          const newCycles  = Math.floor(newTotal  / loyalty.milestoneCount)
-          const cyclesCompleted = newCycles - prevCycles
-          const doggoEarned = cyclesCompleted > 0
-            ? parseFloat((cyclesCompleted * loyalty.milestoneReward).toFixed(2))
-            : 0
-
-          await Promise.all([
-            admin.from('customers').update({
-              estrellas: newTotal,
-              doggo_cash: parseFloat(((customer.doggo_cash ?? 0) + doggoEarned).toFixed(2)),
-            }).eq('id', customer.id),
-            admin.from('loyalty_transactions').insert({
-              customer_id: customer.id,
-              order_id: id,
-              points: estrellasEarned,
-              doggo_cash_amount: doggoEarned,
-              type: 'earned',
-              description: cyclesCompleted > 0
-                ? `+${estrellasEarned} 🌭 → completaste ${cyclesCompleted === 1 ? 'un ciclo' : `${cyclesCompleted} ciclos`} → +$${doggoEarned.toFixed(2)} Doggo Cash`
-                : `+${estrellasEarned} 🌭 acumulados`,
-            }),
-          ])
+          await admin.from('loyalty_transactions').insert({
+            customer_id:       customer.id,
+            order_id:          id,
+            points:            estrellasEarned,
+            doggo_cash_amount: doggoEarned,
+            type:              'earned',
+            description:       cyclesCompleted > 0
+              ? `+${estrellasEarned} 🌭 → completaste ${cyclesCompleted === 1 ? 'un ciclo' : `${cyclesCompleted} ciclos`} → +$${doggoEarned.toFixed(2)} Doggo Cash`
+              : `+${estrellasEarned} 🌭 acumulados`,
+          })
         }
       }
     }

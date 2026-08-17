@@ -27,7 +27,7 @@ export default async function Home() {
     admin.from('products').select('*').eq('available', true).order('sort_order').limit(6),
     admin.from('promotions').select('*').eq('active', true).or(`ends_at.is.null,ends_at.gte.${today}`).order('created_at', { ascending: false }).limit(3),
     user
-      ? admin.from('customers').select('id, name, estrellas, doggo_cash').eq('auth_user_id', user.id).single()
+      ? admin.from('customers').select('id, name, estrellas, doggo_cash, spend_accum').eq('auth_user_id', user.id).single()
       : Promise.resolve({ data: null }),
     admin.from('business_settings').select('key, value').in('key', ['whatsapp_number', 'loyalty_spend_per_hot_dog', 'loyalty_milestone_count', 'loyalty_milestone_reward']),
   ])
@@ -63,6 +63,7 @@ export default async function Home() {
       {customer && (() => {
         const estrellas    = customer.estrellas ?? 0
         const doggoCash    = Number(customer.doggo_cash ?? 0)
+        const spendAccum   = Number((customer as typeof customer & { spend_accum?: number }).spend_accum ?? 0)
         const cycleProgress = estrellas % milestoneCount
         return (
           <div className="px-4 mb-6">
@@ -104,16 +105,30 @@ export default async function Home() {
                 {/* Row 3: Hot dog jar */}
                 <div className="mb-4">
                   <div className="flex gap-1.5 mb-1.5">
-                    {Array.from({ length: milestoneCount }).map((_, i) => (
-                      <div
-                        key={i}
-                        className="flex-1 h-6 rounded-md flex items-center justify-center text-sm"
-                        style={{ background: i < cycleProgress ? 'rgba(253,196,35,0.25)' : 'rgba(255,255,255,0.07)' }}
-                      >
-                        <span style={{ opacity: i < cycleProgress ? 1 : 0.2 }}>🌭</span>
-                      </div>
-                    ))}
+                    {Array.from({ length: milestoneCount }).map((_, i) => {
+                      const isFull  = i < cycleProgress
+                      const isNext  = i === cycleProgress
+                      const partial = isNext ? spendAccum / spendPerHotDog : 0
+                      return (
+                        <div
+                          key={i}
+                          className="flex-1 h-6 rounded-md flex items-center justify-center text-sm relative overflow-hidden"
+                          style={{ background: isFull ? 'rgba(253,196,35,0.25)' : 'rgba(255,255,255,0.07)' }}
+                        >
+                          {isNext && partial > 0 && (
+                            <div className="absolute left-0 top-0 bottom-0 rounded-md"
+                              style={{ width: `${partial * 100}%`, background: 'rgba(253,196,35,0.18)' }} />
+                          )}
+                          <span className="relative" style={{ opacity: isFull ? 1 : isNext && partial > 0 ? 0.5 : 0.2 }}>🌭</span>
+                        </div>
+                      )
+                    })}
                   </div>
+                  {spendAccum > 0 && (
+                    <p className="text-doggo-yellow/60 text-[9px] mb-0.5">
+                      Llevas ${spendAccum.toFixed(2)} de ${spendPerHotDog} para el próximo 🌭
+                    </p>
+                  )}
                   <p className="text-white/30 text-[9px]">
                     {cycleProgress === 0
                       ? `Cada $${spendPerHotDog} = 1 🌭 · Junta ${milestoneCount} → +$${milestoneReward.toFixed(2)}`

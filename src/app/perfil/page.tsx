@@ -48,8 +48,9 @@ export default async function PerfilPage() {
 
   const c = customer as Customer
 
-  const estrellas  = c.estrellas ?? 0
-  const doggo_cash = Number(c.doggo_cash ?? 0)
+  const estrellas   = c.estrellas ?? 0
+  const doggo_cash  = Number(c.doggo_cash ?? 0)
+  const spend_accum = Number((c as typeof c & { spend_accum?: number }).spend_accum ?? 0)
 
   // Loyalty settings from DB
   const { data: loyaltyRows } = await admin
@@ -135,22 +136,35 @@ export default async function PerfilPage() {
                 <p className="text-white/40 text-[9px] font-bold tracking-widest uppercase">Próximo premio</p>
                 <p className="text-white/40 text-[9px]">{cycleProgress} de {milestoneCount} 🌭</p>
               </div>
-              {/* Visual jar */}
+              {/* Visual jar — next slot shows partial spend progress */}
               <div className="flex gap-1.5 mb-2">
-                {Array.from({ length: milestoneCount }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="flex-1 h-7 rounded-lg flex items-center justify-center text-base transition-all"
-                    style={{
-                      background: i < cycleProgress
-                        ? 'rgba(253,196,35,0.25)'
-                        : 'rgba(255,255,255,0.07)',
-                    }}
-                  >
-                    <span style={{ opacity: i < cycleProgress ? 1 : 0.2 }}>🌭</span>
-                  </div>
-                ))}
+                {Array.from({ length: milestoneCount }).map((_, i) => {
+                  const isFull    = i < cycleProgress
+                  const isNext    = i === cycleProgress
+                  const partial   = isNext ? spend_accum / spendPerHotDog : 0
+                  return (
+                    <div
+                      key={i}
+                      className="flex-1 h-7 rounded-lg flex items-center justify-center text-base relative overflow-hidden"
+                      style={{ background: isFull ? 'rgba(253,196,35,0.25)' : 'rgba(255,255,255,0.07)' }}
+                    >
+                      {isNext && partial > 0 && (
+                        <div
+                          className="absolute left-0 top-0 bottom-0 rounded-lg"
+                          style={{ width: `${partial * 100}%`, background: 'rgba(253,196,35,0.18)' }}
+                        />
+                      )}
+                      <span className="relative" style={{ opacity: isFull ? 1 : isNext && partial > 0 ? 0.5 : 0.2 }}>🌭</span>
+                    </div>
+                  )
+                })}
               </div>
+              {/* Spend progress toward next hot dog */}
+              {spend_accum > 0 && (
+                <p className="text-doggo-yellow/60 text-[10px] mb-1">
+                  Llevas ${spend_accum.toFixed(2)} de ${spendPerHotDog} para el próximo 🌭
+                </p>
+              )}
               <p className="text-white/30 text-[10px]">
                 {cycleProgress === 0 && cyclesTotal === 0
                   ? `Cada $${spendPerHotDog} ganás 1 🌭 · Junta ${milestoneCount} → +$${milestoneReward.toFixed(2)}`

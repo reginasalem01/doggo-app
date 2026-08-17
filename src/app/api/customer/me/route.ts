@@ -12,14 +12,14 @@ export async function GET() {
   // Get or link customer
   let { data: customer } = await admin
     .from('customers')
-    .select('id, name, points, estrellas, doggo_cash')
+    .select('id, name, points, estrellas, doggo_cash, spend_accum')
     .eq('auth_user_id', user.id)
     .single()
 
   if (!customer && user.email) {
     const { data: byEmail } = await admin
       .from('customers')
-      .select('id, name, points, estrellas, doggo_cash')
+      .select('id, name, points, estrellas, doggo_cash, spend_accum')
       .eq('email', user.email)
       .single()
     if (byEmail) {

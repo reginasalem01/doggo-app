@@ -6,21 +6,18 @@ import { requireRole } from '@/lib/supabase/auth-guard'
 const VALID_STATUSES = ['new', 'accepted', 'preparing', 'ready', 'delivered', 'cancelled']
 
 // ── Doggo loyalty helpers ───────────────────────────────────────────────────
-// Rates are configurable from the owner panel (business_settings table).
-// Defaults: $5 = 1 🌭 · Bronce $0.50/🌭 · Plata $0.75/🌭 · Oro $1.00/🌭
+// Sistema de ciclos: cada $5 gastados = 1 🌭 · cada 5 🌭 = $2.50 Doggo Cash
+// Valores configurables desde el panel owner (business_settings).
 async function fetchLoyaltySettings(admin: ReturnType<typeof import('@/lib/supabase/admin').createAdminClient>) {
   const { data } = await admin
     .from('business_settings')
     .select('key, value')
-    .in('key', ['loyalty_spend_per_hot_dog', 'loyalty_rate_bronce', 'loyalty_rate_plata', 'loyalty_rate_oro', 'loyalty_threshold_plata', 'loyalty_threshold_oro'])
+    .in('key', ['loyalty_spend_per_hot_dog', 'loyalty_milestone_count', 'loyalty_milestone_reward'])
   const s = Object.fromEntries((data ?? []).map((r) => [r.key, r.value]))
   return {
     spendPerHotDog:   Number(s['loyalty_spend_per_hot_dog']  ?? 5),
-    rateBronce:       Number(s['loyalty_rate_bronce']        ?? 0.50),
-    ratePlata:        Number(s['loyalty_rate_plata']         ?? 0.75),
-    rateOro:          Number(s['loyalty_rate_oro']           ?? 1.00),
-    thresholdPlata:   Number(s['loyalty_threshold_plata']    ?? 11),
-    thresholdOro:     Number(s['loyalty_threshold_oro']      ?? 26),
+    milestoneCount:   Number(s['loyalty_milestone_count']    ?? 5),
+    milestoneReward:  Number(s['loyalty_milestone_reward']   ?? 2.50),
   }
 }
 
@@ -161,19 +158,22 @@ export async function PATCH(
         // Read loyalty rules from DB (owner-configurable)
         const loyalty = await fetchLoyaltySettings(admin)
         const estrellasEarned = Math.floor(Number(order.total) / loyalty.spendPerHotDog)
+
         if (estrellasEarned > 0) {
-          const currentEstrellas = customer.estrellas ?? 0
-          const rate = currentEstrellas >= loyalty.thresholdOro
-            ? loyalty.rateOro
-            : currentEstrellas >= loyalty.thresholdPlata
-              ? loyalty.ratePlata
-              : loyalty.rateBronce
-          const doggoEarned = parseFloat((estrellasEarned * rate).toFixed(2))
-          const levelLabel = currentEstrellas >= loyalty.thresholdOro ? 'Oro' : currentEstrellas >= loyalty.thresholdPlata ? 'Plata' : 'Bronce'
+          const prevTotal = customer.estrellas ?? 0
+          const newTotal  = prevTotal + estrellasEarned
+
+          // Count how many milestones are crossed with this purchase
+          const prevCycles = Math.floor(prevTotal / loyalty.milestoneCount)
+          const newCycles  = Math.floor(newTotal  / loyalty.milestoneCount)
+          const cyclesCompleted = newCycles - prevCycles
+          const doggoEarned = cyclesCompleted > 0
+            ? parseFloat((cyclesCompleted * loyalty.milestoneReward).toFixed(2))
+            : 0
 
           await Promise.all([
             admin.from('customers').update({
-              estrellas: currentEstrellas + estrellasEarned,
+              estrellas: newTotal,
               doggo_cash: parseFloat(((customer.doggo_cash ?? 0) + doggoEarned).toFixed(2)),
             }).eq('id', customer.id),
             admin.from('loyalty_transactions').insert({
@@ -182,7 +182,9 @@ export async function PATCH(
               points: estrellasEarned,
               doggo_cash_amount: doggoEarned,
               type: 'earned',
-              description: `+${estrellasEarned} 🌭 (${levelLabel}) → +$${doggoEarned.toFixed(2)} Doggo Cash`,
+              description: cyclesCompleted > 0
+                ? `+${estrellasEarned} 🌭 → completaste ${cyclesCompleted === 1 ? 'un ciclo' : `${cyclesCompleted} ciclos`} → +$${doggoEarned.toFixed(2)} Doggo Cash`
+                : `+${estrellasEarned} 🌭 acumulados`,
             }),
           ])
         }

@@ -29,19 +29,14 @@ export default async function Home() {
     user
       ? admin.from('customers').select('id, name, estrellas, doggo_cash').eq('auth_user_id', user.id).single()
       : Promise.resolve({ data: null }),
-    admin.from('business_settings').select('key, value').eq('key', 'whatsapp_number'),
+    admin.from('business_settings').select('key, value').in('key', ['whatsapp_number', 'loyalty_spend_per_hot_dog', 'loyalty_milestone_count', 'loyalty_milestone_reward']),
   ])
 
-  const whatsappNumber = (settingsRows as { key: string; value: string }[] | null)?.find((r) => r.key === 'whatsapp_number')?.value ?? ''
-
-  // Bronce 0-10 · Plata 11-25 · Oro 26+ (canonical, matches perfil + admin)
-  function getLevel(stars: number) {
-    if (stars >= 26) return { label: 'Oro',   emoji: '🥇', next: null,    nextAt: 26, prevAt: 26 }
-    if (stars >= 11) return { label: 'Plata', emoji: '🥈', next: 'Oro',   nextAt: 26, prevAt: 11 }
-    return                  { label: 'Bronce',emoji: '🥉', next: 'Plata', nextAt: 11, prevAt: 0  }
-  }
-
-  const level = customer ? getLevel(customer.estrellas ?? 0) : null
+  const rows = (settingsRows as { key: string; value: string }[] | null) ?? []
+  const whatsappNumber   = rows.find((r) => r.key === 'whatsapp_number')?.value ?? ''
+  const spendPerHotDog   = Number(rows.find((r) => r.key === 'loyalty_spend_per_hot_dog')?.value  ?? 5)
+  const milestoneCount   = Number(rows.find((r) => r.key === 'loyalty_milestone_count')?.value    ?? 5)
+  const milestoneReward  = Number(rows.find((r) => r.key === 'loyalty_milestone_reward')?.value   ?? 2.50)
 
   return (
     <div className="min-h-screen bg-white pb-24">
@@ -65,23 +60,17 @@ export default async function Home() {
       <ActiveOrderBanner />
 
       {/* ── LOYALTY CARD (if logged in) ───────────────────── */}
-      {customer && level && (() => {
-        const estrellas = customer.estrellas ?? 0
-        const doggoCash = Number(customer.doggo_cash ?? 0)
-        const progress = level.next
-          ? Math.min(((estrellas - level.prevAt) / (level.nextAt - level.prevAt)) * 100, 100)
-          : 100
-        const LEVEL_COLOR: Record<string, string> = { Bronce: '#CD7F32', Plata: '#A8A9AD', Oro: '#F5C400' }
-        const barColor = LEVEL_COLOR[level.label] ?? '#FDC423'
+      {customer && (() => {
+        const estrellas    = customer.estrellas ?? 0
+        const doggoCash    = Number(customer.doggo_cash ?? 0)
+        const cycleProgress = estrellas % milestoneCount
         return (
           <div className="px-4 mb-6">
             <Link href="/perfil" className="block relative rounded-3xl overflow-hidden select-none"
               style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #2d1800 55%, #0f0800 100%)' }}>
 
-              {/* Shine */}
               <div className="absolute inset-0 pointer-events-none"
                 style={{ background: 'linear-gradient(115deg, transparent 0%, rgba(253,196,35,0.07) 45%, transparent 80%)' }} />
-              {/* Glow */}
               <div className="absolute -top-12 -right-12 w-44 h-44 rounded-full opacity-20"
                 style={{ background: 'radial-gradient(circle, #FDC423 0%, transparent 70%)' }} />
 
@@ -104,42 +93,39 @@ export default async function Home() {
                   <span className="text-white font-black text-xs tracking-widest opacity-80">🌭 DOGGO</span>
                 </div>
 
-                {/* Row 2: Balance + hot dogs */}
-                <div className="flex items-end justify-between mb-4">
-                  <div>
-                    <p className="text-white/40 text-[9px] font-bold tracking-widest uppercase mb-0.5">Doggo Cash</p>
-                    <p className="text-doggo-yellow font-black leading-none" style={{ fontSize: '2.6rem', letterSpacing: '-1px' }}>
-                      ${doggoCash.toFixed(2)}
-                    </p>
-                  </div>
-                  <div className="text-right mb-1">
-                    <p className="text-white font-black text-2xl leading-none">{estrellas} 🌭</p>
-                    <p className="text-white/40 text-[10px] mt-0.5">hot dogs</p>
-                  </div>
-                </div>
-
-                {/* Row 3: Progress */}
-                {level.next && (
-                  <div className="mb-4">
-                    <div className="h-1 bg-white/10 rounded-full overflow-hidden mb-1">
-                      <div className="h-full rounded-full transition-all duration-700"
-                        style={{ width: `${progress}%`, backgroundColor: barColor }} />
-                    </div>
-                    <p className="text-white/30 text-[9px]">
-                      {level.nextAt - estrellas} 🌭 más para {level.next}
-                    </p>
-                  </div>
-                )}
-
-                {/* Row 4: Name + level */}
-                <div className="flex items-center justify-between">
-                  <p className="text-white/40 text-[10px] font-semibold tracking-widest uppercase">
-                    {customer.name.split(' ')[0].toUpperCase()}
+                {/* Row 2: Cash balance */}
+                <div className="mb-4">
+                  <p className="text-white/40 text-[9px] font-bold tracking-widest uppercase mb-0.5">Doggo Cash</p>
+                  <p className="text-doggo-yellow font-black leading-none" style={{ fontSize: '2.6rem', letterSpacing: '-1px' }}>
+                    ${doggoCash.toFixed(2)}
                   </p>
-                  <span className="bg-white/10 text-white text-[9px] font-black px-2.5 py-1 rounded-full tracking-wide">
-                    {level.emoji} {level.label.toUpperCase()}
-                  </span>
                 </div>
+
+                {/* Row 3: Hot dog jar */}
+                <div className="mb-4">
+                  <div className="flex gap-1.5 mb-1.5">
+                    {Array.from({ length: milestoneCount }).map((_, i) => (
+                      <div
+                        key={i}
+                        className="flex-1 h-6 rounded-md flex items-center justify-center text-sm"
+                        style={{ background: i < cycleProgress ? 'rgba(253,196,35,0.25)' : 'rgba(255,255,255,0.07)' }}
+                      >
+                        <span style={{ opacity: i < cycleProgress ? 1 : 0.2 }}>🌭</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-white/30 text-[9px]">
+                    {cycleProgress === 0
+                      ? `Cada $${spendPerHotDog} = 1 🌭 · Junta ${milestoneCount} → +$${milestoneReward.toFixed(2)}`
+                      : `${milestoneCount - cycleProgress} 🌭 más para +$${milestoneReward.toFixed(2)} Doggo Cash`
+                    }
+                  </p>
+                </div>
+
+                {/* Row 4: Name */}
+                <p className="text-white/40 text-[10px] font-semibold tracking-widest uppercase">
+                  {customer.name.split(' ')[0].toUpperCase()}
+                </p>
               </div>
             </Link>
           </div>
@@ -217,7 +203,7 @@ export default async function Home() {
             <div className="p-5 relative">
               <p className="text-white/60 text-xs font-semibold uppercase tracking-widest mb-1">Club Doggo</p>
               <p className="text-white font-black text-xl leading-tight mb-1">Gana 🌭 con<br />cada pedido</p>
-              <p className="text-white/50 text-xs mb-4">$5 = 1 🌭 · Se convierte en Doggo Cash automáticamente</p>
+              <p className="text-white/50 text-xs mb-4">Cada ${spendPerHotDog} = 1 🌭 · Junta {milestoneCount} → ganás ${milestoneReward.toFixed(2)}</p>
               <Link href="/login" className="inline-block bg-doggo-yellow text-doggo-dark font-black text-sm px-5 py-2.5 rounded-2xl">
                 Unirme gratis →
               </Link>

@@ -4,11 +4,8 @@ import { useEffect, useState } from 'react'
 
 type LoyaltySettings = {
   loyalty_spend_per_hot_dog: string
-  loyalty_rate_bronce: string
-  loyalty_rate_plata: string
-  loyalty_rate_oro: string
-  loyalty_threshold_plata: string
-  loyalty_threshold_oro: string
+  loyalty_milestone_count: string
+  loyalty_milestone_reward: string
 }
 
 type Settings = {
@@ -20,11 +17,8 @@ type Settings = {
 
 const LOYALTY_DEFAULTS: LoyaltySettings = {
   loyalty_spend_per_hot_dog: '5',
-  loyalty_rate_bronce: '0.50',
-  loyalty_rate_plata: '0.75',
-  loyalty_rate_oro: '1.00',
-  loyalty_threshold_plata: '11',
-  loyalty_threshold_oro: '26',
+  loyalty_milestone_count:   '5',
+  loyalty_milestone_reward:  '2.50',
 }
 
 export default function ConfiguracionPage() {
@@ -88,11 +82,8 @@ export default function ConfiguracionPage() {
   function startEditLoyalty() {
     setLoyaltySnapshot({
       loyalty_spend_per_hot_dog: settings.loyalty_spend_per_hot_dog,
-      loyalty_rate_bronce:       settings.loyalty_rate_bronce,
-      loyalty_rate_plata:        settings.loyalty_rate_plata,
-      loyalty_rate_oro:          settings.loyalty_rate_oro,
-      loyalty_threshold_plata:   settings.loyalty_threshold_plata,
-      loyalty_threshold_oro:     settings.loyalty_threshold_oro,
+      loyalty_milestone_count:   settings.loyalty_milestone_count,
+      loyalty_milestone_reward:  settings.loyalty_milestone_reward,
     })
     setLoyaltyEditing(true)
     setLoyaltyError(null)
@@ -113,11 +104,8 @@ export default function ConfiguracionPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           loyalty_spend_per_hot_dog: settings.loyalty_spend_per_hot_dog,
-          loyalty_rate_bronce:       settings.loyalty_rate_bronce,
-          loyalty_rate_plata:        settings.loyalty_rate_plata,
-          loyalty_rate_oro:          settings.loyalty_rate_oro,
-          loyalty_threshold_plata:   settings.loyalty_threshold_plata,
-          loyalty_threshold_oro:     settings.loyalty_threshold_oro,
+          loyalty_milestone_count:   settings.loyalty_milestone_count,
+          loyalty_milestone_reward:  settings.loyalty_milestone_reward,
         }),
       })
       if (!res.ok) throw new Error('Error al guardar')
@@ -141,8 +129,6 @@ export default function ConfiguracionPage() {
   }
 
   const isOpen = settings.orders_enabled === 'true'
-  const tPlata = Number(settings.loyalty_threshold_plata)
-  const tOro   = Number(settings.loyalty_threshold_oro)
 
   return (
     <div className="p-6 max-w-2xl space-y-6">
@@ -259,26 +245,22 @@ export default function ConfiguracionPage() {
         {!loyaltyEditing ? (
           /* ── Vista bloqueada (solo lectura) ── */
           <div className="space-y-3">
-            <div className="bg-doggo-yellow/10 border border-doggo-yellow/20 rounded-xl px-4 py-3 flex items-center gap-3">
-              <span className="text-2xl">🛒</span>
-              <p className="text-gray-900 font-bold text-sm">
-                Cada <span className="text-doggo-red">${settings.loyalty_spend_per_hot_dog}</span> de compra = 1 🌭
-              </p>
-            </div>
-            <div className="divide-y divide-gray-100 rounded-xl border border-gray-100 overflow-hidden">
-              {[
-                { emoji: '🥉', label: 'Bronce', range: `0 – ${tPlata - 1}`, rate: settings.loyalty_rate_bronce },
-                { emoji: '🥈', label: 'Plata',  range: `${tPlata} – ${tOro - 1}`,   rate: settings.loyalty_rate_plata  },
-                { emoji: '🥇', label: 'Oro',    range: `${tOro}+`,              rate: settings.loyalty_rate_oro    },
-              ].map((row) => (
-                <div key={row.label} className="flex items-center justify-between px-4 py-3 bg-white">
-                  <span className="text-gray-700 text-sm">
-                    {row.emoji} <span className="font-semibold">{row.label}</span>{' '}
-                    <span className="text-gray-400 text-xs">({row.range} 🌭)</span>
-                  </span>
-                  <span className="text-gray-900 font-black text-sm">${row.rate} / 🌭</span>
+            {/* Ejemplo visual del ciclo */}
+            <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="flex gap-1">
+                  {Array.from({ length: Number(settings.loyalty_milestone_count) }).map((_, i) => (
+                    <span key={i} className="text-lg">🌭</span>
+                  ))}
                 </div>
-              ))}
+                <span className="text-gray-400 text-lg font-bold">→</span>
+                <span className="text-gray-900 font-black text-lg">${Number(settings.loyalty_milestone_reward).toFixed(2)}</span>
+              </div>
+              <div className="space-y-1 text-sm text-gray-600">
+                <p>Cada <span className="font-bold text-gray-900">${settings.loyalty_spend_per_hot_dog}</span> gastados = 1 🌭</p>
+                <p>Al juntar <span className="font-bold text-gray-900">{settings.loyalty_milestone_count} 🌭</span> → el cliente recibe <span className="font-bold text-gray-900">${Number(settings.loyalty_milestone_reward).toFixed(2)}</span> de Doggo Cash</p>
+                <p className="text-gray-400 text-xs">El contador se reinicia. El Doggo Cash se acumula hasta que lo use.</p>
+              </div>
             </div>
             {loyaltySaved && (
               <p className="text-green-600 text-xs font-semibold text-center py-1">✓ Reglas guardadas correctamente</p>
@@ -288,7 +270,7 @@ export default function ConfiguracionPage() {
           /* ── Modo edición ── */
           <div className="space-y-5">
             <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-amber-800 text-xs font-semibold">
-              ⚠️ Cambiar estos valores afecta a todos los pedidos futuros. Los puntos ya acumulados no se ven afectados.
+              ⚠️ Cambiar estos valores afecta a todos los pedidos futuros. Los hot dogs ya acumulados no se ven afectados.
             </div>
 
             {/* Gasto por hot dog */}
@@ -310,69 +292,47 @@ export default function ConfiguracionPage() {
               </div>
             </div>
 
-            {/* Tasas por nivel */}
+            {/* Hot dogs por ciclo */}
             <div>
-              <label className="block text-gray-500 text-xs font-semibold mb-3 uppercase tracking-wide">
-                Doggo Cash que se gana por cada 🌭 (según nivel)
+              <label className="block text-gray-500 text-xs font-semibold mb-2 uppercase tracking-wide">
+                ¿Cuántos 🌭 hay que juntar para ganar el premio?
               </label>
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { key: 'loyalty_rate_bronce' as keyof Settings, emoji: '🥉', label: 'Bronce' },
-                  { key: 'loyalty_rate_plata'  as keyof Settings, emoji: '🥈', label: 'Plata'  },
-                  { key: 'loyalty_rate_oro'    as keyof Settings, emoji: '🥇', label: 'Oro'    },
-                ].map((lvl) => (
-                  <div key={lvl.key}>
-                    <p className="text-xs text-gray-500 mb-1.5">{lvl.emoji} {lvl.label}</p>
-                    <div className="flex items-center gap-1">
-                      <span className="text-gray-400 text-xs font-bold">$</span>
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={settings[lvl.key]}
-                        onChange={(e) => set(lvl.key, e.target.value)}
-                        className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40"
-                      />
-                    </div>
-                  </div>
-                ))}
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={settings.loyalty_milestone_count}
+                  onChange={(e) => set('loyalty_milestone_count', e.target.value)}
+                  className="w-24 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40"
+                />
+                <span className="text-gray-400 text-sm">🌭</span>
               </div>
             </div>
 
-            {/* Umbrales */}
+            {/* Premio */}
             <div>
-              <label className="block text-gray-500 text-xs font-semibold mb-3 uppercase tracking-wide">
-                ¿A partir de cuántos 🌭 sube de nivel?
+              <label className="block text-gray-500 text-xs font-semibold mb-2 uppercase tracking-wide">
+                ¿Cuánto Doggo Cash se gana al completar el ciclo?
               </label>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-xs text-gray-500 mb-1.5">🥈 Plata desde (🌭)</p>
-                  <input
-                    type="number"
-                    min="1"
-                    step="1"
-                    value={settings.loyalty_threshold_plata}
-                    onChange={(e) => set('loyalty_threshold_plata', e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40"
-                  />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500 mb-1.5">🥇 Oro desde (🌭)</p>
-                  <input
-                    type="number"
-                    min="1"
-                    step="1"
-                    value={settings.loyalty_threshold_oro}
-                    onChange={(e) => set('loyalty_threshold_oro', e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40"
-                  />
-                </div>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-400 text-sm font-semibold">$</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.50"
+                  value={settings.loyalty_milestone_reward}
+                  onChange={(e) => set('loyalty_milestone_reward', e.target.value)}
+                  className="w-28 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-doggo-yellow/40"
+                />
+                <span className="text-gray-400 text-sm">Doggo Cash</span>
               </div>
-              <p className="text-gray-400 text-[10px] mt-2">
-                Bronce: 0 – {settings.loyalty_threshold_plata ? Number(settings.loyalty_threshold_plata) - 1 : '?'} 🌭 ·{' '}
-                Plata: {settings.loyalty_threshold_plata} – {settings.loyalty_threshold_oro ? Number(settings.loyalty_threshold_oro) - 1 : '?'} 🌭 ·{' '}
-                Oro: {settings.loyalty_threshold_oro}+ 🌭
-              </p>
+            </div>
+
+            {/* Preview */}
+            <div className="bg-gray-50 rounded-xl px-4 py-3 text-xs text-gray-500">
+              <span className="font-bold text-gray-700">Vista previa: </span>
+              Cada ${settings.loyalty_spend_per_hot_dog} gastados = 1 🌭 · Al juntar {settings.loyalty_milestone_count} 🌭 el cliente recibe ${Number(settings.loyalty_milestone_reward).toFixed(2)} Doggo Cash
             </div>
 
             {loyaltyError && (

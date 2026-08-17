@@ -5,24 +5,13 @@ import { redirect } from 'next/navigation'
 
 export const metadata: Metadata = {
   title: 'Mi perfil · Doggo',
-  description: 'Tu saldo Doggo Cash, estrellas, historial de pedidos y recompensas.',
+  description: 'Tu saldo Doggo Cash, hot dogs acumulados e historial de pedidos.',
 }
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { Customer, LoyaltyTransaction } from '@/types'
 import LogoutButton from './LogoutButton'
 import Link from 'next/link'
-
-// Bronce 0-10 🌭 · Plata 11-25 🌭 · Oro 26+ 🌭
-const LEVELS = [
-  { label: 'Bronce', emoji: '🥉', min: 0,  color: '#CD7F32', rate: 0.50 },
-  { label: 'Plata',  emoji: '🥈', min: 11, color: '#A8A9AD', rate: 0.75 },
-  { label: 'Oro',    emoji: '🥇', min: 26, color: '#F5C400', rate: 1.00 },
-]
-
-function getLevel(estrellas: number) {
-  return LEVELS.findLast((l) => estrellas >= l.min) ?? LEVELS[0]
-}
 
 export default async function PerfilPage() {
   const supabase = await createClient()
@@ -59,8 +48,22 @@ export default async function PerfilPage() {
 
   const c = customer as Customer
 
-  const estrellas = c.estrellas ?? 0
+  const estrellas  = c.estrellas ?? 0
   const doggo_cash = Number(c.doggo_cash ?? 0)
+
+  // Loyalty settings from DB
+  const { data: loyaltyRows } = await admin
+    .from('business_settings')
+    .select('key, value')
+    .in('key', ['loyalty_spend_per_hot_dog', 'loyalty_milestone_count', 'loyalty_milestone_reward'])
+  const ls = Object.fromEntries((loyaltyRows ?? []).map((r) => [r.key, r.value]))
+  const spendPerHotDog  = Number(ls['loyalty_spend_per_hot_dog']  ?? 5)
+  const milestoneCount  = Number(ls['loyalty_milestone_count']    ?? 5)
+  const milestoneReward = Number(ls['loyalty_milestone_reward']   ?? 2.50)
+
+  // Cycle progress
+  const cycleProgress = estrellas % milestoneCount   // 0 – (milestoneCount-1)
+  const cyclesTotal   = Math.floor(estrellas / milestoneCount)
 
   const { data: transactions } = await admin
     .from('loyalty_transactions')
@@ -68,12 +71,6 @@ export default async function PerfilPage() {
     .eq('customer_id', c.id)
     .order('created_at', { ascending: false })
     .limit(15)
-
-  const level = getLevel(estrellas)
-  const nextLevel = LEVELS.find((l) => l.min > estrellas)
-  const progressPct = nextLevel
-    ? Math.min(100, ((estrellas - level.min) / (nextLevel.min - level.min)) * 100)
-    : 100
 
   return (
     <div className="min-h-screen bg-white pb-28">
@@ -90,20 +87,16 @@ export default async function PerfilPage() {
         <div className="relative rounded-3xl overflow-hidden select-none"
           style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #2d1800 55%, #0f0800 100%)' }}>
 
-          {/* Shine overlay */}
+          {/* Shine */}
           <div className="absolute inset-0 pointer-events-none"
             style={{ background: 'linear-gradient(115deg, transparent 0%, rgba(253,196,35,0.07) 45%, transparent 80%)' }} />
-          {/* Glow spots */}
           <div className="absolute -top-14 -right-14 w-48 h-48 rounded-full opacity-25"
-            style={{ background: 'radial-gradient(circle, #FDC423 0%, transparent 70%)' }} />
-          <div className="absolute -bottom-10 -left-10 w-36 h-36 rounded-full opacity-10"
             style={{ background: 'radial-gradient(circle, #FDC423 0%, transparent 70%)' }} />
 
           <div className="relative p-5">
 
             {/* Row 1: Chip + Logo */}
             <div className="flex items-center justify-between mb-6">
-              {/* EMV Chip */}
               <svg width="38" height="30" viewBox="0 0 38 30" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect width="38" height="30" rx="5" fill="url(#cg)"/>
                 <rect x="15" y="0"  width="8" height="30" fill="rgba(0,0,0,0.18)"/>
@@ -117,10 +110,8 @@ export default async function PerfilPage() {
                   </linearGradient>
                 </defs>
               </svg>
-              {/* Brand */}
               <div className="flex items-center gap-2">
                 <span className="text-white font-black text-sm tracking-widest">🌭 DOGGO</span>
-                {/* Contactless waves */}
                 <svg width="14" height="18" viewBox="0 0 14 18" fill="none" className="opacity-40">
                   <path d="M2 9 Q7 3 12 9" stroke="white" strokeWidth="1.4" strokeLinecap="round" fill="none"/>
                   <path d="M4 9 Q7 5.5 10 9" stroke="white" strokeWidth="1.4" strokeLinecap="round" fill="none"/>
@@ -135,46 +126,51 @@ export default async function PerfilPage() {
               <p className="text-doggo-yellow font-black leading-none" style={{ fontSize: '3.2rem', letterSpacing: '-1px' }}>
                 ${doggo_cash.toFixed(2)}
               </p>
-              <p className="text-white/30 text-[11px] mt-1">Descuento real en tu próximo pedido</p>
+              <p className="text-white/30 text-[11px] mt-1">Descuento en tu próximo pedido</p>
             </div>
 
-            {/* Row 3: Hot dogs + progress bar */}
+            {/* Row 3: Hot dog jar */}
             <div className="mb-6">
               <div className="flex items-center justify-between mb-2">
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-white font-black text-xl">{estrellas}</span>
-                  <span className="text-white/60 text-sm">🌭 hot dogs</span>
-                </div>
-                {nextLevel ? (
-                  <span className="text-white/40 text-[10px]">
-                    faltan {nextLevel.min - estrellas} 🌭 para {nextLevel.emoji} {nextLevel.label}
-                  </span>
-                ) : (
-                  <span className="text-doggo-yellow text-[10px] font-black">¡Nivel máximo! 🏆</span>
-                )}
+                <p className="text-white/40 text-[9px] font-bold tracking-widest uppercase">Próximo premio</p>
+                <p className="text-white/40 text-[9px]">{cycleProgress} de {milestoneCount} 🌭</p>
               </div>
-              <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-700"
-                  style={{ width: `${progressPct}%`, backgroundColor: level.color }}
-                />
+              {/* Visual jar */}
+              <div className="flex gap-1.5 mb-2">
+                {Array.from({ length: milestoneCount }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex-1 h-7 rounded-lg flex items-center justify-center text-base transition-all"
+                    style={{
+                      background: i < cycleProgress
+                        ? 'rgba(253,196,35,0.25)'
+                        : 'rgba(255,255,255,0.07)',
+                    }}
+                  >
+                    <span style={{ opacity: i < cycleProgress ? 1 : 0.2 }}>🌭</span>
+                  </div>
+                ))}
               </div>
-              {nextLevel && (
-                <div className="flex justify-between mt-1 text-[9px] text-white/25">
-                  <span>{level.min} 🌭 {level.label}</span>
-                  <span>{nextLevel.min} 🌭 {nextLevel.label}</span>
-                </div>
-              )}
+              <p className="text-white/30 text-[10px]">
+                {cycleProgress === 0 && cyclesTotal === 0
+                  ? `Cada $${spendPerHotDog} ganás 1 🌭 · Junta ${milestoneCount} → +$${milestoneReward.toFixed(2)}`
+                  : cycleProgress === 0
+                    ? `¡Ciclo completo! Ya vas en el ${cyclesTotal}° ciclo`
+                    : `Te faltan ${milestoneCount - cycleProgress} 🌭 para +$${milestoneReward.toFixed(2)} Doggo Cash`
+                }
+              </p>
             </div>
 
-            {/* Row 4: Cardholder name + level badge */}
+            {/* Row 4: Cardholder name */}
             <div className="flex items-center justify-between">
               <p className="text-white/50 text-[11px] font-semibold tracking-widest uppercase">
                 {c.name.toUpperCase()}
               </p>
-              <span className="bg-white/10 text-white text-[10px] font-black px-3 py-1 rounded-full tracking-wide">
-                {level.emoji} {level.label.toUpperCase()} · ${level.rate.toFixed(2)}/🌭
-              </span>
+              {cyclesTotal > 0 && (
+                <span className="bg-white/10 text-white/60 text-[9px] font-bold px-2.5 py-1 rounded-full">
+                  {cyclesTotal} {cyclesTotal === 1 ? 'ciclo' : 'ciclos'} completados
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -199,27 +195,21 @@ export default async function PerfilPage() {
               <span className="text-xl shrink-0 mt-0.5">🛒</span>
               <div>
                 <p className="text-gray-900 text-xs font-bold">Pides → ganas hot dogs</p>
-                <p className="text-gray-500 text-xs">Cada $5 de tu pedido = 1 🌭. Se acumulan solos, no hay que hacer nada.</p>
+                <p className="text-gray-500 text-xs">Cada ${spendPerHotDog} de tu pedido = 1 🌭. Se acumulan solos.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="text-xl shrink-0 mt-0.5">🎯</span>
+              <div>
+                <p className="text-gray-900 text-xs font-bold">Junta {milestoneCount} 🌭 → ganas ${milestoneReward.toFixed(2)}</p>
+                <p className="text-gray-500 text-xs">Cuando llegás a {milestoneCount} hot dogs, te caen ${milestoneReward.toFixed(2)} de Doggo Cash automáticamente. El contador vuelve a cero.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <span className="text-xl shrink-0 mt-0.5">💸</span>
               <div>
-                <p className="text-gray-900 text-xs font-bold">Los 🌭 se convierten en Doggo Cash</p>
-                <p className="text-gray-500 text-xs">
-                  {level.emoji} {level.label}: 1 🌭 = ${level.rate.toFixed(2)} · {
-                    level.label === 'Bronce' ? 'Plata (11🌭): $0.75 · Oro (26🌭): $1.00' :
-                    level.label === 'Plata'  ? 'Oro (26🌭): $1.00' :
-                    '¡Ya estás en el nivel máximo!'
-                  }
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="text-xl shrink-0 mt-0.5">🎉</span>
-              <div>
                 <p className="text-gray-900 text-xs font-bold">Usas el Doggo Cash al pedir</p>
-                <p className="text-gray-500 text-xs">En el checkout aparece tu saldo disponible. Lo usas como descuento real en tu pedido.</p>
+                <p className="text-gray-500 text-xs">En el checkout aparece tu saldo. Lo aplicas como descuento real. Se acumula hasta que lo quieras usar.</p>
               </div>
             </div>
           </div>
@@ -232,7 +222,7 @@ export default async function PerfilPage() {
             <div className="space-y-1">
               {(transactions as (LoyaltyTransaction & { doggo_cash_amount?: number | null })[]).map((tx) => {
                 const isEarned = tx.type === 'earned'
-                const cashAmt = Number(tx.doggo_cash_amount ?? 0)
+                const cashAmt  = Number(tx.doggo_cash_amount ?? 0)
                 return (
                   <div key={tx.id} className="bg-gray-50 rounded-xl px-4 py-3 flex items-center gap-3 border border-gray-100">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${isEarned ? 'bg-green-50' : 'bg-doggo-red/10'}`}>
@@ -267,7 +257,7 @@ export default async function PerfilPage() {
           <div className="text-center py-10">
             <p className="text-4xl mb-3">🌭</p>
             <p className="text-gray-900 font-bold">Aún no tienes hot dogs</p>
-            <p className="text-gray-500 text-sm mt-1">¡Haz tu primer pedido y empieza a acumular!</p>
+            <p className="text-gray-500 text-sm mt-1">Haz tu primer pedido y empieza a acumular.</p>
             <Link href="/menu" className="inline-block mt-4 bg-doggo-yellow text-doggo-dark font-black px-6 py-2.5 rounded-full text-sm">
               Ver menú
             </Link>

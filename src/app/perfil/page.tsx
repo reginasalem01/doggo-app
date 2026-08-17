@@ -213,7 +213,7 @@ export default async function PerfilPage() {
             <div className="flex items-start gap-3">
               <span className="text-xl shrink-0 mt-0.5">🎉</span>
               <div>
-                <p className="text-gray-900 text-xs font-bold">Usás el Doggo Cash al pedir</p>
+                <p className="text-gray-900 text-xs font-bold">Usas el Doggo Cash al pedir</p>
                 <p className="text-gray-500 text-xs">En el checkout aparece tu saldo disponible. Lo usas como descuento real en tu pedido.</p>
               </div>
             </div>

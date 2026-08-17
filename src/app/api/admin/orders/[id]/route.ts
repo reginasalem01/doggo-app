@@ -6,14 +6,22 @@ import { requireRole } from '@/lib/supabase/auth-guard'
 const VALID_STATUSES = ['new', 'accepted', 'preparing', 'ready', 'delivered', 'cancelled']
 
 // ── Doggo loyalty helpers ───────────────────────────────────────────────────
-// $5 gastados → 1 🌭 (hot dog)
-// Bronce (0-10 🌭): $0.50/🌭
-// Plata  (11-25 🌭): $0.75/🌭
-// Oro    (26+  🌭): $1.00/🌭
-function getEstrellasRate(currentEstrellas: number): number {
-  if (currentEstrellas < 11) return 0.50
-  if (currentEstrellas < 26) return 0.75
-  return 1.00
+// Rates are configurable from the owner panel (business_settings table).
+// Defaults: $5 = 1 🌭 · Bronce $0.50/🌭 · Plata $0.75/🌭 · Oro $1.00/🌭
+async function fetchLoyaltySettings(admin: ReturnType<typeof import('@/lib/supabase/admin').createAdminClient>) {
+  const { data } = await admin
+    .from('business_settings')
+    .select('key, value')
+    .in('key', ['loyalty_spend_per_hot_dog', 'loyalty_rate_bronce', 'loyalty_rate_plata', 'loyalty_rate_oro', 'loyalty_threshold_plata', 'loyalty_threshold_oro'])
+  const s = Object.fromEntries((data ?? []).map((r) => [r.key, r.value]))
+  return {
+    spendPerHotDog:   Number(s['loyalty_spend_per_hot_dog']  ?? 5),
+    rateBronce:       Number(s['loyalty_rate_bronce']        ?? 0.50),
+    ratePlata:        Number(s['loyalty_rate_plata']         ?? 0.75),
+    rateOro:          Number(s['loyalty_rate_oro']           ?? 1.00),
+    thresholdPlata:   Number(s['loyalty_threshold_plata']    ?? 11),
+    thresholdOro:     Number(s['loyalty_threshold_oro']      ?? 26),
+  }
 }
 
 export async function PATCH(
@@ -150,13 +158,18 @@ export async function PATCH(
       }
 
       if (customer) {
-        // 1 🌭 por cada $5 gastados (redondeado hacia abajo)
-        const estrellasEarned = Math.floor(Number(order.total) / 5)
+        // Read loyalty rules from DB (owner-configurable)
+        const loyalty = await fetchLoyaltySettings(admin)
+        const estrellasEarned = Math.floor(Number(order.total) / loyalty.spendPerHotDog)
         if (estrellasEarned > 0) {
           const currentEstrellas = customer.estrellas ?? 0
-          const rate = getEstrellasRate(currentEstrellas)
+          const rate = currentEstrellas >= loyalty.thresholdOro
+            ? loyalty.rateOro
+            : currentEstrellas >= loyalty.thresholdPlata
+              ? loyalty.ratePlata
+              : loyalty.rateBronce
           const doggoEarned = parseFloat((estrellasEarned * rate).toFixed(2))
-          const levelLabel = currentEstrellas < 11 ? 'Bronce' : currentEstrellas < 26 ? 'Plata' : 'Oro'
+          const levelLabel = currentEstrellas >= loyalty.thresholdOro ? 'Oro' : currentEstrellas >= loyalty.thresholdPlata ? 'Plata' : 'Bronce'
 
           await Promise.all([
             admin.from('customers').update({

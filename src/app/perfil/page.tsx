@@ -31,6 +31,11 @@ export default async function PerfilPage() {
 
   const admin = createAdminClient()
 
+  // Si es admin/staff, redirigir al panel correspondiente
+  const { data: adminProfile } = await admin.from('admin_profiles').select('role').eq('auth_user_id', user.id).single()
+  if (adminProfile?.role === 'owner') redirect('/owner')
+  if (adminProfile?.role === 'staff') redirect('/admin')
+
   let { data: customer } = await admin.from('customers').select('*').eq('auth_user_id', user.id).single()
 
   if (!customer) {

@@ -466,7 +466,7 @@ export default function CheckoutPage() {
                 type="button"
                 onClick={() => setUseDoggoGash(!useDoggoGash)}
                 className={`shrink-0 px-4 py-2 rounded-xl text-xs font-black transition-colors ${
-                  useDoggoGash ? 'bg-doggo-yellow text-doggo-dark' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                  useDoggoGash ? 'bg-doggo-yellow text-doggo-dark' : 'bg-doggo-red text-white hover:bg-doggo-red/90'
                 }`}
               >
                 {useDoggoGash ? '✓ Aplicado' : 'Aplicar'}
